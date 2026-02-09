@@ -1,0 +1,21 @@
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+.env
+
+# Spring Boot / Java
+target/
+*.class
+*.log
+*.jar
+*.war
+
+# OS
+.DS_Store
+Thumbs.db

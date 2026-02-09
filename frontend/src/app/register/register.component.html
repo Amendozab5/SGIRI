@@ -1,0 +1,119 @@
+<div class="register-container">
+  <div *ngIf="!isSuccessful" class="register-card">
+    <div class="register-header">
+      <svg xmlns="http://www.w3.org/2000/svg" class="register-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z" />
+        <path d="M10.5 8.5l-2 2 2 2" />
+        <path d="M13.5 12.5l2-2-2-2" />
+        <path d="M12 15.5V18" />
+        <path d="M9.5 14l-2 2" />
+        <path d="M14.5 14l2 2" />
+      </svg>
+      <h1>Crear una Cuenta</h1>
+      <p>Únete a SGIM para gestionar tus incidencias de manera eficiente.</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Personal Information Section -->
+      <fieldset class="form-section" formGroupName="personalInfo">
+        <legend class="section-title">
+          <i class="bi bi-person-fill"></i>
+          Información Personal
+        </legend>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nombres" class="form-label">Nombre(s)</label>
+            <input type="text" id="nombres" class="form-control" formControlName="nombres" placeholder="Ej: Juan Carlos">
+            <!-- Error Messages -->
+          </div>
+          <div class="form-group">
+            <label for="apellidos" class="form-label">Apellidos</label>
+            <input type="text" id="apellidos" class="form-control" formControlName="apellidos" placeholder="Ej: Pérez González">
+            <!-- Error Messages -->
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cedula" class="form-label">Cédula</label>
+          <input type="text" id="cedula" class="form-control" formControlName="cedula" placeholder="Ej: 1234567890">
+          <!-- Error Messages -->
+        </div>
+      </fieldset>
+
+      <!-- Contact Information Section -->
+      <fieldset class="form-section" formGroupName="contactInfo">
+        <legend class="section-title">
+          <i class="bi bi-telephone-fill"></i>
+          Información de Contacto
+        </legend>
+        <div class="form-group">
+          <label for="direccion" class="form-label">Dirección</label>
+          <input type="text" id="direccion" class="form-control" formControlName="direccion" placeholder="Ej: Av. Siempre Viva 123">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="numeroTelefonico" class="form-label">Número Telefónico</label>
+            <input type="tel" id="numeroTelefonico" class="form-control" formControlName="numeroTelefonico" placeholder="Ej: +593987654321">
+          </div>
+          <div class="form-group">
+            <label for="email" class="form-label">Correo Electrónico</label>
+            <input type="email" id="email" class="form-control" formControlName="email" placeholder="tu.correo@ejemplo.com">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Location Section -->
+      <fieldset class="form-section" formGroupName="location">
+        <legend class="section-title">
+          <i class="bi bi-geo-alt-fill"></i>
+          Ubicación
+        </legend>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pais" class="form-label">País</label>
+            <select id="pais" class="form-control" formControlName="paisId">
+              <option [ngValue]="null" disabled>Selecciona un país</option>
+              <option *ngFor="let p of paises" [ngValue]="p.id">{{ p.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="ciudad" class="form-label">Ciudad</label>
+            <select id="ciudad" class="form-control" formControlName="ciudadId">
+              <option [ngValue]="null" disabled>Selecciona una ciudad</option>
+              <option *ngFor="let c of ciudades" [ngValue]="c.id">{{ c.nombre }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="canton" class="form-label">Cantón</label>
+          <select id="canton" class="form-control" formControlName="cantonId">
+            <option [ngValue]="null" disabled>Selecciona un cantón</option>
+            <option *ngFor="let can of cantones" [ngValue]="can.id">{{ can.nombre }}</option>
+          </select>
+        </div>
+      </fieldset>
+      
+      <div class="alert alert-danger mt-3" *ngIf="isSignUpFailed">
+        {{ errorMessage }}
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="registerForm.invalid || isProcessing">
+          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          <span *ngIf="!isProcessing">Registrarse</span>
+        </button>
+      </div>
+
+      <div class="login-link">
+        ¿Ya tienes una cuenta? <a routerLink="/login">Inicia Sesión</a>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="isSuccessful" class="success-card">
+    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+    <h4>¡Registro Exitoso!</h4>
+    <p>Hemos enviado un correo de verificación a tu cuenta. Por favor, revisa tu bandeja de entrada.</p>
+    <a routerLink="/login" class="btn btn-primary">Volver al Login</a>
+  </div>
+</div>

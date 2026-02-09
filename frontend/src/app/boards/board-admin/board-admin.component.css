@@ -1,0 +1,179 @@
+/* General Dashboard Styles */
+:host {
+  display: block;
+  background-color: #f8f9fa; /* Light gray background */
+}
+
+.admin-dashboard {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Page Header */
+.page-header .page-title {
+  font-weight: 600;
+  font-size: 1.75rem;
+  color: #343a40;
+}
+
+.page-header .page-subtitle {
+  font-size: 0.9rem;
+}
+
+/* Action Bar */
+.search-box {
+  position: relative;
+  width: 300px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  color: #adb5bd;
+}
+
+.search-input {
+  padding-left: 40px;
+  border-radius: 0.5rem;
+  border: 1px solid #dee2e6;
+}
+
+/* Role Filter Buttons in Action Bar */
+/* Custom colors for role filter buttons */
+.btn-role-user {
+  background-color: #0d6efd; /* Bootstrap Primary Blue */
+  color: #fff;
+  border-color: #0d6efd;
+}
+.btn-role-user.active {
+  background-color: #0b5ed7; /* Darker blue when active */
+  border-color: #0a58ca;
+}
+
+.btn-role-technician {
+  background-color: #ffc107; /* Bootstrap Warning Yellow */
+  color: #212529; /* Dark text for yellow background */
+  border-color: #ffc107;
+}
+.btn-role-technician.active {
+  background-color: #ffcd39; /* Darker yellow when active */
+  border-color: #ffc720;
+}
+
+.btn-role-admin {
+  background-color: #dc3545; /* Bootstrap Danger Red */
+  color: #fff;
+  border-color: #dc3545;
+}
+.btn-role-admin.active {
+  background-color: #bb2d3b; /* Darker red when active */
+  border-color: #b02a37;
+}
+
+/* General styles for filter buttons */
+.btn.me-2 {
+  border-radius: 0.5rem;
+  border: 1px solid transparent; /* Start with transparent border to avoid double border */
+}
+
+/* Ensure border-radius for individual buttons */
+.btn.me-2:not(:first-child):not(:last-child) {
+  border-radius: 0.5rem;
+}
+
+/* User Table Card */
+.user-table-card {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Table Styles */
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  color: #495057;
+  white-space: nowrap; /* Prevent text wrapping in headers */
+}
+
+.table tbody td {
+  vertical-align: middle;
+  padding: 1rem;
+}
+
+.user-row {
+  transition: background-color 0.2s ease;
+}
+
+.user-row:hover {
+  background-color: #f1f3f5;
+}
+
+.table .badge {
+  font-weight: 500;
+  padding: 0.4em 0.6em;
+  font-size: 0.75em;
+  border-radius: 0.35rem;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.btn-icon:hover {
+  background-color: #e9ecef;
+}
+
+/* Specific button colors for status toggle */
+.btn-icon.text-success:hover { background-color: rgba(25, 135, 84, 0.1); } /* Green hover */
+.btn-icon.text-warning:hover { background-color: rgba(255, 193, 7, 0.1); } /* Yellow hover */
+.btn-icon.text-danger:hover { background-color: rgba(220, 53, 69, 0.1); } /* Red hover for delete if re-added */
+
+/* Custom styles for the explicit Delete button */
+.btn-delete-custom {
+  background-color: #dc3545; /* Bootstrap Danger Red */
+  border-color: #dc3545;
+  padding: 0.375rem 0.75rem; /* Standard button padding */
+  font-size: 0.875rem; /* Standard button font size */
+  line-height: 1.5;
+  border-radius: 0.25rem; /* Standard button border-radius */
+}
+
+.btn-delete-custom:hover {
+  background-color: #bb2d3b; /* Darker red on hover */
+  border-color: #bb2d3b;
+}
+
+
+/* Empty State */
+.empty-state {
+  color: #6c757d;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #dee2e6;
+}

@@ -1,0 +1,34 @@
+<div class="d-flex" id="wrapper" [class.sb-sidenav-toggled]="false">
+  <!-- Sidebar-->
+  <div class="border-end bg-white" id="sidebar-wrapper">
+    <div class="sidebar-heading border-bottom bg-light">SGIM</div>
+    <div class="list-group list-group-flush">
+      <!-- User-specific Links -->
+      <a class="list-group-item list-group-item-action list-group-item-light p-3" routerLink="/home/user" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" *ngIf="showUserBoard">
+        <i class="bi bi-house-door-fill me-2"></i>Dashboard
+      </a>
+      <a class="list-group-item list-group-item-action list-group-item-light p-3" routerLink="/home/user/report-incident" routerLinkActive="active" *ngIf="showUserBoard">
+        <i class="bi bi-plus-circle-fill me-2"></i>Reportar Incidencia
+      </a>
+      
+      <!-- Technician-specific Links -->
+      <a class="list-group-item list-group-item-action list-group-item-light p-3" routerLink="/home/tech" routerLinkActive="active" *ngIf="showTechnicianBoard">
+        <i class="bi bi-tools me-2"></i>Dashboard Técnico
+      </a>
+
+      <!-- Admin-specific Links -->
+      <a class="list-group-item list-group-item-action list-group-item-light p-3" routerLink="/home/admin" routerLinkActive="active" *ngIf="showAdminBoard">
+        <i class="bi bi-person-badge me-2"></i>Gestion de Usuarios
+      </a>
+    </div>
+  </div>
+  <!-- Page content wrapper-->
+  <div id="page-content-wrapper">
+    <!-- Top navigation removed to avoid duplication -->
+    
+    <!-- Page content-->
+    <div class="container-fluid">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

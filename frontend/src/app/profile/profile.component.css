@@ -1,0 +1,250 @@
+.profile-container {
+  padding: 2rem;
+  background-color: #f4f7f6;
+  min-height: calc(100vh - 56px); /* Adjust based on navbar height if applicable */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.profile-card {
+  max-width: 1000px; /* Increased max-width for two columns */
+  width: 100%;
+  margin: auto;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.07);
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.profile-header {
+  text-align: center;
+  padding: 1.5rem 2rem 0; /* Adjust padding */
+  border-bottom: none; /* No border here, layout handles separation */
+}
+
+.profile-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 0.25rem;
+}
+
+.profile-header p.profile-subtitle {
+  font-size: 1rem;
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1fr; /* Default to single column on small screens */
+  gap: 2.5rem; /* Space between columns */
+  padding: 2rem;
+}
+
+@media (min-width: 768px) {
+  .profile-layout {
+    grid-template-columns: 1fr 2fr; /* Two columns on larger screens */
+  }
+}
+
+.profile-column-left,
+.profile-column-right {
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #fdfdfd;
+  border: 1px solid #e9ecef;
+}
+
+.profile-column-left {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-column-right form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-picture-section {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
+}
+
+.profile-avatar-edit-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #0d6efd;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.profile-avatar-edit-icon:hover {
+  background-color: #0b5ed7;
+  transform: scale(1.05);
+}
+
+.upload-spinner {
+  margin-top: 0.5rem;
+}
+
+.profile-section {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.profile-section-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0d6efd;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef; /* Lighter border */
+  display: flex;
+  align-items: center;
+}
+
+.profile-section-header i {
+  margin-right: 0.75rem;
+  color: #0d6efd;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 576px) {
+  .info-grid {
+    grid-template-columns: 1fr 1fr; /* Two columns for info items on small screens */
+  }
+}
+
+.info-item {
+  margin-bottom: 0; /* Remove default margin-bottom */
+}
+
+.info-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.info-value {
+  font-size: 1rem;
+  color: #212529;
+  margin-bottom: 0; /* Remove default margin-bottom */
+  padding: 0.375rem 0; /* Align with form controls */
+}
+
+.text-na {
+  color: #adb5bd;
+  font-style: italic;
+}
+
+.badge-role {
+  padding: 0.5em 0.9em;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 20px;
+}
+
+.role-USER {
+  background-color: #e6f7ed; /* Light green */
+  color: #198754;
+}
+
+.role-ADMIN {
+  background-color: #fdeded; /* Light red */
+  color: #dc3545;
+}
+
+.role-TECHNICIAN {
+  background-color: #fff9e6; /* Light yellow */
+  color: #ffc107;
+}
+
+.profile-actions {
+  margin-top: auto; /* Push buttons to the bottom */
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+}
+
+.profile-actions .btn {
+  min-width: 120px;
+}
+
+.profile-actions .alert {
+  flex-grow: 1; /* Allow alert to take available space */
+  margin-right: 1rem; /* Space between alert and buttons */
+  margin-bottom: 0; /* Remove default alert margin */
+  text-align: left;
+}
+
+
+/* Form control styling for edit mode */
+.form-control,
+.form-select {
+  height: 45px;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 0.375rem 1rem;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  background-color: #f8f9fa; /* Slightly off-white background */
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+  background-color: #fff;
+}
+
+.form-control::placeholder {
+  color: #adb5bd;
+}
+
+/* Specific styling for readonly/disabled inputs in edit mode if needed */
+.form-control[readonly],
+.form-control[disabled] {
+  background-color: #e9ecef;
+  opacity: 1;
+  cursor: not-allowed;
+}

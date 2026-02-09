@@ -1,0 +1,86 @@
+<div class="container-fluid mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0"><i class="bi bi-tools me-2"></i>Panel de Técnico - Gestión de Incidencias</h4>
+      <button class="btn btn-light btn-sm" (click)="reloadIncidents()" [disabled]="isLoading">
+        <i class="bi" [ngClass]="{'bi-arrow-clockwise': !isLoading, 'bi-arrow-repeat spinner': isLoading}"></i>
+        {{ isLoading ? 'Cargando...' : 'Refrescar' }}
+      </button>
+    </div>
+    <div class="card-body">
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando incidencias...</p>
+      </div>
+
+      <div *ngIf="!isLoading && errorMessage" class="alert alert-danger">
+        <i class="bi bi-exclamation-octagon-fill me-2"></i>{{ errorMessage }}
+      </div>
+
+      <div *ngIf="!isLoading && !incidents.length && !errorMessage" class="text-center text-muted py-5">
+        <i class="bi bi-check-all h1"></i>
+        <p class="h4 mt-2">¡No hay incidencias por el momento!</p>
+        <p>Buen trabajo.</p>
+      </div>
+
+      <div *ngIf="!isLoading && incidents.length" class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Creador</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Técnico</th>
+              <th scope="col">Fechas</th>
+              <th scope="col" class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let incident of incidents" [class.table-success]="incident.status === EIncidentStatus.RESUELTA">
+              <td><strong>#{{ incident.id }}</strong></td>
+              <td>{{ incident.creatorUsername }}</td>
+              <td style="max-width: 300px;">
+                <small class="text-muted">{{ incident.description }}</small>
+              </td>
+              <td>
+                <span class="badge rounded-pill" [ngClass]="{
+                  'bg-primary': incident.status === EIncidentStatus.PENDIENTE,
+                  'bg-warning text-dark': incident.status === EIncidentStatus.EN_PROCESO,
+                  'bg-success': incident.status === EIncidentStatus.RESUELTA,
+                  'bg-secondary': incident.status === EIncidentStatus.CERRADA
+                }">
+                  {{ incident.status }}
+                </span>
+              </td>
+              <td>{{ incident.technicianUsername || 'N/A' }}</td>
+              <td>
+                <div class="d-flex flex-column">
+                  <small><strong>Creado:</strong> {{ incident.createdAt | date:'short' }}</small>
+                  <small><strong>Actualizado:</strong> {{ incident.updatedAt | date:'short' }}</small>
+                </div>
+              </td>
+              <td class="text-center">
+                <button *ngIf="!incident.technicianUsername" class="btn btn-sm btn-outline-primary" (click)="assignToMe(incident.id)">
+                  <i class="bi bi-person-plus-fill me-1"></i> Asignarme
+                </button>
+                <div *ngIf="incident.technicianUsername" class="d-inline-block">
+                  <select class="form-select form-select-sm" 
+                          [value]="incident.status"
+                          (change)="updateStatus(incident.id, $event)">
+                    <option [value]="EIncidentStatus.PENDIENTE">Pendiente</option>
+                    <option [value]="EIncidentStatus.EN_PROCESO">En Proceso</option>
+                    <option [value]="EIncidentStatus.RESUELTA">Resuelta</option>
+                    <option [value]="EIncidentStatus.CERRADA">Cerrada</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
