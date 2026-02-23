@@ -1,0 +1,32 @@
+.card-container.card {
+  max-width: 900px !important; /* Make card wider */
+  padding: 0; /* Remove padding as we will use card-header and card-body */
+  margin: 50px auto; /* Center the card horizontally and maintain top margin */
+  border: none; /* Remove default border */
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; /* Add a more prominent shadow */
+}
+
+.card-header {
+  background-color: #007bff;
+  color: white;
+  padding: 1.5rem;
+  border-bottom: none;
+  border-top-left-radius: 0.3rem;
+  border-top-right-radius: 0.3rem;
+}
+
+.card-header h4 {
+  margin-bottom: 0.25rem;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+label {
+  font-weight: 500;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}

@@ -1,0 +1,295 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< com.apweb:backend >--------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.1:run (default-cli) > test-compile @ backend >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ backend ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ backend ---
+[INFO] skip non existing resourceDirectory C:\Users\aamen\OneDrive\Desktop\Aplicaciones Web 5to(PreMaestroDeDatos)\Aplicaciones Web 5to\Proyecto APWEB\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.1:run (default-cli) < test-compile @ backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.1:run (default-cli) @ backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.1)
+
+2026-02-22T07:32:41.601-05:00  INFO 23172 --- [backend] [           main] com.apweb.backend.BackendApplication     : Starting BackendApplication using Java 17.0.18 with PID 23172 (C:\Users\aamen\OneDrive\Desktop\Aplicaciones Web 5to(PreMaestroDeDatos)\Aplicaciones Web 5to\Proyecto APWEB\backend\target\classes started by aamen in C:\Users\aamen\OneDrive\Desktop\Aplicaciones Web 5to(PreMaestroDeDatos)\Aplicaciones Web 5to\Proyecto APWEB\backend)
+2026-02-22T07:32:41.603-05:00  INFO 23172 --- [backend] [           main] com.apweb.backend.BackendApplication     : The following 1 profile is active: "newdb"
+2026-02-22T07:32:42.081-05:00  INFO 23172 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-22T07:32:42.184-05:00  INFO 23172 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 93 ms. Found 32 JPA repository interfaces.
+2026-02-22T07:32:42.628-05:00  INFO 23172 --- [backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-02-22T07:32:42.636-05:00  INFO 23172 --- [backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-22T07:32:42.636-05:00  INFO 23172 --- [backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.17]
+2026-02-22T07:32:42.684-05:00  INFO 23172 --- [backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-22T07:32:42.685-05:00  INFO 23172 --- [backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1048 ms
+2026-02-22T07:32:42.777-05:00  INFO 23172 --- [backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-02-22T07:32:42.810-05:00  INFO 23172 --- [backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.1.Final
+2026-02-22T07:32:42.841-05:00  INFO 23172 --- [backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-02-22T07:32:43.010-05:00  INFO 23172 --- [backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-22T07:32:43.032-05:00  INFO 23172 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-02-22T07:32:43.280-05:00  INFO 23172 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7c7ed72a
+2026-02-22T07:32:43.280-05:00  INFO 23172 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-02-22T07:32:43.301-05:00  WARN 23172 --- [backend] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-02-22T07:32:44.373-05:00  INFO 23172 --- [backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-02-22T07:32:44.818-05:00  INFO 23172 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-22T07:32:45.051-05:00  INFO 23172 --- [backend] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-22T07:32:45.375-05:00  WARN 23172 --- [backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-22T07:32:45.624-05:00  INFO 23172 --- [backend] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@4ad04b05, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@78b888df, org.springframework.security.web.context.SecurityContextHolderFilter@66790851, org.springframework.security.web.header.HeaderWriterFilter@6f5d292c, org.springframework.web.filter.CorsFilter@6f2e0945, org.springframework.security.web.authentication.logout.LogoutFilter@4c020e58, com.apweb.backend.security.jwt.AuthTokenFilter@7f219e84, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@5ce045e3, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@3df496d9, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@565fa7d2, org.springframework.security.web.session.SessionManagementFilter@5096be74, org.springframework.security.web.access.ExceptionTranslationFilter@19beeb61, org.springframework.security.web.access.intercept.AuthorizationFilter@465e9090]
+2026-02-22T07:32:46.080-05:00  INFO 23172 --- [backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path ''
+2026-02-22T07:32:46.088-05:00  INFO 23172 --- [backend] [           main] com.apweb.backend.BackendApplication     : Started BackendApplication in 4.787 seconds (process running for 5.055)
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.rol
+        (codigo, descripcion) 
+    values
+        (?, ?)
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.rol
+        (codigo, descripcion) 
+    values
+        (?, ?)
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.rol
+        (codigo, descripcion) 
+    values
+        (?, ?)
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.rol
+        (codigo, descripcion) 
+    values
+        (?, ?)
+Hibernate: 
+    select
+        count(*) 
+    from
+        empresa.empresa e1_0
+Hibernate: 
+    select
+        count(*) 
+    from
+        clientes.pais p1_0
+Hibernate: 
+    insert 
+    into
+        clientes.pais
+        (nombre) 
+    values
+        (?)
+Hibernate: 
+    insert 
+    into
+        clientes.ciudad
+        (nombre, id_pais) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        clientes.canton
+        (id_ciudad, nombre) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        clientes.canton
+        (id_ciudad, nombre) 
+    values
+        (?, ?)
+>>> Created geography data.
+Hibernate: 
+    select
+        e1_0.id_empresa,
+        e1_0.correo_contacto,
+        e1_0.direccion_principal,
+        e1_0.id_catalogo_item_estado,
+        e1_0.fecha_creacion,
+        e1_0.id_catalogo_item_tipo_empresa,
+        e1_0.nombre_comercial,
+        e1_0.razon_social,
+        e1_0.ruc,
+        e1_0.telefono_contacto,
+        e1_0.tipo_empresa 
+    from
+        empresa.empresa e1_0
+Hibernate: 
+    select
+        ci1_0.id_item,
+        ci1_0.activo,
+        ci1_0.id_catalogo,
+        ci1_0.codigo,
+        ci1_0.nombre,
+        ci1_0.orden 
+    from
+        catalogos.catalogo_item ci1_0 
+    where
+        ci1_0.id_item=?
+Hibernate: 
+    select
+        ci1_0.id_item,
+        ci1_0.activo,
+        ci1_0.id_catalogo,
+        ci1_0.codigo,
+        ci1_0.nombre,
+        ci1_0.orden 
+    from
+        catalogos.catalogo_item ci1_0 
+    where
+        ci1_0.codigo=?
+2026-02-22T07:32:46.380-05:00  INFO 23172 --- [backend] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-02-22T07:32:46.390-05:00 ERROR 23172 --- [backend] [           main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.dao.IncorrectResultSizeDataAccessException: Query did not return a unique result: 2 results were returned
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:301) ~[spring-orm-6.1.2.jar:6.1.2]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:244) ~[spring-orm-6.1.2.jar:6.1.2]
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550) ~[spring-orm-6.1.2.jar:6.1.2]
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:135) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:249) ~[spring-aop-6.1.2.jar:6.1.2]
+	at jdk.proxy2/jdk.proxy2.$Proxy142.findByCodigo(Unknown Source) ~[na:na]
+	at com.apweb.backend.util.DataLoader.createSystemUsers(DataLoader.java:90) ~[classes/:na]
+	at com.apweb.backend.util.DataLoader.run(DataLoader.java:47) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717) ~[spring-aop-6.1.2.jar:6.1.2]
+	at com.apweb.backend.util.DataLoader$$SpringCGLIB$$0.run(<generated>) ~[classes/:na]
+	at org.springframework.boot.SpringApplication.lambda$callRunner$5(SpringApplication.java:798) ~[spring-boot-3.2.1.jar:3.2.1]
+	at org.springframework.util.function.ThrowingConsumer$1.acceptWithException(ThrowingConsumer.java:83) ~[spring-core-6.1.2.jar:6.1.2]
+	at org.springframework.util.function.ThrowingConsumer.accept(ThrowingConsumer.java:60) ~[spring-core-6.1.2.jar:6.1.2]
+	at org.springframework.util.function.ThrowingConsumer$1.accept(ThrowingConsumer.java:88) ~[spring-core-6.1.2.jar:6.1.2]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:806) ~[spring-boot-3.2.1.jar:3.2.1]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:797) ~[spring-boot-3.2.1.jar:3.2.1]
+	at org.springframework.boot.SpringApplication.lambda$callRunners$3(SpringApplication.java:782) ~[spring-boot-3.2.1.jar:3.2.1]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183) ~[na:na]
+	at java.base/java.util.stream.SortedOps$SizedRefSortingSink.end(SortedOps.java:357) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:510) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234) ~[na:na]
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596) ~[na:na]
+	at org.springframework.boot.SpringApplication.callRunners(SpringApplication.java:782) ~[spring-boot-3.2.1.jar:3.2.1]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:341) ~[spring-boot-3.2.1.jar:3.2.1]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1358) ~[spring-boot-3.2.1.jar:3.2.1]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1347) ~[spring-boot-3.2.1.jar:3.2.1]
+	at com.apweb.backend.BackendApplication.main(BackendApplication.java:10) ~[classes/:na]
+Caused by: org.hibernate.NonUniqueResultException: Query did not return a unique result: 2 results were returned
+	at org.hibernate.query.spi.AbstractSelectionQuery.uniqueElement(AbstractSelectionQuery.java:586) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.hibernate.query.spi.AbstractSelectionQuery.getSingleResult(AbstractSelectionQuery.java:570) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.springframework.data.jpa.repository.query.JpaQueryExecution$SingleEntityExecution.doExecute(JpaQueryExecution.java:223) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.JpaQueryExecution.execute(JpaQueryExecution.java:92) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.doExecute(AbstractJpaQuery.java:149) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute(AbstractJpaQuery.java:137) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:164) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137) ~[spring-tx-6.1.2.jar:6.1.2]
+	... 44 common frames omitted
+
+2026-02-22T07:32:46.406-05:00  INFO 23172 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-02-22T07:32:46.408-05:00  INFO 23172 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-02-22T07:32:46.408-05:00  INFO 23172 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.729 s
+[INFO] Finished at: 2026-02-22T07:32:46-05:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.1:run (default-cli) on project backend: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

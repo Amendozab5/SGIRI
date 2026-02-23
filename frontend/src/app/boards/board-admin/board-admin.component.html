@@ -1,0 +1,177 @@
+<div class="admin-dashboard p-4">
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <h1 class="page-title">Gestión de Usuarios</h1>
+    <p class="page-subtitle text-muted">Administración de usuarios del sistema SGIM</p>
+  </div>
+
+  <!-- Action Bar -->
+  <div class="action-bar mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex">
+        <div class="search-box me-3">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" class="form-control search-input" placeholder="Buscar por nombre, email o rol..."
+            [formControl]="searchControl">
+        </div>
+
+        <!-- Role Filter Buttons -->
+        <!-- Removed btn-group for individual button styling -->
+        <button type="button" class="btn btn-outline-secondary me-2" [class.active]="selectedRoleFilter === 'all'"
+          (click)="filterByRole('all')">Todos</button>
+        <button type="button" class="btn me-2" [ngClass]="{
+                  'btn-role-user': role === 'ROLE_USER',
+                  'btn-role-technician': role === 'ROLE_TECHNICIAN',
+                  'btn-role-admin': role === 'ROLE_ADMIN',
+                  'active': selectedRoleFilter === role
+                }" *ngFor="let role of availableRoles" (click)="filterByRole(role)">
+          {{ role === 'ROLE_USER' ? 'USER' : (role === 'ROLE_TECHNICIAN' ? 'TECNICO' : (role === 'ROLE_ADMIN' ? 'ADMIN'
+          : role)) }}
+        </button>
+      </div>
+
+      <button class="btn btn-primary d-flex align-items-center" (click)="openCreateUserModal()">
+        <i class="bi bi-plus-circle me-2"></i>
+        Crear Usuario
+      </button>
+    </div>
+  </div>
+
+  <!-- User Table Card -->
+  <div class="card user-table-card">
+    <div class="card-body">
+
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+
+      <!-- Let's work with the observable stream -->
+      <ng-container *ngIf="filteredUsers$ | async as filteredUsers">
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && filteredUsers.length === 0" class="text-center py-5 empty-state">
+          <i class="bi bi-people-fill empty-icon mb-3"></i>
+          <h5 class="empty-title">No se encontraron usuarios</h5>
+          <p class="text-muted">Parece que aún no hay usuarios registrados o que coincidan con tu búsqueda.</p>
+        </div>
+
+        <!-- Users Table -->
+        <div *ngIf="!isLoading && filteredUsers.length > 0" class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Username</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Email</th>
+                <th scope="col">Rol</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Último Acceso</th>
+                <th scope="col">Fecha Creación</th>
+                <th scope="col" class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of filteredUsers" class="user-row">
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.fullName }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <span *ngFor="let role of user.roles" class="badge rounded-pill bg-light text-dark me-1">
+                    {{ role === 'ROLE_USER' ? 'USER' : (role === 'ROLE_TECHNICIAN' ? 'TECNICO' : (role === 'ROLE_ADMIN'
+                    ? 'ADMIN' : role)) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge"
+                    [ngClass]="{'bg-success': user.estado === 'ACTIVO', 'bg-danger': user.estado === 'INACTIVO'}">{{
+                    user.estado }}</span>
+                </td>
+                <td>{{ (user.lastLogin | date:'short') ?? 'N/A' }}</td>
+                <td>{{ user.fechaCreacion | date:'short' }}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-icon btn-light me-2" title="Editar" (click)="openEditUserModal(user)">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                  <button class="btn btn-sm btn-icon btn-light"
+                    [ngClass]="{'text-success': user.estado === 'INACTIVO', 'text-warning': user.estado === 'ACTIVO'}"
+                    title="Cambiar Estado" (click)="openToggleStatusModal(user)">
+                    <i class="bi bi-arrow-repeat"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger text-white btn-delete-custom" title="Eliminar"
+                    (click)="openDeleteConfirmModal(user)">
+                    <i class="bi bi-x-circle-fill me-1"></i> Eliminar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toggle Status Confirmation Modal -->
+<div class="modal fade" id="toggleStatusUserModal" #toggleStatusUserModal tabindex="-1"
+  aria-labelledby="toggleStatusUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="toggleStatusUserModalLabel">Confirmar Cambio de Estado</h5>
+        <button type="button" class="btn-close" (click)="closeToggleStatusModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="userToToggleStatus">
+          ¿Estás seguro de que quieres cambiar el estado del usuario <strong>{{ userToToggleStatus.username }}</strong>
+          a <strong>{{ userToToggleStatus.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' }}</strong>?
+        </p>
+        <p *ngIf="userToToggleStatus?.estado === 'ACTIVO'" class="text-danger">
+          El usuario quedará <strong>inactivo</strong> y no podrá iniciar sesión en el sistema.
+        </p>
+        <p *ngIf="userToToggleStatus?.estado !== 'ACTIVO'" class="text-success">
+          El usuario quedará <strong>activo</strong> y podrá acceder normalmente al sistema.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeToggleStatusModal()">Cancelar</button>
+        <button type="button" class="btn"
+          [ngClass]="{'btn-success': userToToggleStatus?.estado === 'INACTIVO', 'btn-warning': userToToggleStatus?.estado === 'ACTIVO'}"
+          (click)="confirmToggleStatus()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete User Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" #deleteUserModal tabindex="-1" aria-labelledby="deleteUserModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteUserModalLabel">Confirmar Eliminación</h5>
+        <button type="button" class="btn-close" (click)="closeDeleteConfirmModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="userToDelete">
+          ¿Estás seguro de que quieres eliminar al usuario <strong>{{ userToDelete.username }}</strong>?
+        </p>
+        <p class="text-danger">Esta acción es irreversible y el usuario será eliminado permanentemente.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDeleteConfirmModal()">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- User Form Modal for Create/Edit -->
+<app-user-form-modal [availableRoles]="availableRoles" (save)="onUserFormSave($event)"
+  (closeModal)="onUserFormModalClosed()">
+</app-user-form-modal>

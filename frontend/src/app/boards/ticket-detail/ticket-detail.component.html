@@ -1,0 +1,195 @@
+<div class="container-fluid pt-4">
+    <!-- Back Button -->
+    <div class="mb-4">
+        <a routerLink="/home/user" class="btn btn-link text-decoration-none text-secondary p-0">
+            <i class="bi bi-arrow-left me-1"></i> Volver al Dashboard
+        </a>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Cargando detalles del ticket...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="alert alert-danger border-0 shadow-sm rounded-3">
+        <i class="bi bi-exclamation-circle-fill me-2"></i> {{ error }}
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!loading && ticket" class="row">
+        <!-- Ticket Info -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3 border-bottom-0">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <span class="badge rounded-pill mb-2"
+                                [ngClass]="getStatusBadgeClass(ticket.estadoItem?.codigo)">
+                                {{ ticket.estadoItem?.nombre }}
+                            </span>
+                            <h2 class="h4 fw-bold mb-0">Ticket #{{ ticket.idTicket }}: {{ ticket.asunto }}</h2>
+                        </div>
+                        <div *ngIf="showStatusUpdate" class="d-flex gap-2">
+                            <button
+                                *ngIf="ticket.estadoItem?.codigo === 'ABIERTO' || ticket.estadoItem?.codigo === 'ASIGNADO'"
+                                (click)="changeStatus('EN_PROCESO')" class="btn btn-warning btn-sm rounded-pill">
+                                <i class="bi bi-play-fill me-1"></i> Atender
+                            </button>
+                            <button *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'"
+                                (click)="changeStatus('RESUELTO')" class="btn btn-success btn-sm rounded-pill">
+                                <i class="bi bi-check-lg me-1"></i> Resolver
+                            </button>
+                            <button *ngIf="ticket.estadoItem?.codigo !== 'CERRADO'" (click)="changeStatus('CERRADO')"
+                                class="btn btn-secondary btn-sm rounded-pill">
+                                <i class="bi bi-x-circle me-1"></i> Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-muted fw-bold small mb-2">Descripción</h6>
+                        <p class="text-dark bg-light p-3 rounded-3 mb-0" style="white-space: pre-wrap;">{{
+                            ticket.descripcion }}</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-1">Categoría</h6>
+                            <p class="mb-0 fw-medium">{{ ticket.categoriaItem?.nombre }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-1">Prioridad</h6>
+                            <p class="mb-0 fw-medium">{{ ticket.prioridadItem?.nombre }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-1">Servicio</h6>
+                            <p class="mb-0 fw-medium">{{ ticket.servicio?.nombre }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-1">Sucursal</h6>
+                            <p class="mb-0 fw-medium">{{ ticket.sucursal?.nombre }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-1">Fecha Creación</h6>
+                            <p class="mb-0 fw-medium">{{ ticket.fechaCreacion | date:'medium' }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-1">Última Actualización</h6>
+                            <p class="mb-0 fw-medium">{{ ticket.fechaActualizacion | date:'medium' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 fw-bold">Conversación</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Comment Input -->
+                    <div class="mb-4">
+                        <textarea class="form-control border-light-subtle rounded-3 shadow-sm mb-2" rows="3"
+                            placeholder="Escribe un mensaje..." [(ngModel)]="commentText"></textarea>
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-primary rounded-pill px-4 shadow-sm"
+                                [disabled]="!commentText.trim() || isSubmitting" (click)="addComment()">
+                                <i class="bi bi-send-fill me-2" *ngIf="!isSubmitting"></i>
+                                <span class="spinner-border spinner-border-sm me-2" *ngIf="isSubmitting"></span>
+                                Enviar Mensaje
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comments List -->
+                    <div class="comment-feed mt-4">
+                        <div *ngFor="let comment of ticket.comentarios" class="d-flex mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 text-center"
+                                    style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="bg-light p-3 rounded-4 shadow-none">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-bold small">{{ comment.usuario?.username }}</span>
+                                            <span *ngIf="comment.usuario?.role?.codigo === 'CLIENTE'"
+                                                class="badge bg-info-subtle text-info smallest py-0">Cliente</span>
+                                            <span *ngIf="comment.usuario?.role?.codigo === 'TECNICO'"
+                                                class="badge bg-primary-subtle text-primary smallest py-0">Técnico</span>
+                                            <span
+                                                *ngIf="comment.usuario?.role?.codigo === 'ADMIN_MASTER' || comment.usuario?.role?.codigo === 'ADMIN_TECNICOS'"
+                                                class="badge bg-secondary-subtle text-secondary smallest py-0">Admin</span>
+                                        </div>
+                                        <span class="text-muted smallest">{{ comment.fechaCreacion | date:'short'
+                                            }}</span>
+                                    </div>
+                                    <p class="mb-0 small" style="white-space: pre-wrap;">{{ comment.comentario }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div *ngIf="!ticket.comentarios?.length" class="text-center py-5 opacity-50">
+                            <i class="bi bi-chat-left-dots display-4 mb-3"></i>
+                            <p>No hay mensajes en este ticket aún.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Timeline -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 fw-bold">Historial de Estados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline" *ngIf="ticket.historialEstados?.length > 0">
+                        <div *ngFor="let history of ticket.historialEstados"
+                            class="timeline-item pb-3 border-start ps-3 position-relative">
+                            <div class="timeline-dot position-absolute bg-primary rounded-circle"
+                                style="left: -5px; top: 5px; width: 10px; height: 10px;"></div>
+                            <div class="small fw-bold">{{ history.estado?.nombre }}</div>
+                            <div class="text-muted smallest">{{ history.fechaCambio | date:'short' }}</div>
+                            <div class="small text-secondary mt-1">{{ history.observacion }}</div>
+                        </div>
+                    </div>
+                    <div *ngIf="!ticket.historialEstados?.length" class="text-center py-4 text-muted">
+                        <p class="small mb-0">No hay cambios de estado registrados.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assigned technician -->
+            <div class="card border-0 shadow-sm rounded-4 bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="text-uppercase opacity-75 fw-bold small mb-3">Técnico Asignado</h6>
+                    <div class="d-flex align-items-center" *ngIf="ticket.usuarioAsignado">
+                        <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3">
+                            <i class="bi bi-person-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ ticket.usuarioAsignado.username }}</div>
+                            <div class="small opacity-75 text-white">Especialista de Soporte</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center" *ngIf="!ticket.usuarioAsignado">
+                        <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3">
+                            <i class="bi bi-person-dash-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">Sin asignar</div>
+                            <div class="small opacity-75">Esperando técnico...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,152 @@
+<div class="profile-container" *ngIf="currentUser && !isLoading; else loading">
+  <div class="card profile-card">
+    <div class="profile-header text-center">
+      <h2 class="profile-name">{{ currentUser.nombre }} {{ currentUser.apellidos }}</h2>
+      <p class="profile-subtitle">Perfil de Usuario • {{ getRoleName(currentUser.roles[0]) }}</p>
+
+      <button *ngIf="!editMode" class="btn btn-edit-profile" (click)="toggleEditMode()">
+        <i class="bi bi-pencil-fill me-2"></i>Editar Perfil
+      </button>
+    </div>
+
+    <div class="card-body">
+      <div class="profile-column-unified">
+        <!-- Profile Picture Section -->
+        <div class="profile-picture-section text-center">
+          <div class="profile-avatar-container position-relative d-inline-block">
+            <img [src]="getAvatarUrl()" class="profile-avatar" alt="Avatar">
+            <div class="avatar-edit-badge" (click)="fileInput.click()">
+              <i class="bi bi-camera-fill"></i>
+            </div>
+          </div>
+          <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="fileInput.click()"
+              [disabled]="isSaving">
+              <i class="bi bi-upload me-1"></i>Cambiar Foto
+            </button>
+            <input #fileInput type="file" (change)="uploadPhoto($event)" style="display:none" accept="image/*">
+          </div>
+          <div *ngIf="isSaving && !editMode" class="mt-2">
+            <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+            <small class="ms-1 text-muted">Subiendo...</small>
+          </div>
+        </div>
+
+        <!-- Section: Datos de la Cuenta -->
+        <div class="profile-section">
+          <h5 class="profile-section-header">
+            <i class="bi bi-person-circle"></i>Información Personal
+          </h5>
+
+          <form *ngIf="editMode" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Nombres</span>
+                <input type="text" formControlName="nombre" class="form-control"
+                  [ngClass]="{'is-invalid': profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched}">
+                <div *ngIf="profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched"
+                  class="invalid-feedback">
+                  <div *ngIf="profileForm.get('nombre')?.errors?.['required']">El nombre es requerido.</div>
+                  <div *ngIf="profileForm.get('nombre')?.errors?.['minlength']">Mínimo 2 caracteres.</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Apellidos</span>
+                <input type="text" formControlName="apellidos" class="form-control"
+                  [ngClass]="{'is-invalid': profileForm.get('apellidos')?.invalid && profileForm.get('apellidos')?.touched}">
+                <div *ngIf="profileForm.get('apellidos')?.invalid && profileForm.get('apellidos')?.touched"
+                  class="invalid-feedback">
+                  <div *ngIf="profileForm.get('apellidos')?.errors?.['required']">El apellido es requerido.</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Email de Notificaciones</span>
+                <input type="email" formControlName="email" class="form-control"
+                  [ngClass]="{'is-invalid': profileForm.get('email')?.invalid && profileForm.get('email')?.touched}">
+              </div>
+              <div class="info-item">
+                <span class="info-label">Número Celular</span>
+                <input type="text" formControlName="celular" class="form-control"
+                  [ngClass]="{'is-invalid': profileForm.get('celular')?.invalid && profileForm.get('celular')?.touched}">
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              <button type="button" class="btn btn-outline-secondary me-2 px-4 shadow-sm"
+                (click)="cancelEdit()">Cancelar</button>
+              <button type="submit" class="btn btn-primary px-4 shadow-sm" [disabled]="profileForm.invalid || isSaving">
+                <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                Guardar Cambios
+              </button>
+            </div>
+          </form>
+
+          <div *ngIf="!editMode" class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Nombres</span>
+              <p class="info-value">{{ currentUser.nombre || 'N/A' }}</p>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Apellidos</span>
+              <p class="info-value">{{ currentUser.apellidos || 'N/A' }}</p>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email Corporativo</span>
+              <p class="info-value">{{ currentUser.email }}</p>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Teléfono / Celular</span>
+              <p class="info-value">{{ currentUser.celular || 'N/A' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <!-- Section: Identificación -->
+          <div class="profile-section">
+            <h5 class="profile-section-header">
+              <i class="bi bi-shield-shaded"></i>Seguridad y Acceso
+            </h5>
+            <div class="info-item">
+              <span class="info-label">Nombre de Usuario</span>
+              <p class="info-value text-primary font-monospace">{{ currentUser.username }}</p>
+            </div>
+            <div class="info-item mt-2">
+              <span class="info-label">Cédula de Identidad</span>
+              <p class="info-value">{{ currentUser.cedula || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <!-- Section: Roles -->
+          <div class="profile-section">
+            <h5 class="profile-section-header">
+              <i class="bi bi-key-fill"></i>Nivel de Acceso
+            </h5>
+            <div class="info-item">
+              <span class="info-label">Roles en el Sistema</span>
+              <div class="d-flex flex-wrap mt-2">
+                <span *ngFor="let role of currentUser.roles" class="badge rounded-pill me-2 mb-2"
+                  [ngClass]="getRoleClass(role)">
+                  <i class="bi bi-check-circle-fill me-1"></i> {{ getRoleName(role) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger mt-3 shadow-sm border-0">{{ errorMessage }}</div>
+        <div *ngIf="successMessage" class="alert alert-success mt-3 shadow-sm border-0">{{ successMessage }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div *ngIf="errorMessage" class="alert alert-warning shadow-sm">{{ errorMessage }}</div>
+    <div *ngIf="!errorMessage" class="text-center">
+      <div class="spinner-grow text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+      <p class="text-muted fw-bold">Cargando tu perfil...</p>
+    </div>
+  </div>
+</ng-template>

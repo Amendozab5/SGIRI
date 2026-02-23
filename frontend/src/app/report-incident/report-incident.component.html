@@ -1,0 +1,84 @@
+<div class="card card-container">
+  <div class="card-header">
+    <h4><i class="bi bi-exclamation-triangle-fill me-2"></i>Reportar una Nueva Incidencia</h4>
+    <p class="mb-0">Describe el problema que presentas con tu servicio de internet.</p>
+  </div>
+  <div class="card-body">
+    <form *ngIf="!isSuccessful" name="form" (ngSubmit)="onSubmit()" #f="ngForm" novalidate>
+
+      <div class="form-group">
+        <label for="asunto"><i class="bi bi-card-heading me-2"></i>Asunto</label>
+        <input type="text" class="form-control" name="asunto" placeholder="Ej: No puedo navegar en ninguna página"
+          [(ngModel)]="form.asunto" required minlength="10" maxlength="100" #asunto="ngModel"
+          [ngClass]="{ 'is-invalid': asunto.errors && f.submitted }" />
+        <div class="invalid-feedback" *ngIf="asunto.errors && f.submitted">
+          <div *ngIf="asunto.errors['required']">El asunto es requerido.</div>
+          <div *ngIf="asunto.errors['minlength']">El asunto debe tener al menos 10 caracteres.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="idCategoriaItem"><i class="bi bi-tags me-2"></i>Categoría</label>
+            <select name="idCategoriaItem" class="form-select" [(ngModel)]="form.idCategoriaItem" required
+              #idCategoriaItem="ngModel" [ngClass]="{ 'is-invalid': idCategoriaItem.errors && f.submitted }">
+              <option [ngValue]="null" disabled>Selecciona categoría...</option>
+              <option *ngFor="let cat of categorias" [ngValue]="cat.id">{{ cat.nombre }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="idSucursal"><i class="bi bi-geo-alt me-2"></i>Sucursal</label>
+            <select name="idSucursal" class="form-select" [(ngModel)]="form.idSucursal" required #idSucursal="ngModel"
+              [ngClass]="{ 'is-invalid': idSucursal.errors && f.submitted }">
+              <option [ngValue]="null" disabled>Selecciona sucursal...</option>
+              <option *ngFor="let suc of sucursales" [ngValue]="suc.id">{{ suc.nombre }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="idServicio"><i class="bi bi-box me-2"></i>Servicio</label>
+            <select name="idServicio" class="form-select" [(ngModel)]="form.idServicio" required #idServicio="ngModel"
+              [ngClass]="{ 'is-invalid': idServicio.errors && f.submitted }">
+              <option [ngValue]="null" disabled>Selecciona servicio...</option>
+              <option *ngFor="let srv of servicios" [ngValue]="srv.id">{{ srv.nombre }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion"><i class="bi bi-body-text me-2"></i>Descripción Detallada</label>
+        <textarea class="form-control" name="descripcion"
+          placeholder="Describe con más detalle lo que sucede, qué luces ves en el módem, desde cuándo ocurre el problema, etc."
+          [(ngModel)]="form.descripcion" required minlength="20" maxlength="1000" rows="6" #descripcion="ngModel"
+          [ngClass]="{ 'is-invalid': descripcion.errors && f.submitted }"></textarea>
+        <div class="invalid-feedback" *ngIf="descripcion.errors && f.submitted">
+          <div *ngIf="descripcion.errors['required']">La descripción es requerida.</div>
+          <div *ngIf="descripcion.errors['minlength']">La descripción debe tener al menos 20 caracteres.</div>
+        </div>
+      </div>
+
+      <div class="form-group mt-4 d-flex justify-content-end">
+        <button class="btn btn-primary btn-lg" [disabled]="f.form.invalid">
+          <i class="bi bi-send-fill me-2"></i>Enviar Reporte
+        </button>
+      </div>
+
+      <div class="alert alert-danger mt-3" *ngIf="isReportFailed">
+        <b>Error al enviar el reporte:</b><br />{{ errorMessage }}
+      </div>
+    </form>
+
+    <div class="alert alert-success text-center" *ngIf="isSuccessful">
+      <i class="bi bi-check2-circle h1"></i>
+      <h4 class="alert-heading">¡Incidencia Reportada Exitosamente!</h4>
+      <p>Tu reporte ha sido recibido. Nuestro equipo técnico lo revisará a la brevedad posible.</p>
+      <hr>
+      <p class="mb-0">Puedes ver el estado de tus incidencias en tu dashboard.</p>
+    </div>
+  </div>
+</div>

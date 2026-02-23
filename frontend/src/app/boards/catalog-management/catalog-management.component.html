@@ -1,0 +1,136 @@
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar - List of Catalogs -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-journal-list me-2"></i>Catálogos del Sistema</h5>
+                    <button class="btn btn-sm btn-outline-light" (click)="loadCatalogos()">
+                        <i class="bi bi-arrow-clockwise" [class.spinner]="loading"></i>
+                    </button>
+                </div>
+                <div class="list-group list-group-flush scroll-area" style="max-height: 70vh; overflow-y: auto;">
+                    <div *ngIf="loading && !catalogos.length" class="text-center p-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+
+                    <button *ngFor="let cat of catalogos" (click)="selectCatalogo(cat)"
+                        [class.active]="selectedCatalogo?.id === cat.id"
+                        class="list-group-item list-group-item-action border-0 py-3 px-4 transition-all">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold">{{ cat.nombre }}</h6>
+                            <span class="badge"
+                                [ngClass]="cat.activo ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+                                {{ cat.activo ? 'Activo' : 'Inactivo' }}
+                            </span>
+                        </div>
+                        <small class="text-muted">{{ cat.descripcion }}</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content - Catalog Items -->
+        <div class="col-md-8">
+            <div *ngIf="!selectedCatalogo"
+                class="card h-100 border-0 shadow-sm d-flex justify-content-center align-items-center p-5 rounded-3">
+                <div class="text-center opacity-50">
+                    <i class="bi bi-cursor-fill display-1 text-primary mb-4"></i>
+                    <h5>Selecciona un catálogo para ver sus elementos</h5>
+                    <p class="text-muted">Podrás ver y gestionar los items que componen cada lista del sistema.</p>
+                </div>
+            </div>
+
+            <div *ngIf="selectedCatalogo" class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">{{ selectedCatalogo.nombre }}</h5>
+                        <small class="opacity-75">Visualizando elementos del catálogo</small>
+                    </div>
+                    <button class="btn btn-light btn-sm rounded-pill px-3 shadow-sm fw-bold text-primary"
+                        (click)="openItemModal()">
+                        <i class="bi bi-plus-lg me-1"></i> Nuevo Elemento
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="px-4 py-3">Orden</th>
+                                    <th class="py-3">Código</th>
+                                    <th class="py-3">Nombre</th>
+                                    <th class="py-3">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of selectedCatalogo.items" class="transition-all">
+                                    <td class="px-4">
+                                        <span class="badge bg-light text-dark border">{{ item.orden }}</span>
+                                    </td>
+                                    <td><code class="text-primary">{{ item.codigo }}</code></td>
+                                    <td class="fw-medium">{{ item.nombre }}</td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                [checked]="item.activo" (change)="toggleStatus(item)">
+                                            <span class="ms-1 small"
+                                                [ngClass]="item.activo ? 'text-success' : 'text-danger'">
+                                                {{ item.activo ? 'Habilitado' : 'Deshabilitado' }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="!selectedCatalogo.items?.length">
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        No hay elementos registrados en este catálogo.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Item -->
+<div class="modal-overlay" *ngIf="showItemModal">
+    <div class="modal-card shadow-lg animate-fade-in" style="max-width: 500px;">
+        <div class="modal-header-custom bg-primary text-white">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-plus-circle me-2"></i>Nuevo Elemento: {{
+                selectedCatalogo?.nombre
+                }}</h5>
+            <button class="btn-close-custom text-white" (click)="showItemModal = false"><i
+                    class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-custom">
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-secondary">Nombre del Elemento</label>
+                <input type="text" class="form-control rounded-3" [(ngModel)]="newItem.nombre"
+                    placeholder="Ej. Pendiente, URGENTE, etc.">
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-secondary">Código Interno</label>
+                    <input type="text" class="form-control rounded-3" [(ngModel)]="newItem.codigo"
+                        placeholder="ID_ESTADO_NUEVO">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-secondary">Orden</label>
+                    <input type="number" class="form-control rounded-3" [(ngModel)]="newItem.orden">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer-custom px-4 py-3">
+            <button class="btn btn-light rounded-pill px-4" (click)="showItemModal = false"
+                [disabled]="savingItem">Cancelar</button>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm ms-2" (click)="saveItem()"
+                [disabled]="savingItem || !newItem.nombre || !newItem.codigo">
+                <span *ngIf="savingItem" class="spinner-border spinner-border-sm me-2"></span>
+                {{ savingItem ? 'Creando...' : 'Crear Elemento' }}
+            </button>
+        </div>
+    </div>
+</div>

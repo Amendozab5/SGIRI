@@ -1,0 +1,333 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< com.apweb:backend >--------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.1:run (default-cli) > test-compile @ backend >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ backend ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ backend ---
+[INFO] skip non existing resourceDirectory C:\Users\aamen\OneDrive\Desktop\Aplicaciones Web 5to(PreMaestroDeDatos)\Aplicaciones Web 5to\Proyecto APWEB\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.1:run (default-cli) < test-compile @ backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.1:run (default-cli) @ backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.1)
+
+2026-02-22T07:36:17.863-05:00  INFO 17196 --- [backend] [           main] com.apweb.backend.BackendApplication     : Starting BackendApplication using Java 17.0.18 with PID 17196 (C:\Users\aamen\OneDrive\Desktop\Aplicaciones Web 5to(PreMaestroDeDatos)\Aplicaciones Web 5to\Proyecto APWEB\backend\target\classes started by aamen in C:\Users\aamen\OneDrive\Desktop\Aplicaciones Web 5to(PreMaestroDeDatos)\Aplicaciones Web 5to\Proyecto APWEB\backend)
+2026-02-22T07:36:17.866-05:00  INFO 17196 --- [backend] [           main] com.apweb.backend.BackendApplication     : The following 1 profile is active: "newdb"
+2026-02-22T07:36:18.409-05:00  INFO 17196 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-22T07:36:18.527-05:00  INFO 17196 --- [backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 113 ms. Found 32 JPA repository interfaces.
+2026-02-22T07:36:19.138-05:00  INFO 17196 --- [backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-02-22T07:36:19.151-05:00  INFO 17196 --- [backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-22T07:36:19.152-05:00  INFO 17196 --- [backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.17]
+2026-02-22T07:36:19.218-05:00  INFO 17196 --- [backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-22T07:36:19.220-05:00  INFO 17196 --- [backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1319 ms
+2026-02-22T07:36:19.316-05:00  INFO 17196 --- [backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-02-22T07:36:19.354-05:00  INFO 17196 --- [backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.1.Final
+2026-02-22T07:36:19.376-05:00  INFO 17196 --- [backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-02-22T07:36:19.537-05:00  INFO 17196 --- [backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-22T07:36:19.557-05:00  INFO 17196 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-02-22T07:36:19.694-05:00  INFO 17196 --- [backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2b098563
+2026-02-22T07:36:19.695-05:00  INFO 17196 --- [backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-02-22T07:36:19.720-05:00  WARN 17196 --- [backend] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-02-22T07:36:20.749-05:00  INFO 17196 --- [backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-02-22T07:36:21.225-05:00  INFO 17196 --- [backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-22T07:36:21.515-05:00  INFO 17196 --- [backend] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-22T07:36:21.851-05:00  WARN 17196 --- [backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-02-22T07:36:22.063-05:00  INFO 17196 --- [backend] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@22dddb13, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@3d268a2c, org.springframework.security.web.context.SecurityContextHolderFilter@5bafe1f1, org.springframework.security.web.header.HeaderWriterFilter@1ffe7c42, org.springframework.web.filter.CorsFilter@16ecdb6d, org.springframework.security.web.authentication.logout.LogoutFilter@17baaf07, com.apweb.backend.security.jwt.AuthTokenFilter@3aec2f59, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1c65740a, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@6cb59aa, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@72a45b71, org.springframework.security.web.session.SessionManagementFilter@5ce045e3, org.springframework.security.web.access.ExceptionTranslationFilter@6f55aef7, org.springframework.security.web.access.intercept.AuthorizationFilter@6f2e0945]
+2026-02-22T07:36:22.473-05:00  INFO 17196 --- [backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path ''
+2026-02-22T07:36:22.480-05:00  INFO 17196 --- [backend] [           main] com.apweb.backend.BackendApplication     : Started BackendApplication in 4.882 seconds (process running for 5.15)
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.rol
+        (codigo, descripcion) 
+    values
+        (?, ?)
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.rol
+        (codigo, descripcion) 
+    values
+        (?, ?)
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.rol
+        (codigo, descripcion) 
+    values
+        (?, ?)
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.rol
+        (codigo, descripcion) 
+    values
+        (?, ?)
+Hibernate: 
+    select
+        count(*) 
+    from
+        empresa.empresa e1_0
+Hibernate: 
+    select
+        count(*) 
+    from
+        clientes.pais p1_0
+Hibernate: 
+    insert 
+    into
+        clientes.pais
+        (nombre) 
+    values
+        (?)
+Hibernate: 
+    insert 
+    into
+        clientes.ciudad
+        (nombre, id_pais) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        clientes.canton
+        (id_ciudad, nombre) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        clientes.canton
+        (id_ciudad, nombre) 
+    values
+        (?, ?)
+>>> Created geography data.
+Hibernate: 
+    select
+        e1_0.id_empresa,
+        e1_0.correo_contacto,
+        e1_0.direccion_principal,
+        e1_0.id_catalogo_item_estado,
+        e1_0.fecha_creacion,
+        e1_0.id_catalogo_item_tipo_empresa,
+        e1_0.nombre_comercial,
+        e1_0.razon_social,
+        e1_0.ruc,
+        e1_0.telefono_contacto,
+        e1_0.tipo_empresa 
+    from
+        empresa.empresa e1_0
+Hibernate: 
+    select
+        ci1_0.id_item,
+        ci1_0.activo,
+        ci1_0.id_catalogo,
+        ci1_0.codigo,
+        ci1_0.nombre,
+        ci1_0.orden 
+    from
+        catalogos.catalogo_item ci1_0 
+    where
+        ci1_0.id_item=?
+Hibernate: 
+    select
+        ci1_0.id_item,
+        ci1_0.activo,
+        ci1_0.id_catalogo,
+        ci1_0.codigo,
+        ci1_0.nombre,
+        ci1_0.orden 
+    from
+        catalogos.catalogo_item ci1_0 
+    where
+        ci1_0.codigo=? 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        u1_0.id_usuario,
+        u1_0.id_catalogo_item_estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.id_empresa,
+        u1_0.last_login,
+        u1_0.password_hash,
+        u1_0.primer_login,
+        u1_0.profile_picture_url,
+        u1_0.reset_password_token,
+        u1_0.reset_password_token_expiry,
+        u1_0.id_rol,
+        u1_0.username 
+    from
+        usuarios.usuario u1_0 
+    where
+        u1_0.username=?
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.usuario
+        (id_catalogo_item_estado, fecha_actualizacion, fecha_creacion, id_empresa, last_login, password_hash, primer_login, profile_picture_url, reset_password_token, reset_password_token_expiry, id_rol, username) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        usuarios.persona
+        (apellido, id_canton, cedula, celular, correo, direccion, fecha_actualizacion, fecha_creacion, fecha_nacimiento, nombre, id_usuario) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+>>> Created system user: admin
+Hibernate: 
+    select
+        u1_0.id_usuario,
+        u1_0.id_catalogo_item_estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.id_empresa,
+        u1_0.last_login,
+        u1_0.password_hash,
+        u1_0.primer_login,
+        u1_0.profile_picture_url,
+        u1_0.reset_password_token,
+        u1_0.reset_password_token_expiry,
+        u1_0.id_rol,
+        u1_0.username 
+    from
+        usuarios.usuario u1_0 
+    where
+        u1_0.username=?
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.usuario
+        (id_catalogo_item_estado, fecha_actualizacion, fecha_creacion, id_empresa, last_login, password_hash, primer_login, profile_picture_url, reset_password_token, reset_password_token_expiry, id_rol, username) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        usuarios.persona
+        (apellido, id_canton, cedula, celular, correo, direccion, fecha_actualizacion, fecha_creacion, fecha_nacimiento, nombre, id_usuario) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+>>> Created system user: tech
+Hibernate: 
+    select
+        u1_0.id_usuario,
+        u1_0.id_catalogo_item_estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.id_empresa,
+        u1_0.last_login,
+        u1_0.password_hash,
+        u1_0.primer_login,
+        u1_0.profile_picture_url,
+        u1_0.reset_password_token,
+        u1_0.reset_password_token_expiry,
+        u1_0.id_rol,
+        u1_0.username 
+    from
+        usuarios.usuario u1_0 
+    where
+        u1_0.username=?
+Hibernate: 
+    select
+        r1_0.id_rol,
+        r1_0.codigo,
+        r1_0.descripcion 
+    from
+        usuarios.rol r1_0 
+    where
+        r1_0.codigo=?
+Hibernate: 
+    insert 
+    into
+        usuarios.usuario
+        (id_catalogo_item_estado, fecha_actualizacion, fecha_creacion, id_empresa, last_login, password_hash, primer_login, profile_picture_url, reset_password_token, reset_password_token_expiry, id_rol, username) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        usuarios.persona
+        (apellido, id_canton, cedula, celular, correo, direccion, fecha_actualizacion, fecha_creacion, fecha_nacimiento, nombre, id_usuario) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+>>> Created system user: user
