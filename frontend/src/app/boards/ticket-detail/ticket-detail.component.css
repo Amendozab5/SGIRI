@@ -1,0 +1,50 @@
+.bg-info-subtle {
+    background-color: #e0f2fe !important;
+}
+
+.bg-warning-subtle {
+    background-color: #fef3c7 !important;
+}
+
+.bg-success-subtle {
+    background-color: #dcfce7 !important;
+}
+
+.text-info {
+    color: #0369a1 !important;
+}
+
+.text-warning {
+    color: #92400e !important;
+}
+
+.text-success {
+    color: #166534 !important;
+}
+
+.smallest {
+    font-size: 0.75rem;
+}
+
+.timeline-item {
+    border-left: 2px solid #e2e8f0 !important;
+    position: relative;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent !important;
+}
+
+.comment-feed {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.rounded-4 {
+    border-radius: 1rem !important;
+}
+
+.btn-sm.rounded-pill {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}

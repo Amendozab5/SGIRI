@@ -1,0 +1,282 @@
+<div class="container-fluid mt-4 pb-5">
+    <div class="row g-4">
+        <!-- Error Alert -->
+        <div *ngIf="error" class="col-12 mb-2">
+            <div class="alert alert-danger shadow-sm border-0 rounded-3 d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>{{ error }}</div>
+            </div>
+        </div>
+
+        <!-- Empresas Section -->
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0 text-primary fw-bold">Gestión de Empresas e ISP</h4>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" (click)="openEmpresaModal()">
+                        <i class="bi bi-plus-lg me-1"></i> Nueva Empresa
+                    </button>
+                    <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="loadEmpresas()"
+                        [disabled]="loadingEmpresas">
+                        <i class="bi bi-arrow-clockwise me-1" [class.spinner-border-sm]="loadingEmpresas"></i>
+                        {{ loadingEmpresas ? 'Actualizando...' : 'Actualizar' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Spinner for Empresas -->
+            <div *ngIf="loadingEmpresas && !empresas.length" class="text-center py-5 my-5">
+                <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                <p class="mt-3 text-muted fw-bold">Cargando empresas registradas...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!loadingEmpresas && !empresas.length && !error"
+                class="text-center py-5 bg-light rounded-4 border border-dashed">
+                <i class="bi bi-building-dash display-4 text-muted mb-3 d-block"></i>
+                <h5 class="text-muted">No hay empresas registradas</h5>
+                <p class="text-secondary small">Puedes agregar nuevas empresas desde el botón superior.</p>
+                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 mt-2" (click)="openEmpresaModal()">
+                    <i class="bi bi-plus-lg"></i> Agregar Empresa
+                </button>
+            </div>
+
+            <!-- Empresas Cards -->
+            <div class="row g-3" *ngIf="empresas.length">
+                <div *ngFor="let emp of empresas" class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm transition-all empresa-card"
+                        [class.selected]="selectedEmpresa?.id === emp.id" (click)="selectEmpresa(emp)">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="bg-primary-subtle p-2 rounded-circle text-primary">
+                                    <i class="bi bi-building fs-4"></i>
+                                </div>
+                                <span class="badge rounded-pill"
+                                    [ngClass]="emp.estado?.codigo === 'ACTIVA' || emp.estado?.nombre === 'Activa' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+                                    {{ emp.estado?.nombre || 'S/E' }}
+                                </span>
+                            </div>
+                            <h5 class="card-title fw-bold mb-1 text-dark">{{ emp.nombreComercial }}</h5>
+                            <p class="card-text text-muted small mb-0">{{ emp.razonSocial }}</p>
+                            <hr class="my-3 opacity-10">
+                            <div class="d-flex justify-content-between small">
+                                <span class="text-secondary">RUC: <span class="text-dark fw-medium">{{ emp.ruc
+                                        }}</span></span>
+                                <span class="badge bg-light text-dark border fw-normal">{{ emp.tipoEmpresa }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spacer -->
+        <div class="col-12 my-2"></div>
+
+        <!-- Sucursales Section -->
+        <div class="col-12" id="sucursales-section" style="min-height: 400px;">
+            <!-- Placeholder -->
+            <div *ngIf="!selectedEmpresa && !loadingEmpresas"
+                class="text-center py-5 bg-white rounded-4 shadow-sm border border-light">
+                <div class="opacity-25 mb-3">
+                    <i class="bi bi-cursor-fill display-3"></i>
+                </div>
+                <h5 class="text-muted fw-bold">Gestión de Sucursales</h5>
+                <p class="text-secondary small mx-auto" style="max-width: 300px;">Selecciona una de las empresas de
+                    arriba para ver y gestionar sus puntos de atención.</p>
+            </div>
+
+            <!-- Sucursales Card -->
+            <div *ngIf="selectedEmpresa" class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">Sucursales de {{ selectedEmpresa.nombreComercial }}</h5>
+                        <p class="text-muted small mb-0">Gestiona las sedes físicas de este proveedor.</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" (click)="openSucursalModal()">
+                        <i class="bi bi-plus-lg me-1"></i> Nueva Sucursal
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="px-4 text-muted small text-uppercase">ID</th>
+                                    <th class="text-muted small text-uppercase">Nombre de Sucursal</th>
+                                    <th class="text-muted small text-uppercase">Dirección</th>
+                                    <th class="text-muted small text-uppercase">Teléfono</th>
+                                    <th class="text-end px-4 text-muted small text-uppercase">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let suc of sucursales">
+                                    <td class="px-4 text-primary fw-medium">#{{ suc.id }}</td>
+                                    <td class="fw-bold text-dark">{{ suc.nombre }}</td>
+                                    <td>{{ suc.direccion }}</td>
+                                    <td>
+                                        <span *ngIf="suc.telefono" class="text-dark"><i
+                                                class="bi bi-telephone me-1 opacity-50"></i>{{ suc.telefono }}</span>
+                                        <span *ngIf="!suc.telefono" class="text-muted opacity-50">---</span>
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-light border-0 rounded-circle me-1"
+                                                title="Editar">
+                                                <i class="bi bi-pencil text-primary"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-light border-0 rounded-circle"
+                                                title="Eliminar">
+                                                <i class="bi bi-trash text-danger"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="loadingSucursales && selectedEmpresa">
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="spinner-border text-primary spinner-border-sm me-2"></div>
+                                        <span class="text-muted">Cargando sucursales de {{
+                                            selectedEmpresa.nombreComercial }}...</span>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="!loadingSucursales && !sucursales.length && selectedEmpresa">
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="opacity-25 mb-2">
+                                            <i class="bi bi-geo-alt-fill display-6"></i>
+                                        </div>
+                                        <h6 class="text-muted">Sin sucursales</h6>
+                                        <p class="text-secondary small mb-0">Esta empresa aún no tiene sedes
+                                            registradas.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sucursal -->
+<div class="modal-overlay" *ngIf="showSucursalModal">
+    <div class="modal-card shadow-lg animate-fade-in">
+        <div class="modal-header-custom">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>Nueva Sucursal</h5>
+            <button class="btn-close-custom" (click)="showSucursalModal = false"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-custom">
+            <p class="text-muted small mb-4">Registra un nuevo punto de atención para <strong>{{
+                    selectedEmpresa?.nombreComercial }}</strong>.</p>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">Nombre de la Sucursal</label>
+                <input type="text" class="form-control rounded-3" [(ngModel)]="newSucursal.nombre"
+                    placeholder="Ej. Matriz Quito, Agencia Norte">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">Dirección Exacta</label>
+                <textarea class="form-control rounded-3" rows="2" [(ngModel)]="newSucursal.direccion"
+                    placeholder="Calle principal, número y transversal"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">Teléfono de Contacto</label>
+                <input type="text" class="form-control rounded-3" [(ngModel)]="newSucursal.telefono"
+                    placeholder="022XXXXXX / 09XXXXXXXX">
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-secondary">País</label>
+                    <select class="form-select rounded-3" [(ngModel)]="newSucursal.idPais"
+                        (change)="onPaisChange(newSucursal.idPais!)">
+                        <option [ngValue]="null" disabled>Seleccione...</option>
+                        <option *ngFor="let p of paises" [ngValue]="p.id">{{ p.nombre }}</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-secondary">Provincia / Ciudad</label>
+                    <select class="form-select rounded-3" [(ngModel)]="newSucursal.idCiudad"
+                        (change)="onCiudadChange(newSucursal.idCiudad!)" [disabled]="!newSucursal.idPais">
+                        <option [ngValue]="null" disabled>Seleccione...</option>
+                        <option *ngFor="let c of ciudades" [ngValue]="c.id">{{ c.nombre }}</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-secondary">Cantón</label>
+                    <select class="form-select rounded-3" [(ngModel)]="newSucursal.idCanton"
+                        [disabled]="!newSucursal.idCiudad">
+                        <option [ngValue]="null" disabled>Seleccione...</option>
+                        <option *ngFor="let cant of cantones" [ngValue]="cant.id">{{ cant.nombre }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-light rounded-pill px-4" (click)="showSucursalModal = false"
+                [disabled]="savingSucursal">Cancelar</button>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm ms-2" (click)="saveSucursal()"
+                [disabled]="savingSucursal || !newSucursal.nombre || !newSucursal.direccion">
+                <span *ngIf="savingSucursal" class="spinner-border spinner-border-sm me-2"></span>
+                {{ savingSucursal ? 'Guardando...' : 'Registrar Sucursal' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Empresa -->
+<div class="modal-overlay" *ngIf="showEmpresaModal">
+    <div class="modal-card shadow-lg animate-fade-in" style="max-width: 600px;">
+        <div class="modal-header-custom">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-building-add me-2"></i>Nueva Empresa / Proveedor</h5>
+            <button class="btn-close-custom" (click)="showEmpresaModal = false"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body-custom">
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label small fw-bold text-secondary">Nombre Comercial</label>
+                    <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.nombreComercial"
+                        placeholder="Ej. Netlife, CNT, etc.">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label small fw-bold text-secondary">Razón Social</label>
+                    <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.razonSocial"
+                        placeholder="Nombre legal de la empresa">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-secondary">RUC</label>
+                    <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.ruc"
+                        placeholder="13 dígitos">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-secondary">Tipo</label>
+                    <select class="form-select rounded-3" [(ngModel)]="newEmpresa.tipoEmpresa">
+                        <option value="PRIVADA">Privada</option>
+                        <option value="PUBLICA">Pública</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-secondary">Correo de Contacto</label>
+                    <input type="email" class="form-control rounded-3" [(ngModel)]="newEmpresa.correoContacto"
+                        placeholder="info@empresa.com">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-secondary">Teléfono</label>
+                    <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.telefonoContacto"
+                        placeholder="022XXXXXX">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-light rounded-pill px-4" (click)="showEmpresaModal = false"
+                [disabled]="savingEmpresa">Cancelar</button>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm ms-2" (click)="saveEmpresa()"
+                [disabled]="savingEmpresa || !newEmpresa.nombreComercial || !newEmpresa.ruc">
+                <span *ngIf="savingEmpresa" class="spinner-border spinner-border-sm me-2"></span>
+                {{ savingEmpresa ? 'Guardando...' : 'Registrar Empresa' }}
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+# =====================
+# Angular / Node
+# =====================
+node_modules/
+dist/
+.angular/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# =====================
+# Spring Boot / Java
+# =====================
+backend/target/
+*.log
+
+# =====================
+# IDE
+# =====================
+.vscode/
+.idea/
+
+# =====================
+# OS
+# =====================
+.DS_Store
+Thumbs.db
+
+# =====================
+# Logs
+# =====================
+logs/
+
+# =====================
+# Uploads (si no quieres subir archivos reales)
+# =====================
+backend/uploads/

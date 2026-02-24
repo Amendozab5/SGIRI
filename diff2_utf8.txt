@@ -1,0 +1,58 @@
+﻿diff --git a/Respaldo.sql b/Respaldo2.sql
+index b35d6df..6fe49ad 100644
+--- a/Respaldo.sql
++++ b/Respaldo2.sql
+@@ -2,12 +2,12 @@
+ -- PostgreSQL database dump
+ --
+ 
+-\restrict 73yaufhHUjRm6614FsaxwQzBdtpR0sxurnmfEzZklXVAvved6q0c59cZGnLQSWW
++\restrict 2uHxLY53jzXP67RBPFz6Sse6AcgfX8imeZO84aqyoxMgVkQjcVStTpZFrnXhZcT
+ 
+ -- Dumped from database version 18.2
+ -- Dumped by pg_dump version 18.2
+ 
+--- Started on 2026-02-22 18:28:31
++-- Started on 2026-02-22 19:32:17
+ 
+ SET statement_timeout = 0;
+ SET lock_timeout = 0;
+@@ -2170,8 +2170,7 @@ CREATE TABLE usuarios.persona (
+     id_canton integer,
+     fecha_creacion timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+     fecha_actualizacion timestamp without time zone,
+-    id_usuario integer,
+-    ruta_foto text
++    id_usuario integer
+ );
+ 
+ 
+@@ -3067,10 +3066,10 @@ COPY soporte.ticket (id_ticket, asunto, descripcion, fecha_creacion, fecha_actua
+ -- Data for Name: persona; Type: TABLE DATA; Schema: usuarios; Owner: postgres
+ --
+ 
+-COPY usuarios.persona (id_persona, cedula, nombre, apellido, celular, correo, fecha_nacimiento, direccion, id_canton, fecha_creacion, fecha_actualizacion, id_usuario, ruta_foto) FROM stdin;
+-3	1207910165	Justyn Keith	Cruz Perez	\N	justyncruzperez@gmail.com	\N	\N	\N	2026-02-22 10:54:48.394042	\N	\N	\N
+-2	1207445154	Elizabeth Anahis	Burgos Chilan	\N	elizabethanahisb@gmail.com	\N	\N	\N	2026-02-22 10:54:48.394042	2026-02-22 12:30:37.862134	2	\N
+-1	0503360398	Angello Agustin	Mendoza Bermello	\N	angellomendoza46@gmail.com	\N	\N	\N	2026-02-22 10:54:48.394042	2026-02-22 12:44:59.447101	\N	\N
++COPY usuarios.persona (id_persona, cedula, nombre, apellido, celular, correo, fecha_nacimiento, direccion, id_canton, fecha_creacion, fecha_actualizacion, id_usuario) FROM stdin;
++3	1207910165	Justyn Keith	Cruz Perez	\N	justyncruzperez@gmail.com	\N	\N	\N	2026-02-22 10:54:48.394042	\N	\N
++2	1207445154	Elizabeth Anahis	Burgos Chilan	\N	elizabethanahisb@gmail.com	\N	\N	\N	2026-02-22 10:54:48.394042	2026-02-22 12:30:37.862134	2
++1	0503360398	Angello Agustin	Mendoza Bermello	\N	angellomendoza46@gmail.com	\N	\N	\N	2026-02-22 10:54:48.394042	2026-02-22 12:44:59.447101	\N
+ \.
+ 
+ 
+@@ -5054,11 +5053,11 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA empleados GRANT SELECT ON T
+ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA usuarios GRANT ALL ON TABLES TO rol_admin_master;
+ 
+ 
+--- Completed on 2026-02-22 18:28:31
++-- Completed on 2026-02-22 19:32:18
+ 
+ --
+ -- PostgreSQL database dump complete
+ --
+ 
+-\unrestrict 73yaufhHUjRm6614FsaxwQzBdtpR0sxurnmfEzZklXVAvved6q0c59cZGnLQSWW
++\unrestrict 2uHxLY53jzXP67RBPFz6Sse6AcgfX8imeZO84aqyoxMgVkQjcVStTpZFrnXhZcT
+ 

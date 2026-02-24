@@ -1,0 +1,61 @@
+<div class="container-fluid mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Mis Incidencias Asignadas</h4>
+      <button class="btn btn-light btn-sm" (click)="loadTickets()" [disabled]="isLoading">
+        <i class="bi bi-arrow-clockwise" [class.spinner-border]="isLoading" [class.spinner-border-sm]="isLoading"></i>
+        {{ isLoading ? 'Cargando...' : 'Refrescar' }}
+      </button>
+    </div>
+    <div class="card-body">
+      <div *ngIf="isLoading" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando incidencias...</p>
+      </div>
+
+      <div *ngIf="!isLoading && errorMessage" class="alert alert-danger">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="!isLoading && !tickets.length && !errorMessage" class="text-center text-muted">
+        <p>No tienes incidencias asignadas en este momento.</p>
+      </div>
+
+      <div *ngIf="!isLoading && tickets.length" class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">ID Ticket</th>
+              <th scope="col">ID Cliente</th>
+              <th scope="col">Asunto</th>
+              <th scope="col">Fecha de Creación</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ticket of tickets" class="clickable-row">
+              <td>#{{ ticket.idTicket }}</td>
+              <td>{{ ticket.cliente?.persona?.nombre }} {{ ticket.cliente?.persona?.apellido }}</td>
+              <td>{{ ticket.asunto }}</td>
+              <td>{{ ticket.fechaCreacion | date:'dd/MM/yyyy h:mm a' }}</td>
+              <td>
+                <span class="badge rounded-pill" [ngClass]="getStatusInfo(ticket.estadoItem?.codigo).cssClass">
+                  {{ getStatusInfo(ticket.estadoItem?.codigo).text }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-primary btn-sm rounded-pill"
+                  [routerLink]="['/home/user/ticket', ticket.idTicket]">
+                  <i class="bi bi-gear-fill me-1"></i> Gestionar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

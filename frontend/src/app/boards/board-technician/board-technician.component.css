@@ -1,0 +1,44 @@
+/* General Styles */
+.container-fluid {
+  max-width: 1400px;
+}
+
+.card-header h4 {
+  font-weight: 500;
+}
+
+/* Table Styles */
+.table-hover tbody tr {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.table th {
+  font-weight: 600;
+}
+
+/* Status Badge Styles */
+.badge {
+  font-size: 0.85rem;
+  padding: 0.5em 0.8em;
+}
+
+/* Modal Styles */
+.modal.show {
+  display: block;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.spinner-border {
+  vertical-align: text-bottom;
+}
