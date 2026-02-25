@@ -18,7 +18,6 @@ public class TicketRequest {
     @NotNull
     private Integer idCategoriaItem;
 
-    @NotNull
     private Integer idSucursal;
 
     private Integer idServicio;

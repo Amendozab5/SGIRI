@@ -34,6 +34,8 @@ export class ReportIncidentComponent implements OnInit {
   isReportFailed = false;
   errorMessage = '';
   currentUser: any;
+  isCliente = false;
+  showSucursal = true;
 
   constructor(
     private ticketService: TicketService,
@@ -45,6 +47,9 @@ export class ReportIncidentComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.tokenStorageService.getUser();
+    this.isCliente = this.currentUser && this.currentUser.roles && this.currentUser.roles.includes('ROLE_CLIENTE');
+    // Hide sucursal if user is a client, as requested
+    this.showSucursal = !this.isCliente;
     this.loadMasterData();
   }
 

@@ -1,9 +1,14 @@
 .card-container.card {
-  max-width: 900px !important; /* Make card wider */
-  padding: 0; /* Remove padding as we will use card-header and card-body */
-  margin: 50px auto; /* Center the card horizontally and maintain top margin */
-  border: none; /* Remove default border */
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; /* Add a more prominent shadow */
+  max-width: 900px !important;
+  /* Make card wider */
+  padding: 0;
+  /* Remove padding as we will use card-header and card-body */
+  margin: 50px auto;
+  /* Center the card horizontally and maintain top margin */
+  border: none;
+  /* Remove default border */
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+  /* Add a more prominent shadow */
 }
 
 .card-header {

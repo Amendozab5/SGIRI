@@ -73,8 +73,17 @@ export class RegisterComponent implements OnInit {
       error: err => {
         console.error("Error detectado en el registro:", err);
         this.message = err.error?.message || 'El registro falló por un error desconocido.';
+
+        // Si el error indica que ya existe o ya está registrado
+        if (this.message.includes('ya tiene un usuario') || this.message.includes('ya existe')) {
+          this.message = '¡Esta cuenta ya está activa! Ya puedes iniciar sesión con tus credenciales.';
+        }
+
         this.isSignUpFailed = true;
         this.isProcessing = false;
+
+        // Forzamos a Angular a mostrar el error inmediatamente
+        this.cdr.detectChanges();
       }
     });
   }

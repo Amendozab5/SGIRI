@@ -41,9 +41,16 @@
         </div>
       </div>
 
-      <div class="alert alert-danger mt-3" *ngIf="isSignUpFailed">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        {{ message }}
+      <div class="alert mt-3" [ngClass]="message.includes('activa') ? 'alert-info' : 'alert-danger'"
+        *ngIf="isSignUpFailed">
+        <div class="d-flex align-items-center">
+          <i
+            [class]="message.includes('activa') ? 'bi bi-info-circle-fill me-2' : 'bi bi-exclamation-triangle-fill me-2'"></i>
+          <span>{{ message }}</span>
+        </div>
+        <div *ngIf="message.includes('activa')" class="mt-2">
+          <a routerLink="/login" class="btn btn-sm btn-info text-white w-100">Ir a Iniciar Sesión</a>
+        </div>
       </div>
 
       <div class="button-group mt-4">

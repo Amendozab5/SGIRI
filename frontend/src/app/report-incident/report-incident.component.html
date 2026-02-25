@@ -18,7 +18,7 @@
       </div>
 
       <div class="row">
-        <div class="col-md-4">
+        <div [class]="showSucursal ? 'col-md-4' : 'col-md-6'">
           <div class="form-group">
             <label for="idCategoriaItem"><i class="bi bi-tags me-2"></i>Categoría</label>
             <select name="idCategoriaItem" class="form-select" [(ngModel)]="form.idCategoriaItem" required
@@ -28,7 +28,7 @@
             </select>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4" *ngIf="showSucursal">
           <div class="form-group">
             <label for="idSucursal"><i class="bi bi-geo-alt me-2"></i>Sucursal</label>
             <select name="idSucursal" class="form-select" [(ngModel)]="form.idSucursal" required #idSucursal="ngModel"
@@ -38,7 +38,7 @@
             </select>
           </div>
         </div>
-        <div class="col-md-4">
+        <div [class]="showSucursal ? 'col-md-4' : 'col-md-6'">
           <div class="form-group">
             <label for="idServicio"><i class="bi bi-box me-2"></i>Servicio</label>
             <select name="idServicio" class="form-select" [(ngModel)]="form.idServicio" required #idServicio="ngModel"

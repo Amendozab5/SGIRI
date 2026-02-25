@@ -116,8 +116,15 @@ public class TicketService {
                                                 "Error: Logged user is not a registered client"));
 
                 // 2. Fetch required entities
-                Sucursal sucursal = sucursalRepository.findById(ticketRequest.getIdSucursal())
-                                .orElseThrow(() -> new RuntimeException("Error: Sucursal not found"));
+                Sucursal sucursal = null;
+                if (ticketRequest.getIdSucursal() != null) {
+                        sucursal = sucursalRepository.findById(ticketRequest.getIdSucursal())
+                                        .orElseThrow(() -> new RuntimeException("Error: Sucursal not found"));
+                } else if (cliente.getSucursal() != null) {
+                        sucursal = cliente.getSucursal();
+                } else {
+                        throw new RuntimeException("Error: Sucursal not found and not assigned to client");
+                }
 
                 // If idServicio is not provided, we might need a default or error
                 // For now, let's assume it's provided or we pick the first one from the company
