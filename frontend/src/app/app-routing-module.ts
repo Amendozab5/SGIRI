@@ -35,6 +35,7 @@ const routes: Routes = [
       { path: 'user', component: BoardUserComponent },
       { path: 'user/report-incident', component: ReportIncidentComponent }, // New route for reporting
       { path: 'user/ticket/:id', component: TicketDetailComponent }, // New route for detail
+      { path: 'agenda', loadComponent: () => import('./boards/scheduler/scheduler.component').then(m => m.SchedulerComponent) },
       { path: '', redirectTo: 'user', pathMatch: 'full' }
     ]
   },

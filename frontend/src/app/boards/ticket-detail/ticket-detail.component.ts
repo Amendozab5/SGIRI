@@ -124,6 +124,7 @@ export class TicketDetailComponent implements OnInit {
             case 'EN_PROCESO': return 'bg-warning-subtle text-warning';
             case 'RESUELTO':
             case 'CERRADO': return 'bg-success-subtle text-success';
+            case 'REQUIERE_VISITA': return 'bg-danger-subtle text-danger';
             default: return 'bg-secondary-subtle text-secondary';
         }
     }

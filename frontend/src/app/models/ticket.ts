@@ -51,6 +51,7 @@ export interface Persona {
     apellido: string;
     celular?: string;
     correo?: string;
+    direccion?: string;
 }
 
 export interface Comentario {

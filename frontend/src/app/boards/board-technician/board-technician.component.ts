@@ -28,7 +28,8 @@ export class BoardTechnicianComponent implements OnInit {
     'EN_PROCESO': { text: 'En Progreso', cssClass: 'bg-warning-subtle text-warning' },
     'RESUELTO': { text: 'Resuelto', cssClass: 'bg-success-subtle text-success' },
     'CERRADO': { text: 'Cerrado', cssClass: 'bg-secondary-subtle text-secondary' },
-    'RECHAZADO': { text: 'Rechazado', cssClass: 'bg-danger-subtle text-danger' }
+    'RECHAZADO': { text: 'Rechazado', cssClass: 'bg-danger-subtle text-danger' },
+    'REQUIERE_VISITA': { text: 'Requiere Visita', cssClass: 'bg-danger-subtle text-danger' }
   };
 
   constructor(

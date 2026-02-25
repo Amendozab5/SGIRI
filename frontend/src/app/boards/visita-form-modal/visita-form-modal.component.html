@@ -1,0 +1,110 @@
+<div class="modal fade" id="visitaModal" #visitaModal tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title font-weight-bold">
+          <i class="bi" [ngClass]="isEditMode ? 'bi-pencil-square' : 'bi-plus-circle-fill'"></i>
+          {{ isEditMode ? 'Editar Visita Técnica' : 'Agendar Nueva Visita' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="hide()"></button>
+      </div>
+      <form [formGroup]="visitaForm" (ngSubmit)="onSubmit()">
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <!-- Ticket Selection -->
+            <div class="col-md-12">
+              <label class="form-label fw-bold">Ticket / Cliente</label>
+              <select class="form-select custom-select shadow-sm" formControlName="idTicket">
+                <option value="" disabled selected>Seleccione un ticket abierto...</option>
+                <option *ngFor="let t of tickets" [value]="t.idTicket">
+                  #{{t.idTicket}} - {{t.asunto}} ({{t.cliente?.persona?.nombre}} {{t.cliente?.persona?.apellido}})
+                </option>
+              </select>
+
+              <!-- Detalles del Ticket Seleccionado -->
+              <div class="mt-3 p-3 bg-light rounded-3 border" *ngIf="getSelectedTicket() as selectedTicket">
+                <div class="row small">
+                  <div class="col-md-6 mb-2">
+                    <span class="text-muted d-block text-uppercase smallest fw-bold">Dirección del Cliente</span>
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                    <span class="fw-medium">{{ selectedTicket.cliente?.persona?.direccion || 'Sin dirección registrada'
+                      }}</span>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <span class="text-muted d-block text-uppercase smallest fw-bold">Localidad / Sucursal</span>
+                    <i class="bi bi-building text-primary me-1"></i>
+                    <span class="fw-medium">{{ selectedTicket.sucursal?.nombre }} - {{
+                      selectedTicket.sucursal?.direccion }}</span>
+                  </div>
+                  <div class="col-md-6">
+                    <span class="text-muted d-block text-uppercase smallest fw-bold">Teléfono de Contacto</span>
+                    <i class="bi bi-telephone-fill text-success me-1"></i>
+                    <span class="fw-medium">{{ selectedTicket.cliente?.persona?.celular || 'N/A' }}</span>
+                  </div>
+                  <div class="col-md-6 d-flex align-items-end justify-content-end">
+                    <a [href]="getGoogleMapsUrl(selectedTicket.cliente?.persona?.direccion)" target="_blank"
+                      class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 smallest">
+                      <i class="bi bi-map me-1"></i> Ver en Maps
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Técnico Selection -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Técnico Asignado</label>
+              <select class="form-select" formControlName="idTecnico">
+                <option value="" disabled selected>Seleccione un técnico...</option>
+                <option *ngFor="let tec of tecnicos" [value]="tec.id">{{tec.fullName}}</option>
+              </select>
+            </div>
+
+            <!-- Estado -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" formControlName="codigoEstado">
+                <option value="PROGRAMADA">Programada</option>
+                <option value="CONFIRMADA">Confirmada</option>
+                <option value="REPROGRAMADA">Reprogramada</option>
+                <option value="CANCELADA">Cancelada</option>
+                <option value="FINALIZADA">Finalizada</option>
+              </select>
+            </div>
+
+            <!-- Fecha -->
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Fecha de Visita</label>
+              <input type="date" class="form-control" formControlName="fechaVisita">
+            </div>
+
+            <!-- Hora Inicio -->
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Hora Inicio</label>
+              <input type="time" class="form-control" formControlName="horaInicio">
+            </div>
+
+            <!-- Hora Fin -->
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Hora Fin (Est.)</label>
+              <input type="time" class="form-control" formControlName="horaFin">
+            </div>
+
+            <!-- Reporte / Observaciones -->
+            <div class="col-12">
+              <label class="form-label fw-bold">Reporte / Observaciones</label>
+              <textarea class="form-control" rows="4" formControlName="reporteVisita"
+                placeholder="Detalle los hallazgos o instrucciones especiales..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-0">
+          <button type="button" class="btn btn-outline-secondary px-4" (click)="hide()">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-5" [disabled]="visitaForm.invalid">
+            {{ isEditMode ? 'Actualizar' : 'Guardar Visita' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

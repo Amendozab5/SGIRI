@@ -52,6 +52,12 @@
         <i class="bi bi-diagram-3-fill"></i>
         <span>Gestión de Entidades</span>
       </a>
+      <!-- Scheduler/Agenda Access -->
+      <a class="menu-item" routerLink="/home/agenda" routerLinkActive="active"
+        *ngIf="showAdminBoard || showTechnicianBoard">
+        <i class="bi bi-calendar3"></i>
+        <span>Agenda de Visitas</span>
+      </a>
     </div>
   </div>
 

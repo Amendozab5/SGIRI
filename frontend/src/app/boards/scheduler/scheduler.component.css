@@ -1,0 +1,105 @@
+.scheduler-container {
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #e2e8f0;
+    gap: 1px;
+}
+
+.weekday-header {
+    background-color: #ffffff;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.calendar-day {
+    background-color: #ffffff;
+    min-height: 130px;
+    padding: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.calendar-day:hover {
+    background-color: #f1f5f9;
+}
+
+.other-month {
+    background-color: #f8fafc !important;
+    color: #cbd5e1;
+}
+
+.day-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.is-today {
+    background-color: #eff6ff !important;
+}
+
+.is-today .day-number {
+    color: #0d6efd;
+    background: #dbeafe;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-left: auto;
+}
+
+.visita-item {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #0d6efd;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: transform 0.1s ease;
+}
+
+.visita-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.visita-time {
+    color: #475569;
+}
+
+.visita-title {
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.visitas-container {
+    max-height: 90px;
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar for visitas */
+.visitas-container::-webkit-scrollbar {
+    width: 3px;
+}
+
+.visitas-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.visita-location {
+    font-size: 0.7rem;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.smallest {
+    font-size: 0.65rem;
+}

@@ -31,7 +31,7 @@
                             </span>
                             <h2 class="h4 fw-bold mb-0">Ticket #{{ ticket.idTicket }}: {{ ticket.asunto }}</h2>
                         </div>
-                        <div *ngIf="showStatusUpdate" class="d-flex gap-2">
+                        <div *ngIf="showStatusUpdate" class="d-flex gap-2 flex-wrap">
                             <button
                                 *ngIf="ticket.estadoItem?.codigo === 'ABIERTO' || ticket.estadoItem?.codigo === 'ASIGNADO'"
                                 (click)="changeStatus('EN_PROCESO')" class="btn btn-warning btn-sm rounded-pill">
@@ -40,6 +40,11 @@
                             <button *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'"
                                 (click)="changeStatus('RESUELTO')" class="btn btn-success btn-sm rounded-pill">
                                 <i class="bi bi-check-lg me-1"></i> Resolver
+                            </button>
+                            <!-- New Button: Solicitar Visita Técnica -->
+                            <button *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'"
+                                (click)="changeStatus('REQUIERE_VISITA')" class="btn btn-danger btn-sm rounded-pill">
+                                <i class="bi bi-calendar-plus me-1"></i> Solicitar Visita
                             </button>
                             <button *ngIf="ticket.estadoItem?.codigo !== 'CERRADO'" (click)="changeStatus('CERRADO')"
                                 class="btn btn-secondary btn-sm rounded-pill">
@@ -143,8 +148,43 @@
             </div>
         </div>
 
-        <!-- Sidebar Timeline -->
+        <!-- Sidebar -->
         <div class="col-lg-4">
+            <!-- Customer Information -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4" *ngIf="ticket.cliente">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-person-badge me-2"></i>Información del Cliente</h5>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="d-flex align-items-center mb-3 p-3 bg-light rounded-3">
+                        <div class="bg-white rounded-circle p-2 me-3 shadow-sm text-primary">
+                            <i class="bi bi-person-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark">{{ ticket.cliente.persona.nombre }} {{
+                                ticket.cliente.persona.apellido }}</div>
+                            <div class="small text-muted">CI: {{ ticket.cliente.persona.cedula }}</div>
+                        </div>
+                    </div>
+
+                    <div class="list-group list-group-flush small">
+                        <div class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                            <span class="text-muted">Celular:</span>
+                            <span class="fw-medium">{{ ticket.cliente.persona.celular || 'N/A' }}</span>
+                        </div>
+                        <div class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                            <span class="text-muted">Correo:</span>
+                            <span class="fw-medium">{{ ticket.cliente.persona.correo || 'N/A' }}</span>
+                        </div>
+                        <div class="list-group-item bg-transparent px-0">
+                            <div class="text-muted mb-1">Dirección:</div>
+                            <div class="fw-medium text-wrap">{{ ticket.cliente.persona.direccion || 'No
+                                especificada' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-white py-3 border-0">
                     <h5 class="mb-0 fw-bold">Historial de Estados</h5>
