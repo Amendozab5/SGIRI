@@ -128,4 +128,14 @@ export class TicketDetailComponent implements OnInit {
             default: return 'bg-secondary-subtle text-secondary';
         }
     }
+
+    getFullLocation(): string {
+        if (!this.ticket?.cliente?.persona?.canton) return '';
+        const p = this.ticket.cliente.persona;
+        const location = [];
+        if (p.canton?.nombre) location.push(p.canton.nombre);
+        if (p.canton?.ciudad?.nombre) location.push(p.canton.ciudad.nombre);
+        if (p.canton?.ciudad?.pais?.nombre) location.push(p.canton.ciudad.pais.nombre);
+        return location.join(', ');
+    }
 }

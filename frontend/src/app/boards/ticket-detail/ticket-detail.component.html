@@ -178,8 +178,12 @@
                         </div>
                         <div class="list-group-item bg-transparent px-0">
                             <div class="text-muted mb-1">Dirección:</div>
-                            <div class="fw-medium text-wrap">{{ ticket.cliente.persona.direccion || 'No
-                                especificada' }}</div>
+                            <div class="fw-medium text-wrap">
+                                {{ ticket.cliente.persona.direccion || 'No especificada' }}
+                            </div>
+                            <div class="small text-secondary mt-1" *ngIf="getFullLocation()">
+                                <i class="bi bi-geo-alt-fill me-1"></i>{{ getFullLocation() }}
+                            </div>
                         </div>
                     </div>
                 </div>
