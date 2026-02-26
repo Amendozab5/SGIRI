@@ -59,6 +59,9 @@ public class AuthController {
     @PersistenceContext
     private EntityManager entityManager;
 
+    @org.springframework.beans.factory.annotation.Value("${apweb.app.activationExpirationHours:24}")
+    private int activationExpirationHours;
+
     public AuthController(AuthenticationManager authenticationManager,
             UserRepository userRepository,
             RoleRepository roleRepository,
@@ -92,12 +95,21 @@ public class AuthController {
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException(
                         "Error: Usuario no encontrado en la base de datos después de la autenticación."));
+
+        // Check if activation has expired
+        if (Boolean.TRUE.equals(user.getPrimerLogin()) && isUserActivationExpired(user)) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse(
+                            "Error: Sus credenciales temporales han expirado. Por favor, realice el registro nuevamente."));
+        }
+
+        String jwt = jwtUtils.generateJwtToken(authentication);
 
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
@@ -149,9 +161,21 @@ public class AuthController {
 
             // 2. Verificar si ya tiene un usuario registrado
             if (persona.getUser() != null) {
-                log.warn("User already exists for persona with cedula: {}", cedula);
-                return ResponseEntity.badRequest()
-                        .body(new MessageResponse("Error: Esta persona ya tiene un usuario registrado en el sistema."));
+                User existingUser = persona.getUser();
+                if (Boolean.TRUE.equals(existingUser.getPrimerLogin()) && isUserActivationExpired(existingUser)) {
+                    log.info("Existing user found but activation is expired for cedula: {}. Allowing re-registration.",
+                            cedula);
+                    // Clear link and delete expired user
+                    persona.setUser(null);
+                    personaRepository.save(persona);
+                    userRepository.delete(existingUser);
+                    userRepository.flush();
+                } else {
+                    log.warn("User already exists for persona with cedula: {}", cedula);
+                    return ResponseEntity.badRequest()
+                            .body(new MessageResponse(
+                                    "Error: Esta persona ya tiene un usuario registrado en el sistema."));
+                }
             }
 
             // 3. Verificar si es cliente de la empresa seleccionada
@@ -313,5 +337,11 @@ public class AuthController {
                 + "    </div>"
                 + "</body>"
                 + "</html>";
+    }
+
+    private boolean isUserActivationExpired(User user) {
+        if (user.getFechaCreacion() == null)
+            return false;
+        return java.time.LocalDateTime.now().isAfter(user.getFechaCreacion().plusHours(activationExpirationHours));
     }
 }
