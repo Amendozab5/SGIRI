@@ -126,20 +126,33 @@
         <button type="button" class="btn-close" (click)="closeToggleStatusModal()" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p *ngIf="userToToggleStatus">
-          ¿Estás seguro de que quieres cambiar el estado del usuario <strong>{{ userToToggleStatus.username }}</strong>
-          a <strong>{{ userToToggleStatus.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' }}</strong>?
-        </p>
-        <p *ngIf="userToToggleStatus?.estado === 'ACTIVO'" class="text-danger">
-          El usuario quedará <strong>inactivo</strong> y no podrá iniciar sesión en el sistema.
-        </p>
-        <p *ngIf="userToToggleStatus?.estado !== 'ACTIVO'" class="text-success">
-          El usuario quedará <strong>activo</strong> y podrá acceder normalmente al sistema.
-        </p>
+        <div *ngIf="userToToggleStatus">
+          <p>
+            ¿Estás seguro de que quieres cambiar el estado del usuario <strong>{{ userToToggleStatus.username
+              }}</strong>
+            a <strong>{{ userToToggleStatus.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' }}</strong>?
+          </p>
+
+          <div *ngIf="!isStatusAvailable(userToToggleStatus.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO')"
+            class="alert alert-warning border-0 small">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Atención:</strong> El estado de destino ({{ userToToggleStatus.estado === 'ACTIVO' ? 'INACTIVO' :
+            'ACTIVO' }})
+            está <strong>deshabilitado</strong> en el catálogo y no se puede asignar.
+          </div>
+
+          <p *ngIf="userToToggleStatus.estado === 'ACTIVO' && isStatusAvailable('INACTIVO')" class="text-danger">
+            El usuario quedará <strong>inactivo</strong> y no podrá iniciar sesión en el sistema.
+          </p>
+          <p *ngIf="userToToggleStatus.estado !== 'ACTIVO' && isStatusAvailable('ACTIVO')" class="text-success">
+            El usuario quedará <strong>activo</strong> y podrá acceder normalmente al sistema.
+          </p>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="closeToggleStatusModal()">Cancelar</button>
         <button type="button" class="btn"
+          [disabled]="!userToToggleStatus || !isStatusAvailable(userToToggleStatus.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO')"
           [ngClass]="{'btn-success': userToToggleStatus?.estado === 'INACTIVO', 'btn-warning': userToToggleStatus?.estado === 'ACTIVO'}"
           (click)="confirmToggleStatus()">Confirmar</button>
       </div>

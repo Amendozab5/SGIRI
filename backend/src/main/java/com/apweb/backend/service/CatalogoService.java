@@ -19,9 +19,17 @@ public class CatalogoService {
     @Autowired
     private CatalogoItemRepository catalogoItemRepository;
 
-    public List<CatalogoItem> getItemsByCatalogoNombre(String nombre) {
+    public List<CatalogoItem> getItemsByCatalogoNombre(String nombre, boolean onlyActive) {
         return catalogoRepository.findByNombre(nombre)
-                .map(Catalogo::getItems)
+                .map(catalogo -> {
+                    List<CatalogoItem> items = catalogo.getItems();
+                    if (onlyActive) {
+                        return items.stream()
+                                .filter(item -> item.getActivo() != null && item.getActivo())
+                                .toList();
+                    }
+                    return items;
+                })
                 .orElse(Collections.emptyList());
     }
 

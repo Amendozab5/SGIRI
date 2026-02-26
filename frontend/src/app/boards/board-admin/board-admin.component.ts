@@ -9,6 +9,8 @@ import { UserService } from '../../_services/user.service';
 import { UserAdminView } from '../../models/user-admin-view.model';
 import { UserFormRequest } from '../../models/user-form-request.model';
 import { UserFormModalComponent } from '../user-form-modal/user-form-modal.component';
+import { MasterDataService } from '../../_services/master-data.service';
+import { CatalogoItem } from '../../models/catalogo';
 
 @Component({
   selector: 'app-board-admin',
@@ -27,6 +29,7 @@ export class BoardAdminComponent implements OnInit {
   selectedRoleFilter: string = 'all';
   private roleFilter$ = new BehaviorSubject<string>('all');
 
+  availableStatuses: any[] = [];
   userToToggleStatus: UserAdminView | undefined;
   private toggleStatusModal: Modal | undefined;
   @ViewChild('toggleStatusUserModal') toggleStatusUserModalElement: any;
@@ -39,6 +42,7 @@ export class BoardAdminComponent implements OnInit {
 
   constructor(
     private userService: UserService,
+    private masterDataService: MasterDataService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -63,6 +67,15 @@ export class BoardAdminComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error fetching roles', err);
+      }
+    });
+
+    this.masterDataService.getCatalogoItems('ESTADO_USUARIO', true).subscribe({
+      next: (items: CatalogoItem[]) => {
+        this.availableStatuses = items;
+      },
+      error: (err) => {
+        console.error('Error fetching user statuses', err);
       }
     });
 
@@ -111,6 +124,10 @@ export class BoardAdminComponent implements OnInit {
     return filtered;
   }
 
+  isStatusAvailable(codigo: string): boolean {
+    return this.availableStatuses.some(status => status.codigo === codigo);
+  }
+
   openToggleStatusModal(user: UserAdminView): void {
     this.userToToggleStatus = user;
     if (this.toggleStatusModal) {
@@ -122,6 +139,12 @@ export class BoardAdminComponent implements OnInit {
     if (!this.userToToggleStatus) return;
 
     const newStatus = this.userToToggleStatus.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+
+    if (!this.isStatusAvailable(newStatus)) {
+      alert(`El estado '${newStatus}' no está disponible actualmente en el catálogo.`);
+      return;
+    }
+
     this.userService.toggleUserStatus(this.userToToggleStatus.id, newStatus).subscribe({
       next: () => {
         const currentUsers = this.users$.getValue();

@@ -36,6 +36,7 @@ export class ReportIncidentComponent implements OnInit {
   currentUser: any;
   isCliente = false;
   showSucursal = true;
+  isSubmitting = false;
 
   constructor(
     private ticketService: TicketService,
@@ -54,7 +55,7 @@ export class ReportIncidentComponent implements OnInit {
   }
 
   loadMasterData(): void {
-    this.masterDataService.getCatalogoItems('CATEGORIA_TICKET').subscribe({
+    this.masterDataService.getCatalogoItems('CATEGORIA_TICKET', true).subscribe({
       next: (data) => {
         this.categorias = data;
         this.cdr.detectChanges();
@@ -101,18 +102,23 @@ export class ReportIncidentComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.isSubmitting) return;
+
+    this.isSubmitting = true;
     this.ticketService.createTicket(this.form).subscribe({
       next: (data: any) => {
         this.isSuccessful = true;
         this.isReportFailed = false;
+        this.isSubmitting = false;
         // Redirect after 3 seconds
         setTimeout(() => {
           this.router.navigate(['/home/user']);
         }, 3000);
       },
       error: (err: any) => {
-        this.errorMessage = err.error.message || err.statusText;
+        this.errorMessage = err.error?.message || err.statusText || 'Error desconocido';
         this.isReportFailed = true;
+        this.isSubmitting = false;
       }
     });
   }

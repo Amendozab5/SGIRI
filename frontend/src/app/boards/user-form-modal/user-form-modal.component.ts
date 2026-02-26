@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Modal } from 'bootstrap';
 import { UserAdminView } from '../../models/user-admin-view.model';
 import { UserFormRequest } from '../../models/user-form-request.model';
+import { MasterDataService } from '../../_services/master-data.service';
+import { CatalogoItem } from '../../models/catalogo';
 
 @Component({
   selector: 'app-user-form-modal',
@@ -22,9 +24,13 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
 
   userForm: FormGroup;
   isEditMode: boolean = false;
+  availableStatuses: CatalogoItem[] = [];
   private currentUserId: number | null = null;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private masterDataService: MasterDataService
+  ) {
     this.userForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
       fullName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
@@ -35,7 +41,20 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadStatuses();
+  }
+
+  loadStatuses(): void {
+    this.masterDataService.getCatalogoItems('ESTADO_USUARIO', true).subscribe({
+      next: (items) => {
+        this.availableStatuses = items;
+      },
+      error: (err) => {
+        console.error('Error loading user statuses from catalog', err);
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     if (this.modalElement) {
@@ -72,7 +91,7 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
 
       this.userForm.get('password')?.clearValidators();
       this.userForm.get('password')?.updateValueAndValidity();
-      
+
       this.userForm.get('username')?.disable();
       this.userForm.get('fullName')?.disable();
       this.userForm.get('email')?.disable();
@@ -85,7 +104,7 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
         Validators.maxLength(120)
       ]);
       this.userForm.get('password')?.updateValueAndValidity();
-      
+
       this.userForm.get('username')?.enable();
       this.userForm.get('fullName')?.enable();
       this.userForm.get('email')?.enable();
@@ -106,7 +125,7 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
       fullName: formValue.fullName,
       email: formValue.email,
       role: formValue.role,
-      estado: formValue.estado ? 'ACTIVO' : 'INACTIVO',
+      estado: formValue.estado,
     };
 
     if (!this.isEditMode) {

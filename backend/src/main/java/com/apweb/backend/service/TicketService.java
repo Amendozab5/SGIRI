@@ -46,7 +46,7 @@ public class TicketService {
         private NotificationService notificationService;
 
         public List<Ticket> getAllTickets() {
-                return ticketRepository.findAll();
+                return ticketRepository.findAllWithAssociations();
         }
 
         public List<Ticket> getTicketsByUser(User user) {

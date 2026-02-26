@@ -37,7 +37,10 @@ export class TicketAssignmentComponent implements OnInit {
 
         this.ticketService.getAllTickets().subscribe({
             next: (data) => {
-                this.tickets = data;
+                this.tickets = data.map(t => ({
+                    ...t,
+                    idUsuarioAsignado: t.idUsuarioAsignado || t.usuarioAsignado?.id
+                }));
                 this.loadTechnicians();
             },
             error: (err) => {

@@ -27,8 +27,8 @@ export class MasterDataService {
         return this.http.get<Catalogo[]>(API_CATALOGOS);
     }
 
-    getCatalogoItems(nombre: string): Observable<CatalogoItem[]> {
-        return this.http.get<CatalogoItem[]>(`${API_CATALOGOS}/${nombre}/items`);
+    getCatalogoItems(nombre: string, onlyActive: boolean = false): Observable<CatalogoItem[]> {
+        return this.http.get<CatalogoItem[]>(`${API_CATALOGOS}/${nombre}/items?onlyActive=${onlyActive}`);
     }
 
     toggleItemStatus(itemId: number): Observable<any> {

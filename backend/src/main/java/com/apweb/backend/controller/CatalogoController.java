@@ -23,8 +23,10 @@ public class CatalogoController {
     }
 
     @GetMapping("/{nombre}/items")
-    public List<CatalogoItem> getItemsByCatalogo(@PathVariable("nombre") String nombre) {
-        return catalogoService.getItemsByCatalogoNombre(nombre);
+    public List<CatalogoItem> getItemsByCatalogo(
+            @PathVariable("nombre") String nombre,
+            @RequestParam(name = "onlyActive", defaultValue = "false") boolean onlyActive) {
+        return catalogoService.getItemsByCatalogoNombre(nombre, onlyActive);
     }
 
     @PutMapping("/items/{id}/toggle-status")

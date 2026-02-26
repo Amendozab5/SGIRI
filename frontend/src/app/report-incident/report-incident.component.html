@@ -63,8 +63,11 @@
       </div>
 
       <div class="form-group mt-4 d-flex justify-content-end">
-        <button class="btn btn-primary btn-lg" [disabled]="f.form.invalid">
-          <i class="bi bi-send-fill me-2"></i>Enviar Reporte
+        <button class="btn btn-primary btn-lg" [disabled]="f.form.invalid || isSubmitting">
+          <i class="bi bi-send-fill me-2" *ngIf="!isSubmitting"></i>
+          <span class="spinner-border spinner-border-sm me-2" *ngIf="isSubmitting" role="status"
+            aria-hidden="true"></span>
+          {{ isSubmitting ? 'Enviando...' : 'Enviar Reporte' }}
         </button>
       </div>
 

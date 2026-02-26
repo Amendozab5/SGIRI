@@ -65,9 +65,16 @@
             </div>
           </div>
 
-          <div class="mb-3 form-check">
-            <input type="checkbox" id="estado" class="form-check-input" formControlName="estado">
-            <label class="form-check-label" for="estado">Activo</label>
+          <div class="mb-3">
+            <label for="estado" class="form-label">Estado del Usuario</label>
+            <select id="estado" class="form-select" formControlName="estado"
+                    [ngClass]="{ 'is-invalid': f['estado'].touched && f['estado'].errors }">
+              <option value="" disabled>Seleccione un Estado</option>
+              <option *ngFor="let status of availableStatuses" [value]="status.codigo">{{ status.nombre }}</option>
+            </select>
+            <div *ngIf="f['estado'].touched && f['estado'].errors" class="invalid-feedback">
+              <div *ngIf="f['estado'].errors['required']">El Estado es requerido.</div>
+            </div>
           </div>
 
           <div class="modal-footer d-flex justify-content-end">
