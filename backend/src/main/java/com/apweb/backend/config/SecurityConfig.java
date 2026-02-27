@@ -80,9 +80,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/catalogos/**").permitAll()
                         .requestMatchers("/api/geography/**").permitAll()
                         .requestMatchers("/api/empresas/**").permitAll()
                         .requestMatchers("/api/empresas/isps").permitAll()
+                        .requestMatchers("/api/contracts/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated());

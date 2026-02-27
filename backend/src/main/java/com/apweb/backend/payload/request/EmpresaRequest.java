@@ -15,4 +15,5 @@ public class EmpresaRequest {
     private String correoContacto;
     private String telefonoContacto;
     private String direccionMatriz;
+    private Integer idEstado;
 }

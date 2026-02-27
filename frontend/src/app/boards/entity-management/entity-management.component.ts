@@ -15,6 +15,7 @@ import { finalize } from 'rxjs/operators';
 })
 export class EntityManagementComponent implements OnInit {
     empresas: Empresa[] = [];
+    filteredEmpresas: Empresa[] = []; // Added
     sucursales: Sucursal[] = [];
     selectedEmpresa: Empresa | null = null;
     loadingEmpresas = false;
@@ -23,7 +24,12 @@ export class EntityManagementComponent implements OnInit {
     savingEmpresa = false;
     showSucursalModal = false;
     showEmpresaModal = false;
+    isEditingEmpresa = false;
+    uploadingContract = false;
     error = '';
+    activeFilter: string = 'TODOS'; // Added
+
+    estadosGenerales: any[] = [];
 
     // Geography lists
     paises: any[] = [];
@@ -45,7 +51,8 @@ export class EntityManagementComponent implements OnInit {
         ruc: '',
         tipoEmpresa: 'PRIVADA',
         correoContacto: '',
-        telefonoContacto: ''
+        telefonoContacto: '',
+        idEstado: null as number | null
     };
 
     constructor(
@@ -57,6 +64,18 @@ export class EntityManagementComponent implements OnInit {
         console.log('Initializing EntityManagementComponent...');
         this.loadEmpresas();
         this.loadPaises();
+        this.loadEstados();
+    }
+
+    loadEstados(): void {
+        this.masterDataService.getCatalogoItems('ESTADOS_GENERALES').subscribe({
+            next: (data) => {
+                console.log('Estados Generales loaded:', data);
+                this.estadosGenerales = data;
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error('Error loading estados:', err)
+        });
     }
 
     loadPaises(): void {
@@ -101,26 +120,54 @@ export class EntityManagementComponent implements OnInit {
             ruc: '',
             tipoEmpresa: 'PRIVADA',
             correoContacto: '',
-            telefonoContacto: ''
+            telefonoContacto: '',
+            idEstado: this.estadosGenerales.find(e => e.codigo === 'ACTIVO' || e.codigo === 'ACTIVA')?.id || null
         };
+        this.showEmpresaModal = true;
+        this.isEditingEmpresa = false;
+    }
+
+    editEmpresa(empresa: Empresa): void {
+        this.newEmpresa = {
+            nombreComercial: empresa.nombreComercial,
+            razonSocial: empresa.razonSocial,
+            ruc: empresa.ruc,
+            tipoEmpresa: empresa.tipoEmpresa || 'PRIVADA',
+            correoContacto: empresa.correoContacto || '',
+            telefonoContacto: empresa.telefonoContacto || '',
+            idEstado: empresa.estado?.id || null
+        };
+        this.selectedEmpresa = empresa;
+        this.isEditingEmpresa = true;
         this.showEmpresaModal = true;
     }
 
     saveEmpresa(): void {
         this.savingEmpresa = true;
-        this.masterDataService.createEmpresa(this.newEmpresa)
-            .pipe(finalize(() => {
-                this.savingEmpresa = false;
-                this.cdr.detectChanges();
-            }))
+
+        const action = this.isEditingEmpresa && this.selectedEmpresa
+            ? this.masterDataService.updateEmpresa(this.selectedEmpresa.id, this.newEmpresa)
+            : this.masterDataService.createEmpresa(this.newEmpresa);
+
+        action.pipe(finalize(() => {
+            this.savingEmpresa = false;
+            this.cdr.detectChanges();
+        }))
             .subscribe({
                 next: (data) => {
-                    this.empresas.push(data);
+                    if (this.isEditingEmpresa) {
+                        const index = this.empresas.findIndex(e => e.id === data.id);
+                        if (index !== -1) this.empresas[index] = data;
+                        this.selectedEmpresa = data;
+                    } else {
+                        this.empresas.push(data);
+                    }
+                    this.applyFilter(); // Modified
                     this.showEmpresaModal = false;
                 },
                 error: (err) => {
                     console.error('Error saving empresa:', err);
-                    alert('Error al guardar la empresa. Verifique que el RUC no esté duplicado.');
+                    alert('Error al guardar la empresa. Verifique los datos.');
                 }
             });
     }
@@ -177,6 +224,7 @@ export class EntityManagementComponent implements OnInit {
                 next: (data) => {
                     console.log('Empresas loaded result:', data);
                     this.empresas = data;
+                    this.applyFilter(); // Modified
                 },
                 error: (err) => {
                     console.error('Error loading empresas:', err);
@@ -205,5 +253,51 @@ export class EntityManagementComponent implements OnInit {
                     this.error = 'Error al cargar las sucursales';
                 }
             });
+    }
+
+    onFileSelected(event: any): void {
+        const file: File = event.target.files[0];
+        if (file) {
+            this.uploadContract(file);
+        }
+    }
+
+    uploadContract(file: File): void {
+        this.uploadingContract = true;
+        this.error = '';
+        this.masterDataService.uploadContract(file)
+            .pipe(finalize(() => {
+                this.uploadingContract = false;
+                this.cdr.detectChanges();
+            }))
+            .subscribe({
+                next: (data) => {
+                    this.empresas.push(data);
+                    this.applyFilter(); // Modified
+                    this.selectEmpresa(data);
+                    alert('Empresa creada automáticamente desde el contrato: ' + data.nombreComercial);
+                },
+                error: (err) => {
+                    console.error('Error uploading contract:', err);
+                    const msg = err.error?.message || 'Error al procesar el contrato. Asegúrese de que el archivo sea válido.';
+                    this.error = msg;
+                    alert(msg);
+                }
+            });
+    }
+
+    // New methods added
+    setFilter(status: string): void {
+        this.activeFilter = status;
+        this.applyFilter();
+    }
+
+    applyFilter(): void {
+        if (this.activeFilter === 'TODOS') {
+            this.filteredEmpresas = [...this.empresas];
+        } else {
+            this.filteredEmpresas = this.empresas.filter(emp => emp.estado?.codigo === this.activeFilter);
+        }
+        this.cdr.detectChanges();
     }
 }

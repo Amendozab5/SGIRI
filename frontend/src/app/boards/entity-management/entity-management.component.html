@@ -13,13 +13,38 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="mb-0 text-primary fw-bold">Gestión de Empresas e ISP</h4>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm" (click)="openEmpresaModal()">
-                        <i class="bi bi-plus-lg me-1"></i> Nueva Empresa
+                    <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)"
+                        accept=".pdf,.doc,.docx">
+                    <button class="btn btn-outline-success rounded-pill px-4 shadow-sm" (click)="fileInput.click()"
+                        [disabled]="uploadingContract">
+                        <i class="bi bi-file-earmark-text me-1" *ngIf="!uploadingContract"></i>
+                        <span class="spinner-border spinner-border-sm me-1" *ngIf="uploadingContract"></span>
+                        {{ uploadingContract ? 'Procesando...' : 'Cargar desde Contrato' }}
                     </button>
                     <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="loadEmpresas()"
                         [disabled]="loadingEmpresas">
                         <i class="bi bi-arrow-clockwise me-1" [class.spinner-border-sm]="loadingEmpresas"></i>
                         {{ loadingEmpresas ? 'Actualizando...' : 'Actualizar' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="d-flex justify-content-center mb-4">
+                <div class="btn-group shadow-sm rounded-pill" role="group">
+                    <button type="button" class="btn" [class.btn-primary]="activeFilter === 'TODOS'"
+                        [class.btn-outline-secondary]="activeFilter !== 'TODOS'" (click)="setFilter('TODOS')">Todos</button>
+                    <button type="button" class="btn" [class.btn-primary]="activeFilter === 'ACTIVO'"
+                        [class.btn-outline-secondary]="activeFilter !== 'ACTIVO'" (click)="setFilter('ACTIVO')">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i> Activos
+                    </button>
+                    <button type="button" class="btn" [class.btn-primary]="activeFilter === 'PENDIENTE'"
+                        [class.btn-outline-secondary]="activeFilter !== 'PENDIENTE'" (click)="setFilter('PENDIENTE')">
+                        <i class="bi bi-clock-fill text-warning me-1"></i> Pendientes
+                    </button>
+                    <button type="button" class="btn" [class.btn-primary]="activeFilter === 'INACTIVO'"
+                        [class.btn-outline-secondary]="activeFilter !== 'INACTIVO'" (click)="setFilter('INACTIVO')">
+                        <i class="bi bi-x-circle-fill text-danger me-1"></i> Inactivos
                     </button>
                 </div>
             </div>
@@ -35,15 +60,21 @@
                 class="text-center py-5 bg-light rounded-4 border border-dashed">
                 <i class="bi bi-building-dash display-4 text-muted mb-3 d-block"></i>
                 <h5 class="text-muted">No hay empresas registradas</h5>
-                <p class="text-secondary small">Puedes agregar nuevas empresas desde el botón superior.</p>
-                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 mt-2" (click)="openEmpresaModal()">
-                    <i class="bi bi-plus-lg"></i> Agregar Empresa
-                </button>
+                <p class="text-secondary small">Carga un contrato legal desde el botón superior para registrar una
+                    empresa e ISP automáticamente.</p>
+            </div>
+
+            <!-- Filtered Empty State -->
+            <div *ngIf="!loadingEmpresas && empresas.length && !filteredEmpresas.length && !error"
+                class="text-center py-5 bg-light rounded-4 border border-dashed">
+                <i class="bi bi-funnel-fill display-4 text-muted mb-3 d-block"></i>
+                <h5 class="text-muted">No hay empresas que coincidan con el filtro</h5>
+                <p class="text-secondary small">Intenta seleccionar otro estado o el filtro "Todos".</p>
             </div>
 
             <!-- Empresas Cards -->
-            <div class="row g-3" *ngIf="empresas.length">
-                <div *ngFor="let emp of empresas" class="col-md-4">
+            <div class="row g-3" *ngIf="filteredEmpresas.length">
+                <div *ngFor="let emp of filteredEmpresas" class="col-md-4">
                     <div class="card h-100 border-0 shadow-sm transition-all empresa-card"
                         [class.selected]="selectedEmpresa?.id === emp.id" (click)="selectEmpresa(emp)">
                         <div class="card-body">
@@ -52,9 +83,13 @@
                                     <i class="bi bi-building fs-4"></i>
                                 </div>
                                 <span class="badge rounded-pill"
-                                    [ngClass]="emp.estado?.codigo === 'ACTIVA' || emp.estado?.nombre === 'Activa' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+                                    [ngClass]="['ACTIVO', 'ACTIVA'].includes(emp.estado?.codigo || '') || emp.estado?.nombre === 'Activa' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
                                     {{ emp.estado?.nombre || 'S/E' }}
                                 </span>
+                                <button class="btn btn-sm btn-outline-primary rounded-circle"
+                                    (click)="$event.stopPropagation(); editEmpresa(emp)" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
                             </div>
                             <h5 class="card-title fw-bold mb-1 text-dark">{{ emp.nombreComercial }}</h5>
                             <p class="card-text text-muted small mb-0">{{ emp.razonSocial }}</p>
@@ -230,7 +265,10 @@
 <div class="modal-overlay" *ngIf="showEmpresaModal">
     <div class="modal-card shadow-lg animate-fade-in" style="max-width: 600px;">
         <div class="modal-header-custom">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-building-add me-2"></i>Nueva Empresa / Proveedor</h5>
+            <h5 class="mb-0 fw-bold">
+                <i class="bi" [ngClass]="isEditingEmpresa ? 'bi-pencil-square' : 'bi-building-add'"></i>
+                {{ isEditingEmpresa ? 'Editar Empresa / Proveedor' : 'Nueva Empresa / Proveedor' }}
+            </h5>
             <button class="btn-close-custom" (click)="showEmpresaModal = false"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body-custom">
@@ -267,6 +305,15 @@
                     <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.telefonoContacto"
                         placeholder="022XXXXXX">
                 </div>
+                <div class="col-md-6" *ngIf="isEditingEmpresa">
+                    <label class="form-label small fw-bold text-secondary">Estado Operativo</label>
+                    <select class="form-select rounded-3" [(ngModel)]="newEmpresa.idEstado">
+                        <option [ngValue]="null">Sin Estado</option>
+                        <option *ngFor="let est of estadosGenerales" [ngValue]="est.id">
+                            {{ est.nombre }}
+                        </option>
+                    </select>
+                </div>
             </div>
         </div>
         <div class="modal-footer-custom">
@@ -275,7 +322,7 @@
             <button class="btn btn-primary rounded-pill px-4 shadow-sm ms-2" (click)="saveEmpresa()"
                 [disabled]="savingEmpresa || !newEmpresa.nombreComercial || !newEmpresa.ruc">
                 <span *ngIf="savingEmpresa" class="spinner-border spinner-border-sm me-2"></span>
-                {{ savingEmpresa ? 'Guardando...' : 'Registrar Empresa' }}
+                {{ savingEmpresa ? 'Guardando...' : (isEditingEmpresa ? 'Actualizar Cambios' : 'Registrar Empresa') }}
             </button>
         </div>
     </div>

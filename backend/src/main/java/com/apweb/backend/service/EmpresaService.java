@@ -76,4 +76,25 @@ public class EmpresaService {
     public List<Sucursal> getAllSucursales() {
         return sucursalRepository.findAll();
     }
+
+    public Empresa updateEmpresa(Integer id, EmpresaRequest request) {
+        Empresa empresa = empresaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Error: Empresa no encontrada con ID: " + id));
+
+        empresa.setNombreComercial(request.getNombreComercial());
+        empresa.setRazonSocial(request.getRazonSocial());
+        empresa.setRuc(request.getRuc());
+        empresa.setTipoEmpresa(request.getTipoEmpresa());
+        empresa.setCorreoContacto(request.getCorreoContacto());
+        empresa.setTelefonoContacto(request.getTelefonoContacto());
+
+        if (request.getIdEstado() != null) {
+            CatalogoItem estado = catalogoItemRepository.findById(request.getIdEstado()).orElse(null);
+            if (estado != null) {
+                empresa.setEstado(estado);
+            }
+        }
+
+        return empresaRepository.save(empresa);
+    }
 }

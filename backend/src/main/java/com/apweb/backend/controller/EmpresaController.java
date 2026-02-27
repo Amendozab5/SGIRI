@@ -49,4 +49,10 @@ public class EmpresaController {
     public ResponseEntity<List<Sucursal>> getAllSucursales() {
         return ResponseEntity.ok(empresaService.getAllSucursales());
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Empresa> updateEmpresa(@PathVariable("id") Integer id,
+            @Valid @RequestBody EmpresaRequest request) {
+        return ResponseEntity.ok(empresaService.updateEmpresa(id, request));
+    }
 }

@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EmpresaRepository extends JpaRepository<Empresa, Integer> {
+    java.util.Optional<Empresa> findByNombreComercial(String nombreComercial);
 }
