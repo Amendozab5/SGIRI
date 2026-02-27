@@ -43,7 +43,7 @@
 
             <!-- Days -->
             <div *ngFor="let day of days" class="calendar-day"
-                [ngClass]="{'other-month': !day.isCurrentMonth, 'is-today': day.isToday}" (click)="onDayClick(day)">
+                [ngClass]="{'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'is-past': day.isPast}" (click)="onDayClick(day)">
 
                 <div class="day-number text-end mb-1">{{ day.date | date: 'd' }}</div>
 

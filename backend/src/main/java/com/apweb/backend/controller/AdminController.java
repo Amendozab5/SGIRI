@@ -17,13 +17,12 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600, allowCredentials = "true")
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+@PreAuthorize("hasRole('ADMIN_MASTER')")
 public class AdminController {
 
     @Autowired
     private AdminService adminService;
 
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
     @GetMapping("/roles")
     public List<String> getRoles() {
         return adminService.getRoles();
@@ -34,14 +33,12 @@ public class AdminController {
         return adminService.getAllUsersForAdmin(role);
     }
 
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
     @PostMapping("/users")
     public ResponseEntity<UserAdminView> createUser(@Valid @RequestBody UserCreateRequest request) {
         UserAdminView newUser = adminService.createUser(request);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
     @PutMapping("/users/{id}")
     public ResponseEntity<UserAdminView> updateUser(@PathVariable(name = "id") Integer id,
             @Valid @RequestBody UserUpdateRequest request) {
@@ -49,7 +46,6 @@ public class AdminController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
     @PutMapping("/users/{id}/status")
     public ResponseEntity<?> toggleUserStatus(@PathVariable(name = "id") Integer id,
             @RequestBody Map<String, String> payload) {
@@ -62,7 +58,6 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "User status updated successfully!"));
     }
 
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable(name = "id") Integer id) {
         adminService.deleteUser(id);

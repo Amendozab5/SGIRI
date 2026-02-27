@@ -39,7 +39,7 @@ public class VisitaTecnicaController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('TECNICO')")
-    public ResponseEntity<VisitaTecnica> getVisitaById(@PathVariable Integer id) {
+    public ResponseEntity<VisitaTecnica> getVisitaById(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(visitaTecnicaService.getVisitaById(id));
     }
 
@@ -56,7 +56,7 @@ public class VisitaTecnicaController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('TECNICO')")
-    public ResponseEntity<?> updateVisita(@PathVariable Integer id, @Valid @RequestBody VisitaRequest request) {
+    public ResponseEntity<?> updateVisita(@PathVariable("id") Integer id, @Valid @RequestBody VisitaRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("Error: Usuario no encontrado"));
