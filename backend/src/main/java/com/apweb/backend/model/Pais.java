@@ -21,6 +21,6 @@ public class Pais {
     private String nombre;
 
     @OneToMany(mappedBy = "pais", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("pais")
+    @JsonManagedReference
     private List<Ciudad> ciudades;
 }

@@ -12,6 +12,7 @@ interface DayCell {
     date: Date;
     isCurrentMonth: boolean;
     isToday: boolean;
+    isPast: boolean;
     visitas: VisitaTecnica[];
 }
 
@@ -74,16 +75,22 @@ export class SchedulerComponent implements OnInit {
 
         const newDays: DayCell[] = [];
         const calendarStart = new Date(startDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         // Generate 42 days (6 weeks)
         for (let i = 0; i < 42; i++) {
             const d = new Date(calendarStart);
             d.setDate(d.getDate() + i);
 
+            const cellDate = new Date(d);
+            cellDate.setHours(0, 0, 0, 0);
+
             newDays.push({
                 date: d,
                 isCurrentMonth: d.getMonth() === month,
                 isToday: d.toDateString() === new Date().toDateString(),
+                isPast: cellDate < today,
                 visitas: []
             });
         }
@@ -142,6 +149,7 @@ export class SchedulerComponent implements OnInit {
     }
 
     onDayClick(day: DayCell): void {
+        if (day.isPast) return;
         this.visitaFormModal.open(undefined, this.formatDate(day.date));
     }
 

@@ -66,7 +66,8 @@ export class TicketAssignmentComponent implements OnInit {
         });
     }
 
-    assignTicket(ticketId: number, userId: number): void {
+    assignTicket(ticketId: number, event: any): void {
+        const userId = +event.target.value;
         if (!userId) return;
 
         this.ticketService.assignTicket(ticketId, userId).subscribe({
@@ -77,8 +78,6 @@ export class TicketAssignmentComponent implements OnInit {
             },
             error: (err) => {
                 this.error = 'Error al asignar el ticket.';
-                console.error('Error assigning ticket:', err);
-                this.loadData(); // Reset selection on error
             }
         });
     }

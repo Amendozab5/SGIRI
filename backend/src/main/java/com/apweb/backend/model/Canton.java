@@ -20,6 +20,6 @@ public class Canton {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_ciudad", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("cantones")
+    @JsonBackReference
     private Ciudad ciudad;
 }

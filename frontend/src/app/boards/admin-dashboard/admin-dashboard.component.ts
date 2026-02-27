@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { TokenStorageService } from '../../_services/token-storage.service';
+import { RouterModule } from '@angular/router'; // Import RouterModule
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -13,8 +12,8 @@ import { TokenStorageService } from '../../_services/token-storage.service';
       </div>
       
       <div class="cards-grid">
-        <!-- Tarjeta 1: Gestión de Usuarios (Sólo MASTER) -->
-        <div class="admin-card blue-gradient" routerLink="/home/gestion-usuarios" *ngIf="showUserManagement">
+        <!-- Tarjeta 1 -->
+        <div class="admin-card blue-gradient" routerLink="/home/gestion-usuarios">
           <div class="card-icon">
             <i class="bi bi-people-fill"></i>
           </div>
@@ -28,22 +27,7 @@ import { TokenStorageService } from '../../_services/token-storage.service';
           </div>
         </div>
 
-        <!-- Tarjeta 2: Asignación de Tickets (MASTER y TECNICOS) -->
-        <div class="admin-card blue-gradient" routerLink="/home/asignacion-tickets" *ngIf="showTicketAssignment">
-          <div class="card-icon">
-            <i class="bi bi-ticket-perforated-fill"></i>
-          </div>
-          <div class="card-content">
-            <h3>Asignación de Tickets</h3>
-            <p>Distribuye incidencias entre el equipo técnico y gestiona su carga de trabajo.</p>
-          </div>
-          <div class="card-action">
-            <span>Ver Tickets</span>
-            <i class="bi bi-arrow-right"></i>
-          </div>
-        </div>
-
-        <!-- Tarjeta 3: Reportes -->
+        <!-- Tarjeta 2 -->
         <div class="admin-card purple-gradient">
           <div class="card-icon">
             <i class="bi bi-bar-chart-fill"></i>
@@ -58,7 +42,7 @@ import { TokenStorageService } from '../../_services/token-storage.service';
           </div>
         </div>
 
-        <!-- Tarjeta 4: Configuración -->
+        <!-- Tarjeta 3 -->
         <div class="admin-card coral-gradient">
           <div class="card-icon">
             <i class="bi bi-gear-fill"></i>
@@ -72,28 +56,33 @@ import { TokenStorageService } from '../../_services/token-storage.service';
             <i class="bi bi-arrow-right"></i>
           </div>
         </div>
+
+        <!-- Tarjeta 4 (Asignación) -->
+        <div class="admin-card blue-gradient" routerLink="/home/asignacion-tickets">
+          <div class="card-icon">
+            <i class="bi bi-ticket-perforated-fill"></i>
+          </div>
+          <div class="card-content">
+            <h3>Asignación de Tickets</h3>
+            <p>Distribuye incidencias entre el equipo técnico y gestiona su carga de trabajo.</p>
+          </div>
+          <div class="card-action">
+            <span>Ver Tickets</span>
+            <i class="bi bi-arrow-right"></i>
+          </div>
+        </div>
       </div>
     </div>
   `,
   styleUrls: ['./admin-dashboard.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule] // Add CommonModule here
 })
 export class AdminDashboardComponent implements OnInit {
-  showUserManagement = false;
-  showTicketAssignment = false;
 
-  constructor(private tokenStorage: TokenStorageService) { }
+  constructor() { }
 
   ngOnInit(): void {
-    const user = this.tokenStorage.getUser();
-    if (user && user.roles) {
-      const roles = user.roles;
-      const isMaster = roles.includes('ROLE_ADMIN_MASTER');
-      const isTechAdmin = roles.includes('ROLE_ADMIN_TECNICOS');
-
-      this.showUserManagement = isMaster;
-      this.showTicketAssignment = isMaster || isTechAdmin;
-    }
   }
+
 }

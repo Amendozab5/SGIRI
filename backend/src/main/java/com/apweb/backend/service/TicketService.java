@@ -58,11 +58,8 @@ public class TicketService {
                 Ticket ticket = ticketRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Error: Ticket not found with ID: " + id));
                 // Force loading of lazy fields for the controller response
-                if (ticket.getCliente() != null && ticket.getCliente().getPersona() != null) {
-                        Persona p = ticket.getCliente().getPersona();
-                        if (p.getCanton() != null && p.getCanton().getCiudad() != null) {
-                                p.getCanton().getCiudad().getPais().getNombre();
-                        }
+                if (ticket.getCliente() != null) {
+                        ticket.getCliente().getPersona().getNombre();
                 }
                 return ticket;
         }

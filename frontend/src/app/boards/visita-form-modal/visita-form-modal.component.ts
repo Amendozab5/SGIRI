@@ -28,6 +28,7 @@ export class VisitaFormModalComponent implements OnInit {
     visitaForm: FormGroup;
     isEditMode = false;
     currentVisitaId: number | null = null;
+    isLocked = false;
 
     constructor(
         private fb: FormBuilder,
@@ -54,6 +55,8 @@ export class VisitaFormModalComponent implements OnInit {
 
     open(visita?: VisitaTecnica, initialDate?: string): void {
         this.visitaForm.reset({ codigoEstado: 'PROGRAMADA' });
+        this.isLocked = false;
+        this.visitaForm.enable();
 
         if (visita) {
             this.isEditMode = true;
@@ -67,6 +70,11 @@ export class VisitaFormModalComponent implements OnInit {
                 codigoEstado: visita.estado.codigo,
                 reporteVisita: visita.reporteVisita
             });
+
+            if (['FINALIZADA', 'CANCELADA'].includes(visita.estado.codigo)) {
+                this.isLocked = true;
+                this.visitaForm.disable();
+            }
         } else {
             this.isEditMode = false;
             this.currentVisitaId = null;
@@ -92,9 +100,15 @@ export class VisitaFormModalComponent implements OnInit {
         return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
     }
 
+    reprogramar(): void {
+        this.isLocked = false;
+        this.visitaForm.enable();
+        this.visitaForm.patchValue({ codigoEstado: 'REPROGRAMADA' });
+    }
+
     onSubmit(): void {
         if (this.visitaForm.valid) {
-            const formValue = this.visitaForm.value;
+            const formValue = this.visitaForm.getRawValue(); // getRawValue para obtener campos disabled
             const currentUser = this.tokenService.getUser();
             const idEmpresa = currentUser?.idEmpresa || 1;
 

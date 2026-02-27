@@ -23,10 +23,10 @@ public class Ciudad {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_pais", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("ciudades")
+    @JsonBackReference
     private Pais pais;
 
     @OneToMany(mappedBy = "ciudad", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("ciudad")
+    @JsonManagedReference
     private List<Canton> cantones;
 }

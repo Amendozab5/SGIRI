@@ -14,12 +14,8 @@ export class HomeComponent implements OnInit {
   private roles: string[] = [];
   isLoggedIn = false;
   showAdminBoard = false;
-  showUserManagement = false;
-  showTicketAssignment = false;
-  showCatalogManagement = false;
-  showEntityManagement = false;
   showTechnicianBoard = false;
-  showUserBoard = false;
+  showUserBoard = false; // Added for clarity
   username?: string;
 
   constructor(private tokenStorageService: TokenStorageService) { }
@@ -34,18 +30,7 @@ export class HomeComponent implements OnInit {
         this.roles = user.roles;
         this.username = user.username;
 
-        const isMaster = this.roles.includes('ROLE_ADMIN_MASTER');
-        const isTechAdmin = this.roles.includes('ROLE_ADMIN_TECNICOS');
-        const isVisualAdmin = this.roles.includes('ROLE_ADMIN_VISUAL');
-
-        this.showAdminBoard = isMaster || isTechAdmin || isVisualAdmin;
-
-        // Granular permissions
-        this.showUserManagement = isMaster; // Only MASTER can manage users
-        this.showTicketAssignment = isMaster || isTechAdmin;
-        this.showCatalogManagement = isMaster || isTechAdmin;
-        this.showEntityManagement = isMaster || isTechAdmin;
-
+        this.showAdminBoard = this.roles.includes('ROLE_ADMIN_MASTER') || this.roles.includes('ROLE_ADMIN_TECNICOS') || this.roles.includes('ROLE_ADMIN_VISUAL');
         this.showTechnicianBoard = this.roles.includes('ROLE_TECNICO');
         this.showUserBoard = this.roles.includes('ROLE_CLIENTE');
       }
