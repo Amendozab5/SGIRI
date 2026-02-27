@@ -66,13 +66,13 @@ export class TicketAssignmentComponent implements OnInit {
         });
     }
 
-    assignTicket(ticketId: number, event: any): void {
-        const userId = +event.target.value;
+    assignTicket(ticket: Ticket): void {
+        const userId = ticket.idUsuarioAsignado;
         if (!userId) return;
 
-        this.ticketService.assignTicket(ticketId, userId).subscribe({
+        this.ticketService.assignTicket(ticket.idTicket!, userId).subscribe({
             next: () => {
-                this.success = `Ticket #${ticketId} asignado correctamente.`;
+                this.success = `Ticket #${ticket.idTicket} asignado correctamente.`;
                 setTimeout(() => this.success = '', 3000);
                 this.loadData();
             },

@@ -17,29 +17,32 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600, allowCredentials = "true")
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasRole('ADMIN_MASTER')")
 public class AdminController {
 
     @Autowired
     private AdminService adminService;
 
     @GetMapping("/roles")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
     public List<String> getRoles() {
         return adminService.getRoles();
     }
 
     @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
     public List<UserAdminView> getAllUsers(@RequestParam(name = "role", required = false) String role) {
         return adminService.getAllUsersForAdmin(role);
     }
 
     @PostMapping("/users")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
     public ResponseEntity<UserAdminView> createUser(@Valid @RequestBody UserCreateRequest request) {
         UserAdminView newUser = adminService.createUser(request);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
     @PutMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
     public ResponseEntity<UserAdminView> updateUser(@PathVariable(name = "id") Integer id,
             @Valid @RequestBody UserUpdateRequest request) {
         UserAdminView updatedUser = adminService.updateUser(id, request);
@@ -47,6 +50,7 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/status")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
     public ResponseEntity<?> toggleUserStatus(@PathVariable(name = "id") Integer id,
             @RequestBody Map<String, String> payload) {
         String estado = payload.get("estado");
@@ -59,6 +63,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
     public ResponseEntity<?> deleteUser(@PathVariable(name = "id") Integer id) {
         adminService.deleteUser(id);
         return ResponseEntity.ok(Map.of("message", "User deleted successfully!"));

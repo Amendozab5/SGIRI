@@ -70,7 +70,7 @@
                             <select class="form-select form-select-sm rounded-pill border-light-subtle shadow-sm"
                                 [(ngModel)]="ticket.idUsuarioAsignado"
                                 [disabled]="!!ticket.idUsuarioAsignado || (ticket.estadoItem?.codigo === 'CERRADO' || ticket.estadoItem?.codigo === 'RESUELTO')"
-                                (change)="assignTicket(ticket.idTicket!, $event)">
+                                (change)="assignTicket(ticket)">
                                 <option [ngValue]="undefined" [disabled]="true">-- Seleccionar --</option>
                                 <option *ngFor="let tech of technicians" [ngValue]="tech.id">
                                     {{ tech.username }}
