@@ -14,6 +14,7 @@ const API_PERSONNEL = 'http://localhost:8081/api/personnel';
 const API_EMPRESAS = 'http://localhost:8081/api/empresas';
 const API_SERVICIOS = 'http://localhost:8081/api/servicios';
 const API_GEOGRAPHY = 'http://localhost:8081/api/geography';
+const API_CONTRACTS = 'http://localhost:8081/api/contracts';
 
 @Injectable({
     providedIn: 'root'
@@ -66,6 +67,10 @@ export class MasterDataService {
         return this.http.post<Empresa>(API_EMPRESAS, empresa);
     }
 
+    updateEmpresa(id: number, empresa: any): Observable<Empresa> {
+        return this.http.put<Empresa>(`${API_EMPRESAS}/${id}`, empresa);
+    }
+
     getSucursales(empresaId: number): Observable<Sucursal[]> {
         return this.http.get<Sucursal[]>(`${API_EMPRESAS}/${empresaId}/sucursales`);
     }
@@ -97,5 +102,11 @@ export class MasterDataService {
 
     getCantones(ciudadId: number): Observable<any[]> {
         return this.http.get<any[]>(`${API_GEOGRAPHY}/cantones?ciudadId=${ciudadId}`);
+    }
+
+    uploadContract(file: File): Observable<Empresa> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.http.post<Empresa>(`${API_CONTRACTS}/upload`, formData);
     }
 }
