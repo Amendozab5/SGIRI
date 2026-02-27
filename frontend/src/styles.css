@@ -1,0 +1,140 @@
+/* You can add global styles to this file, and also import other style files */
+body {
+  background-color: #f5f7fa;
+  /* Light grey background for a modern look */
+  color: #333;
+  /* Default text color */
+}
+
+/* Override Bootstrap default jumbotron to be less intrusive */
+.jumbotron {
+  background-color: #fff;
+  padding: 2rem 2rem;
+  border-radius: 0.3rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 2rem;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* --- Global Modal System --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  /* Higher than sidebar/nav */
+  padding: 1rem;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 1.25rem;
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+.modal-header-custom {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f3f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.btn-close-custom {
+  background: none;
+  border: none;
+  color: #adb5bd;
+  font-size: 1.25rem;
+  transition: all 0.2s;
+}
+
+.btn-close-custom:hover {
+  color: #495057;
+  transform: rotate(90deg);
+}
+
+.modal-body-custom {
+  padding: 1.5rem;
+}
+
+.modal-footer-custom {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #f1f3f5;
+  display: flex;
+  justify-content: flex-end;
+  background: #f8f9fa;
+}
+
+.animate-fade-in {
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* --- Global Badge Colors --- */
+.bg-info-subtle {
+  background-color: #e0f2fe !important;
+}
+
+.text-info {
+  color: #0369a1 !important;
+}
+
+.bg-warning-subtle {
+  background-color: #fef3c7 !important;
+}
+
+.text-warning {
+  color: #92400e !important;
+}
+
+.bg-success-subtle {
+  background-color: #dcfce7 !important;
+}
+
+.text-success {
+  color: #166534 !important;
+}
+
+.bg-primary-subtle {
+  background-color: #e0e7ff !important;
+}
+
+.text-primary {
+  color: #4338ca !important;
+}
+
+.smallest {
+  font-size: 0.75rem;
+}

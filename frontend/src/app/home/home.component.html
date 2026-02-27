@@ -1,0 +1,70 @@
+<div class="d-flex premium-layout" id="wrapper" [class.sb-sidenav-toggled]="false">
+  <!-- Sidebar-->
+  <div class="premium-sidebar" id="sidebar-wrapper">
+    <div class="sidebar-heading">
+      <div class="logo-circle">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <span class="logo-text">SGIM Core</span>
+    </div>
+
+    <div class="sidebar-menu">
+      <div class="menu-category" *ngIf="showUserBoard || showTechnicianBoard || showAdminBoard">
+        Navegación Principal
+      </div>
+
+      <!-- User-specific Links -->
+      <a class="menu-item" routerLink="/home/user" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        *ngIf="showUserBoard">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Dashboard</span>
+      </a>
+      <a class="menu-item" routerLink="/home/user/report-incident" routerLinkActive="active" *ngIf="showUserBoard">
+        <i class="bi bi-node-plus-fill"></i>
+        <span>Reportar Incidencia</span>
+      </a>
+
+      <!-- Technician-specific Links -->
+      <a class="menu-item" routerLink="/home/tech" routerLinkActive="active" *ngIf="showTechnicianBoard">
+        <i class="bi bi-cpu-fill"></i>
+        <span>Dashboard Técnico</span>
+      </a>
+
+      <!-- Admin-specific Links -->
+      <a class="menu-item" routerLink="/home/admin" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" *ngIf="showAdminBoard">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Dashboard Admin</span>
+      </a>
+      <a class="menu-item" routerLink="/home/gestion-usuarios" routerLinkActive="active" *ngIf="showAdminBoard">
+        <i class="bi bi-people-fill"></i>
+        <span>Gestión de Usuarios</span>
+      </a>
+      <a class="menu-item" routerLink="/home/asignacion-tickets" routerLinkActive="active" *ngIf="showAdminBoard">
+        <i class="bi bi-ticket-perforated-fill"></i>
+        <span>Asignación de Tickets</span>
+      </a>
+      <a class="menu-item" routerLink="/home/gestion-catalogos" routerLinkActive="active" *ngIf="showAdminBoard">
+        <i class="bi bi-journal-check"></i>
+        <span>Gestión de Catálogos</span>
+      </a>
+      <a class="menu-item" routerLink="/home/gestion-entidades" routerLinkActive="active" *ngIf="showAdminBoard">
+        <i class="bi bi-diagram-3-fill"></i>
+        <span>Gestión de Entidades</span>
+      </a>
+      <!-- Scheduler/Agenda Access -->
+      <a class="menu-item" routerLink="/home/agenda" routerLinkActive="active"
+        *ngIf="showAdminBoard || showTechnicianBoard">
+        <i class="bi bi-calendar3"></i>
+        <span>Agenda de Visitas</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Page content wrapper-->
+  <div id="page-content-wrapper" class="premium-content">
+    <div class="container-fluid p-0">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

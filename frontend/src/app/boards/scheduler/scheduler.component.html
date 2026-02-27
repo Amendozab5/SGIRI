@@ -1,0 +1,66 @@
+<div class="scheduler-container p-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 fw-bold text-primary">Agenda de Visitas</h1>
+            <p class="text-muted small mb-0">Gestión logística de soporte técnico en campo</p>
+        </div>
+
+        <div class="d-flex gap-3 align-items-center">
+            <!-- Filtro de Técnico -->
+            <div class="filter-group d-flex align-items-center gap-2">
+                <span class="text-muted small fw-bold">Filtrar por:</span>
+                <select class="form-select form-select-sm border-0 shadow-sm rounded-pill px-3"
+                    style="min-width: 180px;" (change)="onFilterChange($event)">
+                    <option value="">Todos los técnicos</option>
+                    <option *ngFor="let tec of tecnicos" [value]="tec.username">{{tec.fullName}}</option>
+                </select>
+            </div>
+
+            <div class="btn-group shadow-sm">
+                <button class="btn btn-outline-primary" (click)="prevMonth()">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn btn-primary px-4 fw-bold" (click)="today()">Hoy</button>
+                <button class="btn btn-outline-primary" (click)="nextMonth()">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="calendar-card card shadow-sm border-0 overflow-hidden">
+        <div class="card-header bg-white py-3 border-bottom text-center">
+            <h4 class="mb-0 fw-bold text-dark">{{ currentDate | date: 'MMMM yyyy' | titlecase }}</h4>
+        </div>
+
+        <div class="calendar-grid">
+            <!-- Weekday Headers -->
+            <div *ngFor="let day of weekDays"
+                class="weekday-header text-center py-2 fw-bold text-muted small text-uppercase">
+                {{ day }}
+            </div>
+
+            <!-- Days -->
+            <div *ngFor="let day of days" class="calendar-day"
+                [ngClass]="{'other-month': !day.isCurrentMonth, 'is-today': day.isToday, 'is-past': day.isPast}" (click)="onDayClick(day)">
+
+                <div class="day-number text-end mb-1">{{ day.date | date: 'd' }}</div>
+
+                <div class="visitas-container d-flex flex-column gap-1">
+                    <div *ngFor="let v of day.visitas" class="visita-item shadow-sm"
+                        [style.border-left-color]="getStatusColor(v.estado.codigo)" (click)="onVisitaClick($event, v)"
+                        [title]="v.ticket.asunto + ' - ' + (v.ticket.cliente?.persona?.nombre || 'Cliente') + ' ' + (v.ticket.cliente?.persona?.apellido || '')">
+                        <div class="visita-time fw-bold">{{ v.horaInicio.substring(0, 5) }}</div>
+                        <div class="visita-title text-truncate">#{{v.ticket.idTicket}} - {{v.tecnico.username}}</div>
+                        <div class="visita-location smallest text-muted text-truncate">
+                            <i class="bi bi-geo-alt smallest"></i> {{ v.ticket.sucursal?.nombre }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-visita-form-modal [tickets]="tickets" [tecnicos]="tecnicos" (save)="onSaveVisita($event)"></app-visita-form-modal>

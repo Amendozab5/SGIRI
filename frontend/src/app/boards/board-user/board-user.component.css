@@ -1,0 +1,54 @@
+.stats-card-primary {
+  background: linear-gradient(135deg, #4e54c8, #8f94fb);
+  color: white;
+}
+
+.stats-card-warning {
+  background: linear-gradient(135deg, #f2994a, #f2c94c);
+  color: white;
+}
+
+.stats-card-success {
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+  color: white;
+}
+
+.clickable-row {
+  transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+.bg-info-subtle {
+  background-color: #e0f2fe !important;
+}
+
+.bg-warning-subtle {
+  background-color: #fef3c7 !important;
+}
+
+.bg-success-subtle {
+  background-color: #dcfce7 !important;
+}
+
+.bg-primary-subtle {
+  background-color: #e0e7ff !important;
+}
+
+.text-info {
+  color: #0369a1 !important;
+}
+
+.text-warning {
+  color: #92400e !important;
+}
+
+.text-success {
+  color: #166534 !important;
+}
+
+.text-primary {
+  color: #4338ca !important;
+}

@@ -1,0 +1,100 @@
+<div class="register-container">
+  <div *ngIf="!isSuccessful" class="register-card">
+    <div class="register-header">
+      <svg xmlns="http://www.w3.org/2000/svg" class="register-logo" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z" />
+        <path d="M9 12l2 2 4-4" />
+      </svg>
+      <h1>Activar mi Cuenta</h1>
+      <p>Si eres cliente de una de nuestras empresas aliadas, activa tu acceso aquí.</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="form-section">
+        <legend class="section-title">
+          <i class="bi bi-shield-lock-fill"></i>
+          Validación de Identidad
+        </legend>
+
+        <div class="form-group">
+          <label for="idEmpresa" class="form-label">Empresa Proveedora (ISP)</label>
+          <select id="idEmpresa" class="form-control" formControlName="idEmpresa">
+            <option [ngValue]="null" disabled>Selecciona tu empresa de internet</option>
+            <option *ngFor="let emp of empresas" [ngValue]="emp.id">
+              {{ emp.nombreComercial }}
+            </option>
+          </select>
+          <div *ngIf="registerForm.get('idEmpresa')?.touched && registerForm.get('idEmpresa')?.invalid"
+            class="error-text">
+            Debes seleccionar una empresa.
+          </div>
+        </div>
+
+        <div class="form-group mt-3">
+          <label for="cedula" class="form-label">Número de Cédula / Pasaporte / RUC</label>
+          <input type="text" id="cedula" class="form-control" formControlName="cedula" placeholder="Ej: 1712345678">
+          <div *ngIf="registerForm.get('cedula')?.touched && registerForm.get('cedula')?.invalid" class="error-text">
+            Ingresa un número de identificación válido (10-13 dígitos).
+          </div>
+        </div>
+      </div>
+
+      <div class="alert mt-3" [ngClass]="message.includes('activa') ? 'alert-info' : 'alert-danger'"
+        *ngIf="isSignUpFailed">
+        <div class="d-flex align-items-center">
+          <i
+            [class]="message.includes('activa') ? 'bi bi-info-circle-fill me-2' : 'bi bi-exclamation-triangle-fill me-2'"></i>
+          <span>{{ message }}</span>
+        </div>
+        <div *ngIf="message.includes('activa')" class="mt-2">
+          <a routerLink="/login" class="btn btn-sm btn-info text-white w-100">Ir a Iniciar Sesión</a>
+        </div>
+      </div>
+
+      <div class="button-group mt-4">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isProcessing">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="registerForm.invalid || isProcessing">
+          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status"
+            aria-hidden="true"></span>
+          <span *ngIf="!isProcessing">Activar Acceso</span>
+        </button>
+      </div>
+
+      <div class="login-link mt-3">
+        ¿Ya activaste tu cuenta? <a routerLink="/login">Inicia Sesión</a>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="isSuccessful" class="success-card slide-in">
+    <div class="success-header">
+      <div class="success-icon-container">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#28a745"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <h2>¡Solicitud Procesada Exitosamente!</h2>
+    </div>
+
+    <div class="success-body">
+      <p class="main-message">{{ message }}</p>
+      <div class="instruction-box">
+        <p><i class="bi bi-envelope-check-fill"></i> Hemos enviado tus credenciales de acceso a tu correo electrónico.
+        </p>
+        <p class="small text-muted"><i class="bi bi-info-circle"></i> No olvides revisar tu carpeta de <strong>Correo no
+            deseado/Spam</strong> si no lo visualizas en tu bandeja de entrada principal.</p>
+      </div>
+    </div>
+
+    <div class="success-footer mt-4">
+      <a routerLink="/login" class="btn btn-success btn-lg w-100">
+        <i class="bi bi-box-arrow-in-right me-2"></i>
+        Ir al Inicio de Sesión
+      </a>
+    </div>
+  </div>
+</div>
