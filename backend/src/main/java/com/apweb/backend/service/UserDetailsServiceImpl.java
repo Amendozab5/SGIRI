@@ -3,6 +3,7 @@ package com.apweb.backend.service;
 import com.apweb.backend.model.Role;
 import com.apweb.backend.model.User;
 import com.apweb.backend.repository.UserRepository;
+import com.apweb.backend.repository.UsuarioBdRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,11 +17,12 @@ import java.util.List;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-
     private final UserRepository userRepository;
+    private final UsuarioBdRepository usuarioBdRepository;
 
-    public UserDetailsServiceImpl(UserRepository userRepository) {
+    public UserDetailsServiceImpl(UserRepository userRepository, UsuarioBdRepository usuarioBdRepository) {
         this.userRepository = userRepository;
+        this.usuarioBdRepository = usuarioBdRepository;
     }
 
     @Override
@@ -44,15 +46,21 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         boolean accountNonExpired = true; // No tenemos esta lógica en la BD, asumimos true.
         boolean credentialsNonExpired = true; // No tenemos esta lógica en la BD, asumimos true.
 
-        // Usamos el constructor completo de UserDetails para incluir los estados de la
-        // cuenta.
-        return new org.springframework.security.core.userdetails.User(
+        String dbUsername = null;
+        List<com.apweb.backend.model.UsuarioBd> usuariosBd = usuarioBdRepository.findByUser_Id(user.getId());
+        if (!usuariosBd.isEmpty()) {
+            dbUsername = usuariosBd.get(0).getNombre();
+        }
+
+        // Usamos nuestro CustomUserDetails para incluir el rol f\u00edsico de la bd.
+        return new com.apweb.backend.security.jwt.CustomUserDetails(
                 user.getUsername(),
                 user.getPassword(),
                 enabled,
                 accountNonExpired,
                 credentialsNonExpired,
                 accountNonLocked,
-                authorities);
+                authorities,
+                dbUsername);
     }
 }
