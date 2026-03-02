@@ -85,6 +85,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/empresas/**").permitAll()
                         .requestMatchers("/api/empresas/isps").permitAll()
                         .requestMatchers("/api/contracts/**").permitAll()
+                        .requestMatchers("/api/network/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated());

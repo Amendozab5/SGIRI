@@ -25,9 +25,14 @@
       </a>
 
       <!-- Technician-specific Links -->
-      <a class="menu-item" routerLink="/home/tech" routerLinkActive="active" *ngIf="showTechnicianBoard">
+      <a class="menu-item" routerLink="/home/tech" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        *ngIf="showTechnicianBoard">
         <i class="bi bi-cpu-fill"></i>
         <span>Dashboard Técnico</span>
+      </a>
+      <a class="menu-item" routerLink="/home/tech-tickets" routerLinkActive="active" *ngIf="showTechnicianBoard">
+        <i class="bi bi-tools"></i>
+        <span>Mis Incidencias Asignadas</span>
       </a>
 
       <!-- Admin-specific Links -->
@@ -52,6 +57,18 @@
         <i class="bi bi-diagram-3-fill"></i>
         <span>Gestión de Entidades</span>
       </a>
+
+      <!-- Monitoreo de Infraestructura -->
+      <div class="menu-category" *ngIf="showAdminBoard || showTechnicianBoard">
+        Monitoreo Crítico (NOC)
+      </div>
+      <a class="menu-item" routerLink="/home/network-map" routerLinkActive="active"
+        *ngIf="showAdminBoard || showTechnicianBoard">
+        <i class="bi bi-geo-alt-fill"></i>
+        <span>Estado de Red Nacional</span>
+        <span class="badge rounded-pill bg-danger ms-2" style="font-size: 0.65rem;" *ngIf="showAdminBoard">LIVE</span>
+      </a>
+
       <!-- Scheduler/Agenda Access -->
       <a class="menu-item" routerLink="/home/agenda" routerLinkActive="active"
         *ngIf="showAdminBoard || showTechnicianBoard">

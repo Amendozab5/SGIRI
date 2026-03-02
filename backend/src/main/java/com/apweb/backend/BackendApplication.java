@@ -5,9 +5,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling; // ← AGREGA ESTO
 
 @SpringBootApplication
 @EnableAsync
+@EnableScheduling // ← AGREGA ESTO
 public class BackendApplication {
 
 	@Autowired
@@ -26,5 +28,4 @@ public class BackendApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BackendApplication.class, args);
 	}
-
 }

@@ -14,6 +14,7 @@ import { ChangePasswordComponent } from './change-password/change-password.compo
 import { AdminDashboardComponent } from './boards/admin-dashboard/admin-dashboard.component'; // Import AdminDashboardComponent
 import { TicketDetailComponent } from './boards/ticket-detail/ticket-detail.component'; // Import New Component
 import { TicketAssignmentComponent } from './boards/ticket-assignment/ticket-assignment.component'; // Import New Component
+import { TechDashboardComponent } from './boards/tech-dashboard/tech-dashboard.component'; // Import TechDashboardComponent
 
 
 const routes: Routes = [
@@ -30,11 +31,13 @@ const routes: Routes = [
       { path: 'gestion-usuarios', component: BoardAdminComponent }, // User management for admin
       { path: 'gestion-catalogos', component: CatalogManagementComponent }, // Catalog management
       { path: 'gestion-entidades', component: EntityManagementComponent }, // Entity management
-      { path: 'tech', component: BoardTechnicianComponent },
+      { path: 'tech', component: TechDashboardComponent }, // New tech dashboard
+      { path: 'tech-tickets', component: BoardTechnicianComponent }, // Technician tickets list
       { path: 'asignacion-tickets', component: TicketAssignmentComponent },
       { path: 'user', component: BoardUserComponent },
       { path: 'user/report-incident', component: ReportIncidentComponent }, // New route for reporting
       { path: 'user/ticket/:id', component: TicketDetailComponent }, // New route for detail
+      { path: 'network-map', loadComponent: () => import('./boards/network-map/network-map.component').then(m => m.NetworkMapComponent) },
       { path: 'agenda', loadComponent: () => import('./boards/scheduler/scheduler.component').then(m => m.SchedulerComponent) },
       { path: '', redirectTo: 'user', pathMatch: 'full' }
     ]

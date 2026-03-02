@@ -1,0 +1,35 @@
+<div class="network-map-container">
+  <div class="header-status">
+    <h2>Mapa de Estado de Red</h2>
+    <div class="status-badges">
+      <span class="badge" [ngClass]="dataSourceStatus === 'REAL' ? 'badge-success' : 'badge-warning'">
+        Origen: {{dataSourceStatus === 'REAL' ? 'Ping Global' : 'Fallback / Base de Datos'}}
+      </span>
+      <span class="badge badge-info">
+        Latencia País: {{overallLatency | number:'1.0-2'}} ms
+      </span>
+      <small class="text-muted ml-2">Actualizado: {{lastUpdate | date:'medium'}}</small>
+    </div>
+  </div>
+
+  <div class="map-wrapper">
+    <div id="networkMap"></div>
+
+    <!-- Leyenda Integrada -->
+    <div class="map-legend">
+      <h5>Nivel de Salud</h5>
+      <div class="legend-item">
+        <div class="color-box good"></div>
+        <span>BUENO (≥ 80)</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box warning"></div>
+        <span>ADVERTENCIA (50 - 79)</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box critical"></div>
+        <span>CRÍTICO (< 50)</span>
+      </div>
+    </div>
+  </div>
+</div>
