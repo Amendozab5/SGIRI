@@ -30,7 +30,7 @@ export class HomeComponent implements OnInit {
         this.roles = user.roles;
         this.username = user.username;
 
-        this.showAdminBoard = this.roles.includes('ROLE_ADMIN_MASTER') || this.roles.includes('ROLE_ADMIN_TECNICOS') || this.roles.includes('ROLE_ADMIN_VISUAL');
+        this.showAdminBoard = this.roles.includes('ROLE_ADMIN') || this.roles.includes('ROLE_ADMIN_MASTER') || this.roles.includes('ROLE_ADMIN_TECNICOS') || this.roles.includes('ROLE_ADMIN_VISUAL');
         this.showTechnicianBoard = this.roles.includes('ROLE_TECNICO');
         this.showUserBoard = this.roles.includes('ROLE_CLIENTE');
       }
