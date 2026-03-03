@@ -23,13 +23,13 @@ export class BoardTechnicianComponent implements OnInit {
 
   // Status mapping using codes from database
   private statusMap: { [key: string]: StatusInfo } = {
-    'ABIERTO': { text: 'Abierto', cssClass: 'bg-info-subtle text-info' },
-    'ASIGNADO': { text: 'Asignado', cssClass: 'bg-primary-subtle text-primary' },
-    'EN_PROCESO': { text: 'En Progreso', cssClass: 'bg-warning-subtle text-warning' },
-    'RESUELTO': { text: 'Resuelto', cssClass: 'bg-success-subtle text-success' },
-    'CERRADO': { text: 'Cerrado', cssClass: 'bg-secondary-subtle text-secondary' },
-    'RECHAZADO': { text: 'Rechazado', cssClass: 'bg-danger-subtle text-danger' },
-    'REQUIERE_VISITA': { text: 'Requiere Visita', cssClass: 'bg-danger-subtle text-danger' }
+    'ABIERTO': { text: 'Abierto', cssClass: 'status-abierto' },
+    'ASIGNADO': { text: 'Asignado', cssClass: 'status-asignado' },
+    'EN_PROCESO': { text: 'En Progreso', cssClass: 'status-proceso' },
+    'RESUELTO': { text: 'Resuelto', cssClass: 'status-resuelto' },
+    'CERRADO': { text: 'Cerrado', cssClass: 'status-cerrado' },
+    'RECHAZADO': { text: 'Rechazado', cssClass: 'status-rechazado' },
+    'REQUIERE_VISITA': { text: 'Requiere Visita', cssClass: 'status-visita' }
   };
 
   constructor(
@@ -40,6 +40,10 @@ export class BoardTechnicianComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTickets();
+  }
+
+  getCountByStatus(statusCode: string): number {
+    return this.tickets.filter(t => t.estadoItem?.codigo === statusCode).length;
   }
 
   loadTickets(): void {
@@ -76,6 +80,6 @@ export class BoardTechnicianComponent implements OnInit {
 
   getStatusInfo(status: string | undefined): StatusInfo {
     const code = status?.toUpperCase() || 'UNKNOWN';
-    return this.statusMap[code] || { text: `Desconocido (${code})`, cssClass: 'bg-light text-dark' };
+    return this.statusMap[code] || { text: `Desconocido (${code})`, cssClass: 'status-unknown' };
   }
 }

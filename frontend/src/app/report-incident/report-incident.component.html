@@ -1,87 +1,170 @@
-<div class="card card-container">
-  <div class="card-header">
-    <h4><i class="bi bi-exclamation-triangle-fill me-2"></i>Reportar una Nueva Incidencia</h4>
-    <p class="mb-0">Describe el problema que presentas con tu servicio de internet.</p>
-  </div>
-  <div class="card-body">
-    <form *ngIf="!isSuccessful" name="form" (ngSubmit)="onSubmit()" #f="ngForm" novalidate>
+<div class="report-view-wrapper animate__animated animate__fadeIn">
+  <div class="report-container">
 
-      <div class="form-group">
-        <label for="asunto"><i class="bi bi-card-heading me-2"></i>Asunto</label>
-        <input type="text" class="form-control" name="asunto" placeholder="Ej: No puedo navegar en ninguna página"
-          [(ngModel)]="form.asunto" required minlength="10" maxlength="100" #asunto="ngModel"
-          [ngClass]="{ 'is-invalid': asunto.errors && f.submitted }" />
-        <div class="invalid-feedback" *ngIf="asunto.errors && f.submitted">
-          <div *ngIf="asunto.errors['required']">El asunto es requerido.</div>
-          <div *ngIf="asunto.errors['minlength']">El asunto debe tener al menos 10 caracteres.</div>
-        </div>
+    <!-- View Header -->
+    <header class="view-header">
+      <div class="icon-badge">
+        <i class="bi bi-shield-plus"></i>
       </div>
+      <div class="header-text">
+        <h1>Reportar Nueva Incidencia</h1>
+        <p class="subtitle">Describe el problema detalladamente para que nuestro equipo técnico pueda asistirte de forma
+          eficiente.</p>
+      </div>
+    </header>
 
-      <div class="row">
-        <div [class]="showSucursal ? 'col-md-4' : 'col-md-6'">
-          <div class="form-group">
-            <label for="idCategoriaItem"><i class="bi bi-tags me-2"></i>Categoría</label>
-            <select name="idCategoriaItem" class="form-select" [(ngModel)]="form.idCategoriaItem" required
-              #idCategoriaItem="ngModel" [ngClass]="{ 'is-invalid': idCategoriaItem.errors && f.submitted }">
-              <option [ngValue]="null" disabled>Selecciona categoría...</option>
-              <option *ngFor="let cat of categorias" [ngValue]="cat.id">{{ cat.nombre }}</option>
-            </select>
+    <!-- Main Grid Layout -->
+    <div class="report-grid" *ngIf="!isSuccessful">
+
+      <!-- Left Column: Form -->
+      <main class="form-panel">
+        <form name="form" (ngSubmit)="f.form.valid && onSubmit()" #f="ngForm" novalidate>
+
+          <div class="form-section-title">
+            <i class="bi bi-file-earmark-text"></i>
+            <h2>Detalles de la Incidencia</h2>
+          </div>
+
+          <div class="form-fields-stack">
+
+            <!-- Asunto -->
+            <div class="form-group full-width">
+              <label for="asunto">Asunto de la Incidencia</label>
+              <div class="input-wrapper">
+                <i class="bi bi-pencil-square input-icon"></i>
+                <input type="text" class="form-control" name="asunto" id="asunto"
+                  placeholder="Ej: Falla en el servicio de internet o pérdida de conexión" [(ngModel)]="form.asunto"
+                  required minlength="10" maxlength="100" #asunto="ngModel"
+                  [ngClass]="{ 'is-invalid': asunto.errors && f.submitted }" />
+              </div>
+              <div class="invalid-feedback" *ngIf="asunto.errors && f.submitted">
+                <span *ngIf="asunto.errors['required']">El asunto es obligatorio.</span>
+                <span *ngIf="asunto.errors['minlength']">Mínimo 10 caracteres para mayor claridad.</span>
+              </div>
+            </div>
+
+            <!-- Row: Categoria, Sucursal, Servicio -->
+            <div class="form-row" [ngClass]="showSucursal ? 'grid-3' : 'grid-2'">
+
+              <div class="form-group">
+                <label for="idCategoriaItem">Categoría</label>
+                <div class="input-wrapper">
+                  <i class="bi bi-tag input-icon"></i>
+                  <select name="idCategoriaItem" id="idCategoriaItem" class="form-select"
+                    [(ngModel)]="form.idCategoriaItem" required #idCategoriaItem="ngModel"
+                    [ngClass]="{ 'is-invalid': idCategoriaItem.errors && f.submitted }">
+                    <option [ngValue]="null" disabled>Selecciona una categoría...</option>
+                    <option *ngFor="let cat of categorias" [ngValue]="cat.id">{{ cat.nombre }}</option>
+                  </select>
+                </div>
+                <div class="invalid-feedback" *ngIf="idCategoriaItem.errors && f.submitted">Campo requerido.</div>
+              </div>
+
+              <div class="form-group" *ngIf="showSucursal">
+                <label for="idSucursal">Sucursal</label>
+                <div class="input-wrapper">
+                  <i class="bi bi-geo-alt input-icon"></i>
+                  <select name="idSucursal" id="idSucursal" class="form-select" [(ngModel)]="form.idSucursal" required
+                    #idSucursal="ngModel" [ngClass]="{ 'is-invalid': idSucursal.errors && f.submitted }">
+                    <option [ngValue]="null" disabled>Selecciona sucursal...</option>
+                    <option *ngFor="let suc of sucursales" [ngValue]="suc.id">{{ suc.nombre }}</option>
+                  </select>
+                </div>
+                <div class="invalid-feedback" *ngIf="idSucursal.errors && f.submitted">Campo requerido.</div>
+              </div>
+
+              <div class="form-group">
+                <label for="idServicio">Servicio Afectado</label>
+                <div class="input-wrapper">
+                  <i class="bi bi-hdd-network input-icon"></i>
+                  <select name="idServicio" id="idServicio" class="form-select" [(ngModel)]="form.idServicio" required
+                    #idServicio="ngModel" [ngClass]="{ 'is-invalid': idServicio.errors && f.submitted }">
+                    <option [ngValue]="null" disabled>Selecciona servicio...</option>
+                    <option *ngFor="let srv of servicios" [ngValue]="srv.id">{{ srv.nombre }}</option>
+                  </select>
+                </div>
+                <div class="invalid-feedback" *ngIf="idServicio.errors && f.submitted">Campo requerido.</div>
+              </div>
+
+            </div>
+
+            <!-- Descripcion -->
+            <div class="form-group">
+              <label for="descripcion">Descripción Detallada</label>
+              <textarea class="form-control" name="descripcion" id="descripcion"
+                placeholder="Describe el problema. Incluye: ¿Cuándo empezó? ¿Qué luces ves en los equipos? ¿Has reiniciado los dispositivos?"
+                [(ngModel)]="form.descripcion" required minlength="20" maxlength="1000" rows="8" #descripcion="ngModel"
+                [ngClass]="{ 'is-invalid': descripcion.errors && f.submitted }"></textarea>
+              <div class="textarea-footer mt-2 d-flex justify-content-end">
+                <small class="text-muted">{{ form.descripcion?.length || 0 }} / 1000 caracteres</small>
+              </div>
+              <div class="invalid-feedback" *ngIf="descripcion.errors && f.submitted">
+                <span *ngIf="descripcion.errors['required']">La descripción es obligatoria.</span>
+                <span *ngIf="descripcion.errors['minlength']">Mínimo 20 caracteres sugeridos.</span>
+              </div>
+            </div>
+
+          </div>
+
+          <footer class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="f.form.invalid || isSubmitting">
+              <span *ngIf="!isSubmitting">Enviar Reporte <i class="bi bi-send ms-2"></i></span>
+              <span *ngIf="isSubmitting">Procesando... <i class="spinner-border spinner-border-sm ms-2"></i></span>
+            </button>
+          </footer>
+
+          <div class="alert alert-danger mt-4" *ngIf="isReportFailed">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+          </div>
+        </form>
+      </main>
+
+      <!-- Right Column: Sidebar Knowledge/Tips -->
+      <aside class="sidebar-sticky">
+
+        <div class="info-card">
+          <h3><i class="bi bi-lightbulb"></i> Tips de Reporte</h3>
+          <ul class="tips-list">
+            <li><i class="bi bi-check2-circle"></i> Sea específico con el horario en que inició la falla.</li>
+            <li><i class="bi bi-check2-circle"></i> Mencione si el problema ocurre en un equipo o en toda la red.</li>
+            <li><i class="bi bi-check2-circle"></i> Indique el estado de las luces de su router/módem.</li>
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <h3><i class="bi bi-camera"></i> Evidencias</h3>
+          <p class="text-muted small mb-3">Adjuntar fotos de las luces de los equipos agiliza el diagnóstico.</p>
+          <div class="evidence-dropzone">
+            <i class="bi bi-cloud-upload"></i>
+            <p>Subir archivos</p>
+            <span>Formatos: JPG, PNG, PDF</span>
           </div>
         </div>
-        <div class="col-md-4" *ngIf="showSucursal">
-          <div class="form-group">
-            <label for="idSucursal"><i class="bi bi-geo-alt me-2"></i>Sucursal</label>
-            <select name="idSucursal" class="form-select" [(ngModel)]="form.idSucursal" required #idSucursal="ngModel"
-              [ngClass]="{ 'is-invalid': idSucursal.errors && f.submitted }">
-              <option [ngValue]="null" disabled>Selecciona sucursal...</option>
-              <option *ngFor="let suc of sucursales" [ngValue]="suc.id">{{ suc.nombre }}</option>
-            </select>
-          </div>
+
+        <div class="info-card bg-primary-subtle border-primary-subtle">
+          <h3 class="text-primary"><i class="bi bi-info-circle-fill"></i> SLA de Atención</h3>
+          <p class="small mb-0">Recordamos que según el tipo de servicio, el tiempo de respuesta estimado es de
+            <strong>2 a 4 horas laborables</strong> una vez recibido el ticket.</p>
         </div>
-        <div [class]="showSucursal ? 'col-md-4' : 'col-md-6'">
-          <div class="form-group">
-            <label for="idServicio"><i class="bi bi-box me-2"></i>Servicio</label>
-            <select name="idServicio" class="form-select" [(ngModel)]="form.idServicio" required #idServicio="ngModel"
-              [ngClass]="{ 'is-invalid': idServicio.errors && f.submitted }">
-              <option [ngValue]="null" disabled>Selecciona servicio...</option>
-              <option *ngFor="let srv of servicios" [ngValue]="srv.id">{{ srv.nombre }}</option>
-            </select>
-          </div>
-        </div>
-      </div>
 
-      <div class="form-group">
-        <label for="descripcion"><i class="bi bi-body-text me-2"></i>Descripción Detallada</label>
-        <textarea class="form-control" name="descripcion"
-          placeholder="Describe con más detalle lo que sucede, qué luces ves en el módem, desde cuándo ocurre el problema, etc."
-          [(ngModel)]="form.descripcion" required minlength="20" maxlength="1000" rows="6" #descripcion="ngModel"
-          [ngClass]="{ 'is-invalid': descripcion.errors && f.submitted }"></textarea>
-        <div class="invalid-feedback" *ngIf="descripcion.errors && f.submitted">
-          <div *ngIf="descripcion.errors['required']">La descripción es requerida.</div>
-          <div *ngIf="descripcion.errors['minlength']">La descripción debe tener al menos 20 caracteres.</div>
-        </div>
-      </div>
+      </aside>
 
-      <div class="form-group mt-4 d-flex justify-content-end">
-        <button class="btn btn-primary btn-lg" [disabled]="f.form.invalid || isSubmitting">
-          <i class="bi bi-send-fill me-2" *ngIf="!isSubmitting"></i>
-          <span class="spinner-border spinner-border-sm me-2" *ngIf="isSubmitting" role="status"
-            aria-hidden="true"></span>
-          {{ isSubmitting ? 'Enviando...' : 'Enviar Reporte' }}
-        </button>
-      </div>
-
-      <div class="alert alert-danger mt-3" *ngIf="isReportFailed">
-        <b>Error al enviar el reporte:</b><br />{{ errorMessage }}
-      </div>
-    </form>
-
-    <div class="alert alert-success text-center" *ngIf="isSuccessful">
-      <i class="bi bi-check2-circle h1"></i>
-      <h4 class="alert-heading">¡Incidencia Reportada Exitosamente!</h4>
-      <p>Tu reporte ha sido recibido. Nuestro equipo técnico lo revisará a la brevedad posible.</p>
-      <hr>
-      <p class="mb-0">Puedes ver el estado de tus incidencias en tu dashboard.</p>
     </div>
+
+    <!-- Success Screen (Full Width) -->
+    <main class="success-state animate__animated animate__zoomIn" *ngIf="isSuccessful">
+      <div class="success-icon-wrapper">
+        <i class="bi bi-check-lg"></i>
+      </div>
+      <h2>¡Reporte Registrado!</h2>
+      <p>Tu incidencia ha sido recibida con éxito. El ticket generado está siendo procesado por el centro de operaciones
+        (NOC).<br>Recibirás una notificación en cuanto sea asignado a un técnico.</p>
+
+      <div class="mt-5">
+        <div class="spinner-border text-primary mb-3" role="status"></div>
+        <p class="text-muted">Redirigiendo a tu dashboard de seguimiento...</p>
+      </div>
+    </main>
+
   </div>
 </div>

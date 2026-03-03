@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { TicketService } from '../../_services/ticket.service';
@@ -12,12 +12,15 @@ import { TokenStorageService } from '../../_services/token-storage.service';
     templateUrl: './ticket-detail.component.html',
     styleUrls: ['./ticket-detail.component.css']
 })
-export class TicketDetailComponent implements OnInit {
+export class TicketDetailComponent implements OnInit, AfterViewChecked {
+    @ViewChild('chatFeed') private chatFeed!: ElementRef;
+
     ticket: any = null;
     loading = true;
+    isSubmitting = false;
+    successMessage = '';
     error = '';
     commentText = '';
-    isSubmitting = false;
     currentUser: any = null;
     showStatusUpdate = false;
     backRoute = '/home/user';
@@ -29,6 +32,18 @@ export class TicketDetailComponent implements OnInit {
         private cdr: ChangeDetectorRef,
         private zone: NgZone
     ) { }
+
+    ngAfterViewChecked(): void {
+        this.scrollToBottom();
+    }
+
+    private scrollToBottom(): void {
+        try {
+            if (this.chatFeed) {
+                this.chatFeed.nativeElement.scrollTop = this.chatFeed.nativeElement.scrollHeight;
+            }
+        } catch (err) { }
+    }
 
     ngOnInit(): void {
         this.currentUser = this.tokenService.getUser();
@@ -107,15 +122,57 @@ export class TicketDetailComponent implements OnInit {
         });
     }
 
-    changeStatus(statusCode: string): void {
-        const obs = prompt('Ingrese una observación para el cambio de estado (opcional):');
-        if (obs === null) return; // Cancelled
+    onKeyEnter(event: any): void {
+        if (!event.shiftKey) {
+            event.preventDefault();
+            this.addComment();
+        }
+    }
 
+    showConfirmModal = false;
+    modalData = {
+        title: '',
+        status: '',
+        observation: '',
+        confirmText: ''
+    };
+
+    openConfirmModal(statusCode: string): void {
+        this.modalData.status = statusCode;
+        this.modalData.observation = '';
+
+        switch (statusCode) {
+            case 'EN_PROCESO':
+                this.modalData.title = 'Atender Incidencia';
+                this.modalData.confirmText = 'Comenzar a atender';
+                break;
+            case 'RESUELTO':
+                this.modalData.title = 'Resolver Incidencia';
+                this.modalData.confirmText = 'Marcar como resuelto';
+                break;
+            case 'REQUIERE_VISITA':
+                this.modalData.title = 'Solicitar Visita Técnica';
+                this.modalData.confirmText = 'Solicitar visita';
+                break;
+            case 'CERRADO':
+                this.modalData.title = 'Cerrar Ticket';
+                this.modalData.confirmText = 'Cerrar permanentemente';
+                break;
+        }
+
+        this.showConfirmModal = true;
+    }
+
+    onConfirmAction(): void {
+        this.showConfirmModal = false;
         this.loading = true;
         this.cdr.detectChanges();
-        this.ticketService.updateStatus(this.ticket.idTicket, statusCode, obs).subscribe({
+
+        this.ticketService.updateStatus(this.ticket.idTicket, this.modalData.status, this.modalData.observation).subscribe({
             next: () => {
                 this.zone.run(() => {
+                    this.successMessage = 'Estado actualizado correctamente.';
+                    setTimeout(() => this.successMessage = '', 4000);
                     this.loadTicket(this.ticket.idTicket);
                     this.cdr.detectChanges();
                 });
@@ -128,6 +185,10 @@ export class TicketDetailComponent implements OnInit {
                 });
             }
         });
+    }
+
+    changeStatus(statusCode: string): void {
+        this.openConfirmModal(statusCode);
     }
 
     getStatusBadgeClass(status: string): string {
