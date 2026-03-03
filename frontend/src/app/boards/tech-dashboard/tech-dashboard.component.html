@@ -1,0 +1,149 @@
+<div class="tech-center animate__animated animate__fadeIn">
+
+    <!-- Header Hero -->
+    <header class="tech-header">
+        <div class="welcome-section">
+            <span class="date-chip">{{ today | date:'EEEE, d \'de\' MMMM \'del\' y' }}</span>
+            <h1>Workspace Técnico</h1>
+            <p>Gestiona tus incidencias, visitas y monitoreo de red en tiempo real.</p>
+        </div>
+        <div class="header-status">
+            <div class="status-indicator">
+                <span class="pulse-ring"></span>
+                <span class="status-text">Disponibilidad en Línea</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Skeleton Loader -->
+    <section class="kpi-belt" *ngIf="isLoading">
+        <div class="kpi-box skeleton" *ngFor="let i of [1,2,3,4,5]"></div>
+    </section>
+
+    <!-- KPI Operational Belt -->
+    <section class="kpi-belt" *ngIf="!isLoading">
+        <div class="kpi-box" *ngFor="let kpi of kpis" [ngClass]="kpi.class">
+            <div class="kpi-icon-wrap">
+                <i class="bi" [ngClass]="kpi.icon"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-value">{{ kpi.value }}</span>
+                <span class="kpi-label">{{ kpi.label }}</span>
+            </div>
+            <span class="kpi-trend" *ngIf="kpi.trend">{{ kpi.trend }}</span>
+        </div>
+    </section>
+
+    <!-- Main Operating Layout -->
+    <div class="operating-grid" *ngIf="!isLoading">
+
+        <!-- Primary Column: Assignments & Tasks -->
+        <main class="primary-col">
+
+            <div class="glass-panel main-panel">
+                <div class="panel-header">
+                    <h2><i class="bi bi-lightning-charge me-2"></i>Mi Trabajo Hoy</h2>
+                    <button class="btn-text" [routerLink]="['/home/tech-tickets']">Ver Todo <i
+                            class="bi bi-chevron-right"></i></button>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state-tech" *ngIf="ticketsHoy.length === 0">
+                    <i class="bi bi-check2-all"></i>
+                    <p>¡Todo al día! No tienes incidencias asignadas pendientes.</p>
+                </div>
+
+                <div class="tasks-list" *ngIf="ticketsHoy.length > 0">
+                    <div class="task-item" *ngFor="let ticket of ticketsHoy"
+                        [ngClass]="getPriorityClass(ticket.prioridad)">
+                        <div class="priority-marker"></div>
+
+                        <div class="task-info">
+                            <div class="task-top">
+                                <span class="task-id">#{{ ticket.id }}</span>
+                                <span class="task-priority">{{ ticket.prioridad }}</span>
+                            </div>
+                            <h3 class="task-subject">{{ ticket.asunto }}</h3>
+                            <div class="task-entity">
+                                <span><i class="bi bi-building me-1"></i>{{ ticket.empresa }}</span>
+                                <span><i class="bi bi-geo-alt me-1"></i>{{ ticket.sucursal }}</span>
+                            </div>
+                        </div>
+
+                        <div class="task-status-row">
+                            <span class="status-chip" [ngClass]="getStatusClass(ticket.status)">{{ ticket.statusLabel
+                                }}</span>
+                            <span class="sla-timer" *ngIf="ticket.tiempoRestante">
+                                <i class="bi bi-hourglass-split me-1"></i> {{ ticket.tiempoRestante }}
+                            </span>
+                            <button class="btn-action-round" [routerLink]="['/home/user/ticket', ticket.id]">
+                                <i class="bi bi-play-fill"
+                                    *ngIf="ticket.status === 'ASIGNADO' || ticket.status === 'ABIERTO'"></i>
+                                <i class="bi bi-arrow-right" *ngIf="ticket.status === 'EN_PROCESO'"></i>
+                                <i class="bi bi-check-lg" *ngIf="ticket.status === 'RESUELTO'"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Side Column: Intelligence & Network -->
+        <aside class="side-col">
+
+            <!-- Network Snapshot -->
+            <div class="glass-panel mb-4">
+                <div class="panel-header">
+                    <h3><i class="bi bi-broadcast me-2"></i>Monitoreo de Red</h3>
+                    <button class="dot-btn" [routerLink]="['/home/network-map']" title="Ver Mapa Completo">
+                        <i class="bi bi-fullscreen"></i>
+                    </button>
+                </div>
+                <div class="network-list">
+                    <div class="net-item" *ngFor="let node of networkStatus">
+                        <span class="net-region">{{ node.region }}</span>
+                        <div class="net-health">
+                            <span class="health-bar" [style.width]="node.percentage + '%'"
+                                [ngClass]="node.status"></span>
+                        </div>
+                        <span class="net-nodes text-nowrap">{{ node.nodes }}</span>
+                    </div>
+                    <div class="empty-state-mini" *ngIf="networkStatus.length === 0">
+                        <p>Cargando estado de red...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Visits -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <h3><i class="bi bi-calendar-check me-2"></i>Próximas Visitas</h3>
+                </div>
+
+                <div class="empty-state-mini" *ngIf="visitasHoy.length === 0">
+                    <p>No tienes visitas técnicas programadas para hoy.</p>
+                </div>
+
+                <div class="visits-timeline" *ngIf="visitasHoy.length > 0">
+                    <div class="visit-entry" *ngFor="let visit of visitasHoy">
+                        <div class="visit-time">{{ visit.time }}</div>
+                        <div class="visit-detail">
+                            <strong>{{ visit.title }}</strong>
+                            <p>{{ visit.client }} - {{ visit.address }}</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-full-width mt-3" [routerLink]="['/home/agenda']">Ir a mi Agenda</button>
+            </div>
+
+            <!-- Quick Tools -->
+            <div class="tools-grid mt-4">
+                <button class="tool-btn"><i class="bi bi-plus-circle"></i> Nueva Nota</button>
+                <button class="tool-btn"><i class="bi bi-camera"></i> Subir Foto</button>
+            </div>
+
+        </aside>
+
+    </div>
+</div>

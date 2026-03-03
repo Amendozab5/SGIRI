@@ -37,6 +37,7 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
     public overallLatency: number = 0;
     public dataSourceStatus: string = '';
     public lastUpdate: string = '';
+    public isFullscreen: boolean = false;
 
     // ---- NUEVO: caches para diagnóstico ----
     private lastGeoKeys: { original: string; normalized: string }[] = [];
@@ -56,10 +57,26 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         this.initMap();
-        const rect = document.getElementById('networkMap')?.getBoundingClientRect();
-        if (rect) {
-            console.log(`networkMap rect after fix: w=${rect.width} h=${rect.height}`);
+        setTimeout(() => {
+            this.map?.invalidateSize();
+        }, 500);
+    }
+
+    public toggleFullscreen(): void {
+        const elem = document.querySelector('.network-map-container');
+        if (!elem) return;
+
+        if (!this.isFullscreen) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
         }
+        this.isFullscreen = !this.isFullscreen;
+        setTimeout(() => this.map?.invalidateSize(), 300);
     }
 
     ngOnDestroy(): void {
@@ -68,7 +85,7 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    private fetchNetworkData(): void {
+    public fetchNetworkData(): void {
         this.networkService.getNetworkMap('PROVINCIA').subscribe({
             next: (data) => {
                 this.networkData = data;
@@ -347,24 +364,27 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private onEachFeature(feature: any, layer: L.Layer): void {
         const { geoName, geoKey, backendKey, data } = this.getGeoInfo(feature);
-        let tooltipContent = '';
+        let tooltipContent = '<div class="noc-tooltip">';
 
         if (data) {
             const score = Number(data.scoreFinal ?? data.scoreTickets ?? 0);
             const level = this.getLevelFromScore(score);
+            const levelClass = level.toLowerCase();
 
-            tooltipContent += `<strong>Provincia:</strong> ${data.zoneName}<br/>`;
-            tooltipContent += `<strong>Salud General:</strong> ${level} (${score}/100)<br/>`;
-            tooltipContent += `<strong>Tickets Abiertos:</strong> ${data.openTickets}<br/>`;
-            tooltipContent += `<strong>Prioridad Máxima:</strong> ${data.maxPriority}<br/>`;
-            tooltipContent += `<strong>Latencia Global EC:</strong> ${data.latencyOverallMs.toFixed(2)} ms<br/>`;
+            tooltipContent += `<div class="tooltip-header">${data.zoneName}</div>`;
+            tooltipContent += `<div class="tooltip-row"><span>Salud:</span> <span class="val-${levelClass}">${level} (${score}%)</span></div>`;
+            tooltipContent += `<div class="tooltip-row"><span>Tickets:</span> <span>${data.openTickets}</span></div>`;
+            tooltipContent += `<div class="tooltip-row"><span>Prioridad:</span> <span>${data.maxPriority || 'Baja'}</span></div>`;
+            tooltipContent += `<div class="tooltip-divider"></div>`;
+            tooltipContent += `<div class="tooltip-footer">Latencia: ${data.latencyOverallMs.toFixed(2)} ms</div>`;
         } else {
-            tooltipContent += `<strong>Provincia:</strong> ${geoName || 'Desconocida'}<br/>`;
-            tooltipContent += `Sin datos del backend`;
+            tooltipContent += `<div class="tooltip-header">${geoName || 'Desconocida'}</div>`;
+            tooltipContent += `<div class="tooltip-error">Sin datos de telemetría</div>`;
             this.unmatchedFeaturesCount++;
         }
+        tooltipContent += '</div>';
 
-        layer.bindTooltip(tooltipContent);
+        layer.bindTooltip(tooltipContent, { sticky: true, className: 'noc-leaflet-tooltip' });
 
         layer.on({
             mouseover: (e: any) => {

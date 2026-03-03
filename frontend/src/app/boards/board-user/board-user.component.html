@@ -1,148 +1,118 @@
-<div class="container-fluid pt-4">
-  <!-- Welcome Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-    <div>
-      <h1 class="h3 fw-bold text-primary mb-0">Portal de Soporte al Cliente</h1>
-      <p class="text-muted small">Bienvenido, <span class="fw-medium text-dark">{{ username }}</span>. Aquí puedes ver
-        el estado de tus servicios.</p>
-    </div>
-    <a routerLink="/home/user/report-incident" class="btn btn-primary shadow-sm rounded-pill px-4">
-      <i class="bi bi-plus-lg me-2"></i>Nueva Incidencia
-    </a>
-  </div>
+<div class="support-portal animate__animated animate__fadeIn">
 
-  <!-- Stats Cards -->
-  <div class="row g-4 mb-5">
-    <!-- Card Abiertas -->
-    <div class="col-xl-4 col-md-6">
-      <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 stats-card-primary">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
-              <div class="text-xs fw-bold text-uppercase opacity-75 mb-1">Pendientes / Abiertas</div>
-              <div class="display-6 fw-bold mb-0 text-white">{{ isLoadingIncidents ? '...' : incidentStats.open }}</div>
-            </div>
-            <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-              <i class="bi bi-exclamation-octagon text-white fs-2"></i>
-            </div>
-          </div>
-        </div>
+  <!-- Hero Header -->
+  <header class="portal-header">
+    <div class="welcome-text">
+      <span class="user-chip"><i class="bi bi-person-circle me-1"></i> {{ username }}</span>
+      <h1>Centro de Soporte</h1>
+      <p>Gestiona y rastrea tus solicitudes técnicas en tiempo real.</p>
+    </div>
+    <div class="portal-actions">
+      <button class="btn-new-incident" routerLink="/home/user/report-incident">
+        <i class="bi bi-plus-circle-fill"></i> Nueva Incidencia
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI Dashboard Belt -->
+  <section class="kpi-belt">
+    <div class="kpi-item" [ngClass]="{'loading': isLoadingIncidents}">
+      <div class="kpi-icon open"><i class="bi bi-envelope-paper"></i></div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ isLoadingIncidents ? '...' : incidentStats.open }}</span>
+        <span class="kpi-label">Pendientes</span>
+      </div>
+    </div>
+    <div class="kpi-item" [ngClass]="{'loading': isLoadingIncidents}">
+      <div class="kpi-icon progress"><i class="bi bi-gear-wide-connected"></i></div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ isLoadingIncidents ? '...' : incidentStats.inProgress }}</span>
+        <span class="kpi-label">En Resolución</span>
+      </div>
+    </div>
+    <div class="kpi-item" [ngClass]="{'loading': isLoadingIncidents}">
+      <div class="kpi-icon resolved"><i class="bi bi-check-circle"></i></div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ isLoadingIncidents ? '...' : incidentStats.resolved }}</span>
+        <span class="kpi-label">Completadas</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content: Ticket Feed -->
+  <main class="ticket-feed">
+    <div class="feed-header">
+      <h2>Mis Solicitudes Recientes</h2>
+      <div class="feed-controls">
+        <button class="btn-refresh-simple" (click)="loadIncidents()" [disabled]="isLoadingIncidents">
+          <i class="bi bi-arrow-repeat" [class.spin]="isLoadingIncidents"></i> Actualizar
+        </button>
       </div>
     </div>
 
-    <!-- Card En Proceso -->
-    <div class="col-xl-4 col-md-6">
-      <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 stats-card-warning">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
-              <div class="text-xs fw-bold text-uppercase opacity-75 mb-1">En Resolución</div>
-              <div class="display-6 fw-bold mb-0 text-white">{{ isLoadingIncidents ? '...' : incidentStats.inProgress }}
+    <!-- Skeleton Loader -->
+    <div class="skeleton-feed" *ngIf="isLoadingIncidents">
+      <div class="skeleton-card" *ngFor="let i of [1,2,3]"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-portal" *ngIf="!isLoadingIncidents && incidents.length === 0">
+      <div class="empty-graphic">
+        <i class="bi bi-search"></i>
+      </div>
+      <h3>No tienes reportes activos</h3>
+      <p>Todo se ve en orden por aquí. Si necesitas ayuda, crea una nueva incidencia.</p>
+    </div>
+
+    <!-- Ticket Card List -->
+    <div class="ticket-list" *ngIf="!isLoadingIncidents && incidents.length > 0">
+      <div class="ticket-card animate__animated animate__fadeInUp" *ngFor="let incident of incidents"
+        [routerLink]="['/home/user/ticket', incident.idTicket]">
+
+        <div class="card-status-bar" [style.background-color]="getStatusColor(incident.estadoItem?.codigo)"></div>
+
+        <div class="card-main">
+          <div class="ticket-top-info">
+            <span class="ticket-id">CASO-{{ incident.idTicket }}</span>
+            <span class="ticket-date">{{ incident.fechaCreacion | date:'d MMM, y' }}</span>
+          </div>
+
+          <h3 class="ticket-subject">{{ incident.asunto }}</h3>
+
+          <div class="ticket-details">
+            <span class="detail-tag"><i class="bi bi-tag"></i> {{ incident.categoriaItem?.nombre || 'General' }}</span>
+            <span class="detail-tag"><i class="bi bi-building"></i> {{ incident.sucursal?.nombre }}</span>
+          </div>
+
+          <!-- Enhanced Progress Bar -->
+          <div class="ticket-progress-wrap">
+            <div class="progress-labels">
+              <span class="progress-text">Estado: <strong>{{ incident.estadoItem?.nombre }}</strong></span>
+              <span class="progress-percent">{{ getProgressValue(incident.estadoItem?.codigo) }}%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="getProgressValue(incident.estadoItem?.codigo)"
+                [style.background-color]="getStatusColor(incident.estadoItem?.codigo)">
               </div>
             </div>
-            <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-              <i class="bi bi-gear-wide-connected text-white fs-2"></i>
-            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Card Resueltas -->
-    <div class="col-xl-4 col-md-12">
-      <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 stats-card-success">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
-              <div class="text-xs fw-bold text-uppercase opacity-75 mb-1">Finalizadas / Cerradas</div>
-              <div class="display-6 fw-bold mb-0 text-white">{{ isLoadingIncidents ? '...' : incidentStats.resolved }}
-              </div>
-            </div>
-            <div class="bg-white bg-opacity-25 p-3 rounded-circle">
-              <i class="bi bi-check-all text-white fs-2"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Incidents List -->
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
-        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold">Mis Reportes Recientes</h5>
-          <button class="btn btn-link btn-sm text-decoration-none" (click)="loadIncidents()">
-            <i class="bi bi-arrow-repeat me-1"></i> Actualizar
+        <div class="card-side-actions">
+          <span class="status-badge-modern" [ngClass]="getStatusBadgeClass(incident.estadoItem?.codigo)">
+            {{ incident.estadoItem?.nombre }}
+          </span>
+          <button class="btn-view-ticket">
+            Ver Detalles <i class="bi bi-chevron-right"></i>
           </button>
         </div>
-        <div class="card-body p-0">
-          <div *ngIf="isLoadingIncidents" class="text-center py-5">
-            <div class="spinner-grow text-primary" role="status"></div>
-            <p class="mt-2 text-muted">Obteniendo tus reportes...</p>
-          </div>
-
-          <div *ngIf="!isLoadingIncidents && incidents.length === 0" class="text-center py-5">
-            <div class="opacity-25 mb-3">
-              <i class="bi bi-journal-x display-1"></i>
-            </div>
-            <h5 class="text-muted">No tienes reportes activos</h5>
-            <p class="text-secondary small">Si experimentas fallas en tu servicio, puedes crear uno nuevo.</p>
-          </div>
-
-          <div *ngIf="!isLoadingIncidents && incidents.length > 0" class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th class="ps-4">Código</th>
-                  <th>Asunto</th>
-                  <th>Categoría</th>
-                  <th>Sucursal</th>
-                  <th>Estado</th>
-                  <th class="pe-4">Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let incident of incidents" class="clickable-row"
-                  [routerLink]="['/home/user/ticket', incident.idTicket]" style="cursor: pointer;">
-                  <td class="ps-4">
-                    <span class="text-primary fw-medium">#{{ incident.idTicket }}</span>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">{{ incident.asunto }}</div>
-                    <div class="text-muted small text-truncate" style="max-width: 250px;">{{ incident.descripcion }}
-                    </div>
-                  </td>
-                  <td>
-                    <span class="badge bg-light text-dark border">{{ incident.categoriaItem?.nombre }}</span>
-                  </td>
-                  <td>
-                    <div class="small">{{ incident.sucursal?.nombre }}</div>
-                  </td>
-                  <td>
-                    <span class="badge rounded-pill" [ngClass]="{
-                            'bg-info-subtle text-info': incident.estadoItem?.codigo === 'ABIERTO',
-                            'bg-primary-subtle text-primary': incident.estadoItem?.codigo === 'ASIGNADO',
-                            'bg-warning-subtle text-warning': incident.estadoItem?.codigo === 'EN_PROCESO',
-                            'bg-success-subtle text-success': incident.estadoItem?.codigo === 'RESUELTO' || incident.estadoItem?.codigo === 'CERRADO'
-                          }">
-                      {{ incident.estadoItem?.nombre }}
-                    </span>
-                  </td>
-                  <td class="pe-4 text-muted small">
-                    {{ incident.fechaCreacion | date:'fullDate' }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="errorMessage" class="alert alert-danger border-0 shadow-sm mt-4 rounded-3 d-flex align-items-center">
-        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-        <div>{{ errorMessage }}</div>
       </div>
     </div>
-  </div>
+
+    <!-- Error State -->
+    <div *ngIf="errorMessage" class="portal-error">
+      <i class="bi bi-exclamation-triangle"></i>
+      <p>{{ errorMessage }}</p>
+    </div>
+  </main>
 </div>

@@ -1,61 +1,160 @@
-<div class="container-fluid mt-4">
-  <div class="card shadow-sm">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-      <h4 class="mb-0">Mis Incidencias Asignadas</h4>
-      <button class="btn btn-light btn-sm" (click)="loadTickets()" [disabled]="isLoading">
+<div class="dashboard-container animate-in">
+  <!-- Cabecera y Título -->
+  <header class="view-header">
+    <div class="header-title">
+      <h1>Panel de Seguimiento</h1>
+      <p>Gestiona y resuelve las incidencias asignadas a tu cuenta.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="loadTickets()" [disabled]="isLoading">
         <i class="bi bi-arrow-clockwise" [class.spinner-border]="isLoading" [class.spinner-border-sm]="isLoading"></i>
-        {{ isLoading ? 'Cargando...' : 'Refrescar' }}
+        <span>{{ isLoading ? 'Cargando...' : 'Actualizar Lista' }}</span>
       </button>
     </div>
-    <div class="card-body">
-      <div *ngIf="isLoading" class="text-center">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
-        <p class="mt-2">Cargando incidencias...</p>
-      </div>
+  </header>
 
-      <div *ngIf="!isLoading && errorMessage" class="alert alert-danger">
-        {{ errorMessage }}
+  <!-- Fila de Estadísticas (Acceso Rápido) -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #eff6ff; color: #2563eb;">
+        <i class="bi bi-list-task"></i>
       </div>
-
-      <div *ngIf="!isLoading && !tickets.length && !errorMessage" class="text-center text-muted">
-        <p>No tienes incidencias asignadas en este momento.</p>
-      </div>
-
-      <div *ngIf="!isLoading && tickets.length" class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th scope="col">ID Ticket</th>
-              <th scope="col">ID Cliente</th>
-              <th scope="col">Asunto</th>
-              <th scope="col">Fecha de Creación</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let ticket of tickets" class="clickable-row">
-              <td>#{{ ticket.idTicket }}</td>
-              <td>{{ ticket.cliente?.persona?.nombre }} {{ ticket.cliente?.persona?.apellido }}</td>
-              <td>{{ ticket.asunto }}</td>
-              <td>{{ ticket.fechaCreacion | date:'dd/MM/yyyy h:mm a' }}</td>
-              <td>
-                <span class="badge rounded-pill" [ngClass]="getStatusInfo(ticket.estadoItem?.codigo).cssClass">
-                  {{ getStatusInfo(ticket.estadoItem?.codigo).text }}
-                </span>
-              </td>
-              <td>
-                <button class="btn btn-primary btn-sm rounded-pill"
-                  [routerLink]="['/home/user/ticket', ticket.idTicket]">
-                  <i class="bi bi-gear-fill me-1"></i> Gestionar
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="stat-info">
+        <h3>Total Asignadas</h3>
+        <span>{{ tickets.length }}</span>
       </div>
     </div>
-  </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fffbeb; color: #d97706;">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <div class="stat-info">
+        <h3>En Progreso</h3>
+        <span>{{ getCountByStatus('EN_PROCESO') }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #f0fdf4; color: #16a34a;">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Resueltas</h3>
+        <span>{{ getCountByStatus('RESUELTO') }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fef2f2; color: #dc2626;">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Urgentes / Visita</h3>
+        <span>{{ getCountByStatus('REQUIERE_VISITA') }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenedor Principal con Tabla -->
+  <main class="main-card">
+    <!-- Barra de Herramientas de la Tabla -->
+    <div class="card-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" class="form-control border-0 bg-transparent"
+          placeholder="Buscar incidencia por ID o Asunto...">
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-light border-0" style="font-size: 0.8rem; font-weight: 600;">
+          <i class="bi bi-filter me-1"></i> Filtrar
+        </button>
+        <button class="btn btn-light border-0" style="font-size: 0.8rem; font-weight: 600;">
+          <i class="bi bi-download me-1"></i> Exportar
+        </button>
+      </div>
+    </div>
+
+    <!-- Estados de Carga / Error -->
+    <div *ngIf="isLoading" class="p-5 text-center">
+      <div class="spinner-grow text-primary" role="status"></div>
+      <p class="mt-3 text-muted fw-semi-bold">Sincronizando incidencias...</p>
+    </div>
+
+    <div *ngIf="!isLoading && errorMessage" class="p-4 mx-4 my-3 alert alert-danger border-0 shadow-sm opacity-90">
+      <i class="bi bi-shield-lock-fill me-2"></i> {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && !tickets.length && !errorMessage" class="p-5 text-center">
+      <img src="https://illustrations.popsy.co/gray/success.svg" alt="No hay tickets"
+        style="width: 180px; margin-bottom: 2rem;">
+      <h3 class="fw-bold text-main">¡Todo al día!</h3>
+      <p class="text-muted">No tienes incidencias pendientes de atención.</p>
+    </div>
+
+    <!-- Data Table -->
+    <div *ngIf="!isLoading && tickets.length" class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Asunto & Detalles</th>
+            <th>Fecha Registro</th>
+            <th>Estado Actual</th>
+            <th class="text-end">Operación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ticket of tickets" class="clickable-row animate-in"
+            [routerLink]="['/home/user/ticket', ticket.idTicket]">
+            <td class="col-id">#{{ ticket.idTicket }}</td>
+            <td>
+              <div class="col-client">
+                <span class="client-name">{{ ticket.cliente?.persona?.nombre }} {{ ticket.cliente?.persona?.apellido
+                  }}</span>
+                <span class="client-id">CLI-{{ ticket.cliente?.persona?.idPersona }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="col-asunto">
+                <span class="d-block fw-semibold">{{ ticket.asunto }}</span>
+                <small class="text-muted text-truncate d-block" style="font-size: 0.75rem;">
+                  Ver detalles de la incidencia reportada
+                </small>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-calendar3 text-muted"></i>
+                <span>{{ ticket.fechaCreacion | date:'dd MMM, yyyy' }}</span>
+              </div>
+              <small class="text-muted ms-4" style="font-size: 0.7rem;">{{ ticket.fechaCreacion | date:'h:mm a'
+                }}</small>
+            </td>
+            <td>
+              <div class="status-badge" [ngClass]="getStatusInfo(ticket.estadoItem?.codigo).cssClass">
+                <span class="status-dot" [ngClass]="'dot-' + ticket.estadoItem?.codigo?.toLowerCase()"></span>
+                {{ getStatusInfo(ticket.estadoItem?.codigo).text }}
+              </div>
+            </td>
+            <td class="text-end">
+              <button class="btn-manage" (click)="$event.stopPropagation()"
+                [routerLink]="['/home/user/ticket', ticket.idTicket]">
+                <i class="bi bi-arrow-right-short fs-5"></i>
+                Gestionar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer de la tabla (Paginación) -->
+    <footer class="p-3 border-top d-flex justify-content-between align-items-center">
+      <small class="text-muted">Mostrando {{ tickets.length }} de {{ tickets.length }} incidencias</small>
+      <div class="pagination-mockup d-flex gap-1">
+        <button class="btn btn-sm btn-light border" disabled><i class="bi bi-chevron-left"></i></button>
+        <button class="btn btn-sm btn-primary">1</button>
+        <button class="btn btn-sm btn-light border" disabled><i class="bi bi-chevron-right"></i></button>
+      </div>
+    </footer>
+  </main>
 </div>

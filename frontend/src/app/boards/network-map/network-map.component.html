@@ -1,35 +1,72 @@
-<div class="network-map-container">
-  <div class="header-status">
-    <h2>Mapa de Estado de Red</h2>
-    <div class="status-badges">
-      <span class="badge" [ngClass]="dataSourceStatus === 'REAL' ? 'badge-success' : 'badge-warning'">
-        Origen: {{dataSourceStatus === 'REAL' ? 'Ping Global' : 'Fallback / Base de Datos'}}
-      </span>
-      <span class="badge badge-info">
-        Latencia País: {{overallLatency | number:'1.0-2'}} ms
-      </span>
-      <small class="text-muted ml-2">Actualizado: {{lastUpdate | date:'medium'}}</small>
-    </div>
-  </div>
-
+<div class="network-map-container" [class.is-fullscreen]="isFullscreen">
+  <!-- Immersive Map Wrapper -->
   <div class="map-wrapper">
     <div id="networkMap"></div>
 
-    <!-- Leyenda Integrada -->
-    <div class="map-legend">
-      <h5>Nivel de Salud</h5>
-      <div class="legend-item">
-        <div class="color-box good"></div>
-        <span>BUENO (≥ 80)</span>
+    <!-- UI Overlay: Top Left Header -->
+    <div class="overlay-panel top-left-panel glass-morphism">
+      <div class="noc-badge">NOC LIVE</div>
+      <div class="header-info">
+        <h1>Estado de Red Nacional</h1>
+        <p class="subtitle">Monitoreo de Infraestructura Crítica</p>
       </div>
-      <div class="legend-item">
-        <div class="color-box warning"></div>
-        <span>ADVERTENCIA (50 - 79)</span>
+    </div>
+
+    <!-- UI Overlay: Top Right Metrics -->
+    <div class="overlay-panel top-right-panel glass-morphism">
+      <div class="metric-group">
+        <label>Latencia País</label>
+        <div class="metric-value" [class.value-good]="overallLatency < 30"
+          [class.value-warning]="overallLatency >= 30 && overallLatency < 70"
+          [class.value-critical]="overallLatency >= 70">
+          {{overallLatency | number:'1.0-2'}} <span>ms</span>
+        </div>
       </div>
-      <div class="legend-item">
-        <div class="color-box critical"></div>
-        <span>CRÍTICO (< 50)</span>
+      <div class="divider"></div>
+      <div class="metric-group">
+        <label>Fuente de Datos</label>
+        <div class="status-indicator">
+          <span class="dot" [class.dot-real]="dataSourceStatus === 'REAL'"></span>
+          {{dataSourceStatus === 'REAL' ? 'Ping Global' : 'Fallback DB'}}
+        </div>
       </div>
+      <div class="divider"></div>
+      <div class="update-info">
+        <i class="bi bi-clock-history"></i> {{lastUpdate | date:'HH:mm:ss'}}
+      </div>
+    </div>
+
+    <!-- UI Overlay: Bottom Left Legend -->
+    <div class="overlay-panel bottom-left-panel glass-morphism">
+      <h3>Niveles de Salud</h3>
+      <div class="legend-grid">
+        <div class="legend-row">
+          <div class="color-dot good"></div>
+          <span class="label">Operación Normal</span>
+          <span class="range">≥ 80</span>
+        </div>
+        <div class="legend-row">
+          <div class="color-dot warning"></div>
+          <span class="label">Advertencia</span>
+          <span class="range">50 - 79</span>
+        </div>
+        <div class="legend-row">
+          <div class="color-dot critical"></div>
+          <span class="label">Crítico / Offline</span>
+          <span class="range">
+            < 50</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Map Controls -->
+    <div class="map-actions">
+      <button class="action-btn glass-morphism" (click)="toggleFullscreen()" title="Pantalla Completa">
+        <i class="bi" [ngClass]="isFullscreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'"></i>
+      </button>
+      <button class="action-btn glass-morphism" (click)="fetchNetworkData()" title="Refrescar Datos">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
     </div>
   </div>
 </div>

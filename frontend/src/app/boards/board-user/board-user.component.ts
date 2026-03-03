@@ -62,18 +62,43 @@ export class BoardUserComponent implements OnInit, OnDestroy {
   }
 
   calculateStats(): void {
-    this.incidentStats.open = this.incidents.filter(i => i.estadoItem?.codigo === 'ABIERTO' || i.estadoItem?.nombre === 'ABIERTO').length;
-    this.incidentStats.inProgress = this.incidents.filter(i => i.estadoItem?.codigo === 'EN_PROCESO' || i.estadoItem?.nombre === 'EN_PROCESO').length;
-    this.incidentStats.resolved = this.incidents.filter(i => i.estadoItem?.codigo === 'RESUELTO' || i.estadoItem?.nombre === 'RESUELTO' || i.estadoItem?.codigo === 'CERRADO').length;
+    const total = this.incidents.length;
+    this.incidentStats.open = this.incidents.filter(i => i.estadoItem?.codigo === 'ABIERTO' || i.estadoItem?.codigo === 'ASIGNADO').length;
+    this.incidentStats.inProgress = this.incidents.filter(i => i.estadoItem?.codigo === 'EN_PROCESO').length;
+    this.incidentStats.resolved = this.incidents.filter(i => i.estadoItem?.codigo === 'RESUELTO' || i.estadoItem?.codigo === 'CERRADO').length;
+    this.incidentStats.total = total;
+  }
+
+  getProgressValue(status: string | undefined): number {
+    switch (status?.toUpperCase()) {
+      case 'ABIERTO': return 15;
+      case 'ASIGNADO': return 40;
+      case 'EN_PROCESO': return 70;
+      case 'RESUELTO': return 100;
+      case 'CERRADO': return 100;
+      default: return 0;
+    }
   }
 
   getStatusBadgeClass(status: string | undefined): string {
     switch (status?.toUpperCase()) {
-      case 'ABIERTO': return 'bg-info-subtle text-info';
-      case 'EN_PROCESO': return 'bg-warning-subtle text-warning';
+      case 'ABIERTO': return 'badge-open';
+      case 'ASIGNADO': return 'badge-assigned';
+      case 'EN_PROCESO': return 'badge-progress';
       case 'RESUELTO':
-      case 'CERRADO': return 'bg-success-subtle text-success';
-      default: return 'bg-secondary-subtle text-secondary';
+      case 'CERRADO': return 'badge-resolved';
+      default: return 'badge-default';
+    }
+  }
+
+  getStatusColor(status: string | undefined): string {
+    switch (status?.toUpperCase()) {
+      case 'ABIERTO': return '#0ea5e9';
+      case 'ASIGNADO': return '#6366f1';
+      case 'EN_PROCESO': return '#f59e0b';
+      case 'RESUELTO':
+      case 'CERRADO': return '#10b981';
+      default: return '#64748b';
     }
   }
 
