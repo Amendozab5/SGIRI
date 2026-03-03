@@ -69,12 +69,12 @@ export class LoginComponent implements OnInit {
           if (mergedUser.primerLogin) {
             this.router.navigate(['/change-password']);
           } else {
-            if (mergedUser.roles.includes('ROLE_ADMIN_MASTER') || mergedUser.roles.includes('ROLE_ADMIN_TECNICOS') || mergedUser.roles.includes('ROLE_ADMIN_VISUAL')) {
-              this.router.navigate(['/home/admin']);
+            if (mergedUser.roles.includes('ROLE_ADMIN') || mergedUser.roles.includes('ROLE_ADMIN_MASTER') || mergedUser.roles.includes('ROLE_ADMIN_TECNICOS') || mergedUser.roles.includes('ROLE_ADMIN_VISUAL')) {
+              this.router.navigateByUrl('/home/admin');
             } else if (mergedUser.roles.includes('ROLE_TECNICO')) {
-              this.router.navigate(['/home/tech']);
+              this.router.navigateByUrl('/home/tech');
             } else {
-              this.router.navigate(['/home/user']);
+              this.router.navigateByUrl('/home/user');
             }
           }
         },
@@ -133,12 +133,12 @@ export class LoginComponent implements OnInit {
         if (fullUser.primerLogin) {
           this.router.navigate(['/change-password']);
         } else {
-          if (fullUser.roles.includes('ROLE_ADMIN_MASTER') || fullUser.roles.includes('ROLE_ADMIN_TECNICOS') || fullUser.roles.includes('ROLE_ADMIN_VISUAL')) {
-            this.router.navigate(['/home/admin']);
+          if (fullUser.roles.includes('ROLE_ADMIN') || fullUser.roles.includes('ROLE_ADMIN_MASTER') || fullUser.roles.includes('ROLE_ADMIN_TECNICOS') || fullUser.roles.includes('ROLE_ADMIN_VISUAL')) {
+            this.router.navigateByUrl('/home/admin');
           } else if (fullUser.roles.includes('ROLE_TECNICO')) {
-            this.router.navigate(['/home/tech']);
+            this.router.navigateByUrl('/home/tech');
           } else {
-            this.router.navigate(['/home/user']);
+            this.router.navigateByUrl('/home/user');
           }
         }
       },
