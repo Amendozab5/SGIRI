@@ -23,6 +23,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     commentText = '';
     currentUser: any = null;
     showStatusUpdate = false;
+    backRoute = '/home/user';
 
     constructor(
         private route: ActivatedRoute,
@@ -77,11 +78,23 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
 
     checkPermissions(): void {
         if (!this.currentUser) return;
-        const roles = this.currentUser.roles;
+        const roles = this.currentUser.roles || [];
         this.zone.run(() => {
             this.showStatusUpdate = roles.includes('ROLE_TECNICO') ||
+                roles.includes('ROLE_ADMIN') ||
                 roles.includes('ROLE_ADMIN_MASTER') ||
                 roles.includes('ROLE_ADMIN_TECNICOS');
+
+            // Determinar la ruta de retorno según el rol
+            if (roles.includes('ROLE_ADMIN') || roles.includes('ROLE_ADMIN_MASTER') ||
+                roles.includes('ROLE_ADMIN_TECNICOS') || roles.includes('ROLE_ADMIN_VISUAL')) {
+                this.backRoute = '/home/asignacion-tickets';
+            } else if (roles.includes('ROLE_TECNICO')) {
+                this.backRoute = '/home/tech-tickets';
+            } else {
+                this.backRoute = '/home/user';
+            }
+
             this.cdr.detectChanges();
         });
     }
