@@ -2,6 +2,7 @@ package com.apweb.backend.controller;
 
 import com.apweb.backend.model.*;
 import com.apweb.backend.payload.request.CommentRequest;
+import com.apweb.backend.payload.request.RatingRequest;
 import com.apweb.backend.payload.request.TicketRequest;
 import com.apweb.backend.payload.response.MessageResponse;
 import com.apweb.backend.repository.*;
@@ -135,5 +136,39 @@ public class TicketController {
 
                 ticketService.updateTicketStatus(id, currentUser, statusCode, observation);
                 return ResponseEntity.ok(new MessageResponse("Estado del ticket actualizado exitosamente"));
+        }
+
+        @PostMapping("/{id}/rating")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
+        public ResponseEntity<?> rateTicket(@PathVariable("id") Integer id,
+                        @Valid @RequestBody RatingRequest ratingRequest) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentUserName = authentication.getName();
+                User currentUser = userRepository.findByUsername(currentUserName)
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                if (ratingRequest.getPuntuacion() == null) {
+                        return ResponseEntity.badRequest().body(new MessageResponse("Error: puntuacion is required"));
+                }
+                ticketService.rateTicket(id, currentUser, ratingRequest.getPuntuacion(),
+                                ratingRequest.getComentario());
+                return ResponseEntity.ok(new MessageResponse("Calificación registrada exitosamente"));
+        }
+
+        @GetMapping("/tecnico/{idTecnico}/stats")
+        @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('TECNICO')")
+        public ResponseEntity<?> getTechnicianRatingStats(@PathVariable("idTecnico") Integer idTecnico) {
+                User tecnico = userRepository.findById(idTecnico)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Error: Technician not found with ID: " + idTecnico));
+
+                Double promedio = ticketService.getAvgRatingByTecnico(tecnico);
+                Long totalCalificados = ticketService.countRatedTicketsByTecnico(tecnico);
+                Long totalTickets = ticketService.countTicketsByTecnico(tecnico);
+
+                return ResponseEntity.ok(java.util.Map.of(
+                                "promedio", promedio != null ? promedio : 0.0,
+                                "totalCalificados", totalCalificados,
+                                "totalTickets", totalTickets));
         }
 }

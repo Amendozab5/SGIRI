@@ -23,7 +23,25 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     commentText = '';
     currentUser: any = null;
     showStatusUpdate = false;
+    isCliente = false;
     backRoute = '/home/user';
+
+    // Rating state
+    ratingValue = 0;
+    hoverRating = 0;
+    ratingComment = '';
+    ratingSubmitting = false;
+    ratingError = '';
+    ratingSuccess = false;
+
+    // Status modal state
+    showConfirmModal = false;
+    modalData = {
+        title: '',
+        status: '',
+        observation: '',
+        confirmText: ''
+    };
 
     constructor(
         private route: ActivatedRoute,
@@ -85,7 +103,8 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 roles.includes('ROLE_ADMIN_MASTER') ||
                 roles.includes('ROLE_ADMIN_TECNICOS');
 
-            // Determinar la ruta de retorno según el rol
+            this.isCliente = roles.includes('ROLE_CLIENTE');
+
             if (roles.includes('ROLE_ADMIN') || roles.includes('ROLE_ADMIN_MASTER') ||
                 roles.includes('ROLE_ADMIN_TECNICOS') || roles.includes('ROLE_ADMIN_VISUAL')) {
                 this.backRoute = '/home/asignacion-tickets';
@@ -129,13 +148,71 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         }
     }
 
-    showConfirmModal = false;
-    modalData = {
-        title: '',
-        status: '',
-        observation: '',
-        confirmText: ''
-    };
+    // ─── Rating helpers ────────────────────────────────────────────────────────
+
+    get isTicketClosed(): boolean {
+        const code = this.ticket?.estadoItem?.codigo;
+        return code === 'CERRADO' || code === 'RESUELTO';
+    }
+
+    get canRate(): boolean {
+        return this.isCliente && this.isTicketClosed && !this.ticket?.calificacionSatisfaccion;
+    }
+
+    get alreadyRated(): boolean {
+        return this.isCliente && this.isTicketClosed && !!this.ticket?.calificacionSatisfaccion;
+    }
+
+    setRating(stars: number): void { this.ratingValue = stars; }
+    setHover(stars: number): void { this.hoverRating = stars; }
+    clearHover(): void { this.hoverRating = 0; }
+
+    getStarClass(star: number): string {
+        const effective = this.hoverRating > 0 ? this.hoverRating : this.ratingValue;
+        return star <= effective ? 'rating-star filled' : 'rating-star';
+    }
+
+    getDisplayStarClass(star: number): string {
+        return star <= (this.ticket?.calificacionSatisfaccion || 0) ? 'rating-star filled' : 'rating-star';
+    }
+
+    starsArray = [1, 2, 3, 4, 5];
+
+    submitRating(): void {
+        if (this.ratingValue === 0) {
+            this.ratingError = 'Por favor selecciona una puntuación de 1 a 5 estrellas.';
+            return;
+        }
+        this.ratingSubmitting = true;
+        this.ratingError = '';
+        this.cdr.detectChanges();
+
+        this.ticketService.rateTicket(
+            this.ticket.idTicket,
+            this.ratingValue,
+            this.ratingComment.trim() || undefined
+        ).subscribe({
+            next: () => {
+                this.zone.run(() => {
+                    this.ratingSuccess = true;
+                    this.ratingSubmitting = false;
+                    this.ratingValue = 0;
+                    this.ratingComment = '';
+                    this.loadTicket(this.ticket.idTicket);
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.zone.run(() => {
+                    this.ratingError = err?.error?.message || 'Error al enviar la calificación.';
+                    this.ratingSubmitting = false;
+                    this.cdr.detectChanges();
+                });
+            }
+        });
+    }
+
+    // ─── Status modal ─────────────────────────────────────────────────────────
 
     openConfirmModal(statusCode: string): void {
         this.modalData.status = statusCode;
@@ -168,7 +245,11 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         this.loading = true;
         this.cdr.detectChanges();
 
-        this.ticketService.updateStatus(this.ticket.idTicket, this.modalData.status, this.modalData.observation).subscribe({
+        this.ticketService.updateStatus(
+            this.ticket.idTicket,
+            this.modalData.status,
+            this.modalData.observation
+        ).subscribe({
             next: () => {
                 this.zone.run(() => {
                     this.successMessage = 'Estado actualizado correctamente.';
@@ -177,7 +258,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                     this.cdr.detectChanges();
                 });
             },
-            error: (err) => {
+            error: () => {
                 this.zone.run(() => {
                     this.error = 'Error al actualizar el estado.';
                     this.loading = false;

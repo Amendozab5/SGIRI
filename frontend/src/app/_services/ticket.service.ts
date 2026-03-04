@@ -44,4 +44,12 @@ export class TicketService {
   updateStatus(ticketId: number, statusCode: string, observation: string = ''): Observable<any> {
     return this.http.put(API_URL + `/${ticketId}/status`, { statusCode, observation });
   }
+
+  rateTicket(ticketId: number, puntuacion: number, comentario?: string): Observable<any> {
+    return this.http.post(API_URL + `/${ticketId}/rating`, { puntuacion, comentario });
+  }
+
+  getTechnicianStats(technicianId: number): Observable<any> {
+    return this.http.get(API_URL + `/tecnico/${technicianId}/stats`);
+  }
 }

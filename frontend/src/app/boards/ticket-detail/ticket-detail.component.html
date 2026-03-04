@@ -164,6 +164,62 @@
                         </button>
                     </div>
                 </section>
+
+                <!-- ─── Rating Section ─────────────────────────────────────── -->
+                <!-- Case 1: Ticket closed, CLIENTE, not yet rated -->
+                <section class="section-card rating-card" *ngIf="canRate">
+                    <h2 class="section-title"><i class="bi bi-star-half"></i> Califica la atención recibida</h2>
+                    <p class="text-muted small mb-3">Tu opinión nos ayuda a mejorar el servicio. Solo puedes calificar una vez.</p>
+
+                    <!-- Star selector -->
+                    <div class="stars-row mb-3" (mouseleave)="clearHover()">
+                        <span *ngFor="let s of starsArray"
+                            [class]="getStarClass(s)"
+                            (mouseenter)="setHover(s)"
+                            (click)="setRating(s)"
+                            [title]="s + ' estrella' + (s > 1 ? 's' : '')">
+                            <i class="bi bi-star-fill"></i>
+                        </span>
+                        <span class="rating-label ms-2" *ngIf="ratingValue > 0">
+                            {{ ['', 'Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'][ratingValue] }}
+                        </span>
+                    </div>
+
+                    <!-- Comment -->
+                    <textarea class="form-control rounded-3 mb-3" rows="3" maxlength="500"
+                        placeholder="Comentario opcional sobre la atención del técnico..."
+                        [(ngModel)]="ratingComment"></textarea>
+
+                    <!-- Error -->
+                    <div *ngIf="ratingError" class="alert alert-danger alert-sm py-2 mb-2 rounded-3">
+                        <i class="bi bi-exclamation-circle me-1"></i> {{ ratingError }}
+                    </div>
+
+                    <!-- Submit -->
+                    <button class="btn-rating-submit"
+                        (click)="submitRating()"
+                        [disabled]="ratingSubmitting || ratingValue === 0">
+                        <span *ngIf="!ratingSubmitting"><i class="bi bi-send-fill me-1"></i> Enviar calificación</span>
+                        <span *ngIf="ratingSubmitting" class="spinner-border spinner-border-sm"></span>
+                    </button>
+                </section>
+
+                <!-- Case 2: Already rated -->
+                <section class="section-card rating-card rating-done" *ngIf="alreadyRated">
+                    <h2 class="section-title"><i class="bi bi-patch-check-fill text-success"></i> Tu calificación</h2>
+                    <div class="stars-row mb-2">
+                        <span *ngFor="let s of starsArray" [class]="getDisplayStarClass(s)">
+                            <i class="bi bi-star-fill"></i>
+                        </span>
+                        <span class="badge bg-success ms-2 fw-semibold">{{ ticket.calificacionSatisfaccion }}/5</span>
+                    </div>
+                    <p class="text-muted fst-italic small" *ngIf="ticket.comentarioCalificacion">
+                        “{{ ticket.comentarioCalificacion }}”
+                    </p>
+                    <p class="text-muted small" *ngIf="!ticket.comentarioCalificacion">
+                        Sin comentario adicional.
+                    </p>
+                </section>
             </div>
 
             <!-- Right Column: Sidebar -->

@@ -37,6 +37,9 @@ export interface Ticket {
     cliente?: Cliente;
     comentarios?: Comentario[];
     historialEstados?: HistorialEstado[];
+    calificacionSatisfaccion?: number;
+    comentarioCalificacion?: string;
+    fechaCierre?: Date;
 }
 
 export interface Cliente {

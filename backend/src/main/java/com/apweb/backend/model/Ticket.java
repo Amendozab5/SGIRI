@@ -73,6 +73,12 @@ public class Ticket {
     @Column(name = "fecha_cierre")
     private LocalDateTime fechaCierre;
 
+    @Column(name = "calificacion_satisfaccion")
+    private Integer calificacionSatisfaccion;
+
+    @Column(name = "comentario_calificacion", columnDefinition = "TEXT")
+    private String comentarioCalificacion;
+
     @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private java.util.List<Asignacion> asignaciones;

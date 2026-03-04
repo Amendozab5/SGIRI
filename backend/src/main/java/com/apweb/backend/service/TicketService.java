@@ -5,7 +5,9 @@ import com.apweb.backend.payload.request.TicketRequest;
 import com.apweb.backend.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -270,5 +272,48 @@ public class TicketService {
                                 "El estado de su ticket ha cambiado a: " + estadoNuevo.getNombre());
 
                 return ticketRepository.save(ticket);
+        }
+
+        @Transactional
+        public Ticket rateTicket(Integer idTicket, User user, Integer puntuacion, String comentario) {
+                Ticket ticket = getTicketById(idTicket);
+
+                // 1. Verify the caller is the ticket owner
+                if (ticket.getUsuarioCreador() == null ||
+                                !ticket.getUsuarioCreador().getId().equals(user.getId())) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                        "Error: Solo el usuario que creó el ticket puede calificarlo");
+                }
+
+                // 2. Verify the ticket is closed or resolved
+                String statusCode = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
+                if (!"CERRADO".equals(statusCode) && !"RESUELTO".equals(statusCode)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "Error: Solo se puede calificar un ticket con estado CERRADO o RESUELTO");
+                }
+
+                // 3. Prevent duplicate ratings
+                if (ticket.getCalificacionSatisfaccion() != null) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                        "Error: Este ticket ya fue calificado");
+                }
+
+                // 4. Save the rating
+                ticket.setCalificacionSatisfaccion(puntuacion);
+                ticket.setComentarioCalificacion(comentario);
+
+                return ticketRepository.save(ticket);
+        }
+
+        public Double getAvgRatingByTecnico(User tecnico) {
+                return ticketRepository.findAvgRatingByTecnico(tecnico);
+        }
+
+        public Long countRatedTicketsByTecnico(User tecnico) {
+                return ticketRepository.countRatedTicketsByTecnico(tecnico);
+        }
+
+        public Long countTicketsByTecnico(User tecnico) {
+                return ticketRepository.countTicketsByTecnico(tecnico);
         }
 }
