@@ -15,6 +15,7 @@ import { AdminDashboardComponent } from './boards/admin-dashboard/admin-dashboar
 import { TicketDetailComponent } from './boards/ticket-detail/ticket-detail.component'; // Import New Component
 import { TicketAssignmentComponent } from './boards/ticket-assignment/ticket-assignment.component'; // Import New Component
 import { EmployeeManagementComponent } from './boards/employee-management/employee-management.component';
+import { TechDashboardComponent } from './boards/tech-dashboard/tech-dashboard.component'; // Import TechDashboardComponent
 
 
 export const routes: Routes = [
@@ -32,6 +33,7 @@ export const routes: Routes = [
       { path: 'gestion-empleados', component: EmployeeManagementComponent }, // Employee management
       { path: 'gestion-catalogos', component: CatalogManagementComponent }, // Catalog management
       { path: 'gestion-entidades', component: EntityManagementComponent }, // Entity management
+      { path: 'tech', component: TechDashboardComponent }, // Technician dashboard
       { path: 'tech-tickets', component: BoardTechnicianComponent }, // Technician tickets list
       { path: 'asignacion-tickets', component: TicketAssignmentComponent },
       { path: 'user', component: BoardUserComponent },
