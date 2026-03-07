@@ -1,12 +1,16 @@
 package com.apweb.backend.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "empleado", schema = "empleados")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Empleado {
 
     @Id
@@ -27,7 +31,7 @@ public class Empleado {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tipo_contrato", nullable = false)
-    private CatalogoItem tipoContrato;
+    private TipoContrato tipoContrato;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_sucursal")

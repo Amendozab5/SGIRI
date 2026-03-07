@@ -67,6 +67,7 @@ export class AdminDashboardComponent implements OnInit {
 
   quickActions: QuickAction[] = [
     { label: 'Usuarios', link: '/home/gestion-usuarios', icon: 'bi-people' },
+    { label: 'Empleados', link: '/home/gestion-empleados', icon: 'bi-person-badge' },
     { label: 'Tickets', link: '/home/asignacion-tickets', icon: 'bi-shuffle' },
     { label: 'Catálogos', link: '/home/gestion-catalogos', icon: 'bi-journal-check' },
     { label: 'Red', link: '/home/network-map', icon: 'bi-geo-alt' }

@@ -14,10 +14,10 @@ import { ChangePasswordComponent } from './change-password/change-password.compo
 import { AdminDashboardComponent } from './boards/admin-dashboard/admin-dashboard.component'; // Import AdminDashboardComponent
 import { TicketDetailComponent } from './boards/ticket-detail/ticket-detail.component'; // Import New Component
 import { TicketAssignmentComponent } from './boards/ticket-assignment/ticket-assignment.component'; // Import New Component
-import { TechDashboardComponent } from './boards/tech-dashboard/tech-dashboard.component'; // Import TechDashboardComponent
+import { EmployeeManagementComponent } from './boards/employee-management/employee-management.component';
 
 
-const routes: Routes = [
+export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent }, // Add register route
   { path: 'profile', component: ProfileComponent },
@@ -29,9 +29,9 @@ const routes: Routes = [
     children: [
       { path: 'admin', component: AdminDashboardComponent }, // New general admin dashboard
       { path: 'gestion-usuarios', component: BoardAdminComponent }, // User management for admin
+      { path: 'gestion-empleados', component: EmployeeManagementComponent }, // Employee management
       { path: 'gestion-catalogos', component: CatalogManagementComponent }, // Catalog management
       { path: 'gestion-entidades', component: EntityManagementComponent }, // Entity management
-      { path: 'tech', component: TechDashboardComponent }, // New tech dashboard
       { path: 'tech-tickets', component: BoardTechnicianComponent }, // Technician tickets list
       { path: 'asignacion-tickets', component: TicketAssignmentComponent },
       { path: 'user', component: BoardUserComponent },
@@ -44,9 +44,3 @@ const routes: Routes = [
   },
   { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes, { onSameUrlNavigation: 'reload' })],
-  exports: [RouterModule]
-})
-export class AppRoutingModule { }

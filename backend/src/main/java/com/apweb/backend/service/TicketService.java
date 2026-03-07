@@ -45,6 +45,9 @@ public class TicketService {
         private HistorialEstadoRepository historialEstadoRepository;
 
         @Autowired
+        private UsuarioBdRepository usuarioBdRepository;
+
+        @Autowired
         private NotificationService notificationService;
 
         public List<Ticket> getAllTickets() {
@@ -99,7 +102,7 @@ public class TicketService {
                 historial.setEstadoAnterior(estadoAnterior);
                 historial.setEstadoNuevo(estadoAsignado);
                 historial.setUsuario(assigner);
-                historial.setUsuarioBd(assigner.getUsername());
+                historial.setUsuarioBd(resolveDbUsername(assigner));
                 historial.setObservacion("Ticket asignado a " + technician.getUsername());
                 historialEstadoRepository.save(historial);
 
@@ -178,7 +181,7 @@ public class TicketService {
                 historial.setEstadoAnterior(null);
                 historial.setEstadoNuevo(estadoAbierto);
                 historial.setUsuario(user);
-                historial.setUsuarioBd(user.getUsername());
+                historial.setUsuarioBd(resolveDbUsername(user));
                 historial.setObservacion("Ticket creado por el cliente");
                 historialEstadoRepository.save(historial);
 
@@ -262,7 +265,7 @@ public class TicketService {
                 historial.setEstadoAnterior(estadoAnterior);
                 historial.setEstadoNuevo(estadoNuevo);
                 historial.setUsuario(user);
-                historial.setUsuarioBd(user.getUsername());
+                historial.setUsuarioBd(resolveDbUsername(user));
                 historial.setObservacion(observation);
                 historialEstadoRepository.save(historial);
 
@@ -315,5 +318,18 @@ public class TicketService {
 
         public Long countTicketsByTecnico(User tecnico) {
                 return ticketRepository.countTicketsByTecnico(tecnico);
+        }
+
+        /**
+         * Resuelve el nombre físico del rol PostgreSQL en la base de datos (ej. emp_0503360398_7).
+         * Si el usuario no tiene un rol físico (ej. clientes), devuelve el username de la app.
+         */
+        private String resolveDbUsername(User user) {
+                if (user == null || user.getId() == null) return null;
+                List<UsuarioBd> dbs = usuarioBdRepository.findByUser_Id(user.getId());
+                if (dbs != null && !dbs.isEmpty()) {
+                        return dbs.get(0).getNombre();
+                }
+                return user.getUsername();
         }
 }

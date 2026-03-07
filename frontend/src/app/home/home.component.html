@@ -45,6 +45,10 @@
         <i class="bi bi-people-fill"></i>
         <span>Gestión de Usuarios</span>
       </a>
+      <a class="menu-item" routerLink="/home/gestion-empleados" routerLinkActive="active" *ngIf="showAdminBoard">
+        <i class="bi bi-person-badge-fill"></i>
+        <span>Gestión de Empleados</span>
+      </a>
       <a class="menu-item" routerLink="/home/asignacion-tickets" routerLinkActive="active" *ngIf="showAdminBoard">
         <i class="bi bi-ticket-perforated-fill"></i>
         <span>Asignación de Tickets</span>

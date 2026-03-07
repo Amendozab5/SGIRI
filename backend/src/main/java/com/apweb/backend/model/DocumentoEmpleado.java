@@ -22,6 +22,9 @@ public class DocumentoEmpleado {
     @Column(name = "cedula_empleado", length = 10, nullable = false)
     private String cedulaEmpleado;
 
+    @Column(name = "numero_documento", length = 10, nullable = false)
+    private String numeroDocumento;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tipo_documento")
     private TipoDocumento tipoDocumento;

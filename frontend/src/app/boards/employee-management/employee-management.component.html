@@ -1,0 +1,438 @@
+<div class="emp-mgmt-container">
+
+  <!-- ── Alertas ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="errorMsg" class="alert alert-danger alert-dismissible">
+    {{ errorMsg }}
+    <button type="button" class="btn-close-alert" (click)="clearMessages()">✕</button>
+  </div>
+  <div *ngIf="successMsg" class="alert alert-success alert-dismissible">
+    {{ successMsg }}
+    <button type="button" class="btn-close-alert" (click)="clearMessages()">✕</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- VISTA: LISTA                                                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="view === 'list'">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">👥 Gestión de Empleados</h2>
+        <p class="page-subtitle">Registra, documenta y activa el acceso de tus colaboradores.</p>
+      </div>
+      <button class="btn btn-primary" (click)="goToCreate()">
+        + Nuevo Empleado
+      </button>
+    </div>
+
+    <!-- Buscador -->
+    <div class="search-bar">
+      <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()"
+        placeholder="Buscar por nombre o cédula…" class="search-input" />
+    </div>
+
+    <!-- Tabla -->
+    <div class="card table-card" *ngIf="!isLoading; else loadingBlock">
+      <table class="emp-table">
+        <thead>
+          <tr>
+            <th>Nombre Completo</th>
+            <th>Cédula</th>
+            <th>Área</th>
+            <th>Cargo</th>
+            <th>Docs</th>
+            <th>Acceso</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of filteredEmpleados" class="table-row" (click)="openDetail(emp)">
+            <td class="name-cell">
+              <span class="avatar">{{ (emp.nombre || 'U').charAt(0) }}{{ (emp.apellido || 'N').charAt(0) }}</span>
+              {{ emp.nombre }} {{ emp.apellido }}
+            </td>
+            <td class="mono">{{ emp.cedula }}</td>
+            <td>{{ emp.nombreArea || '—' }}</td>
+            <td>{{ emp.nombreCargo || '—' }}</td>
+            <td>
+              <span class="pill" [class.pill-ok]="emp.tieneDocumentoActivo" [class.pill-warn]="!emp.tieneDocumentoActivo">
+                {{ emp.tieneDocumentoActivo ? '✓ Activo' : '⚠ Sin doc' }}
+              </span>
+            </td>
+            <td>
+              <span class="pill" [class.pill-ok]="emp.tieneUsuarioActivo" [class.pill-neutral]="!emp.tieneUsuarioActivo">
+                {{ emp.tieneUsuarioActivo ? emp.usernameSistema : 'Sin acceso' }}
+              </span>
+            </td>
+            <td (click)="$event.stopPropagation()">
+              <button class="btn btn-sm btn-outline" (click)="openDetail(emp)">Ver</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredEmpleados.length === 0">
+            <td colspan="7" class="empty-state">No hay empleados registrados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #loadingBlock>
+      <div class="loading-spinner">⏳ Cargando empleados…</div>
+    </ng-template>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- VISTA: CREAR EMPLEADO (Wizard 3 pasos)                                -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="view === 'create'">
+    <div class="page-header">
+      <div>
+        <button class="btn-back" (click)="goToList()">← Volver</button>
+        <h2 class="page-title">Registrar Nuevo Empleado</h2>
+      </div>
+    </div>
+
+    <!-- Indicador de pasos -->
+    <div class="steps-indicator">
+      <div class="step" [class.active]="currentStep >= 1" [class.done]="currentStep > 1">
+        <span class="step-number">1</span> Identidad
+      </div>
+      <div class="step-line" [class.done]="currentStep > 1"></div>
+      <div class="step" [class.active]="currentStep >= 2" [class.done]="currentStep > 2">
+        <span class="step-number">2</span> Datos Laborales
+      </div>
+      <div class="step-line" [class.done]="currentStep > 2"></div>
+      <div class="step" [class.active]="currentStep === 3">
+        <span class="step-number">3</span> Confirmación
+      </div>
+    </div>
+
+    <!-- ── PASO 1: Persona ── -->
+    <div class="card form-card" *ngIf="currentStep === 1">
+      <h3 class="card-title">Paso 1: Datos de Identidad</h3>
+      <p class="card-hint">Ingresa la cédula. Si la persona ya existe en el sistema se reutilizarán sus datos; de lo contrario, completa el formulario.</p>
+      <form [formGroup]="personaForm">
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label>Cédula *</label>
+            <div class="cedula-search">
+              <input formControlName="cedula" class="form-control" placeholder="Ej: 1712345678"
+                maxlength="10" (blur)="buscarPersonaPorCedula()" />
+            </div>
+            <span class="field-error" *ngIf="personaForm.get('cedula')?.touched && personaForm.get('cedula')?.invalid">
+              La cédula debe tener exactamente 10 dígitos.
+            </span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input formControlName="nombre" class="form-control" placeholder="Juan Carlos" />
+          </div>
+          <div class="form-group">
+            <label>Apellido *</label>
+            <input formControlName="apellido" class="form-control" placeholder="Pérez Mora" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Correo</label>
+            <input formControlName="correo" class="form-control" type="email" placeholder="correo@empresa.com" />
+          </div>
+          <div class="form-group">
+            <label>Celular</label>
+            <input formControlName="celular" class="form-control" placeholder="0991234567" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha de Nacimiento</label>
+            <input formControlName="fechaNacimiento" class="form-control" type="date" />
+          </div>
+        </div>
+      </form>
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="goToList()">Cancelar</button>
+        <button class="btn btn-primary" (click)="nextStep()" [disabled]="personaForm.invalid">
+          Siguiente →
+        </button>
+      </div>
+    </div>
+
+    <!-- ── PASO 2: Datos Laborales ── -->
+    <div class="card form-card" *ngIf="currentStep === 2">
+      <h3 class="card-title">Paso 2: Datos Laborales</h3>
+      <p class="card-hint">Asigna el puesto, área y condiciones contractuales del empleado.</p>
+      <form [formGroup]="laboralForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha de Ingreso *</label>
+            <input formControlName="fechaIngreso" class="form-control" type="date" />
+          </div>
+          <div class="form-group">
+            <label>Tipo de Contrato *</label>
+            <select formControlName="idTipoContrato" class="form-control">
+              <option [value]="null">Seleccionar…</option>
+              <option *ngFor="let tc of tiposContrato" [value]="tc.id">{{ tc.nombre }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Área *</label>
+            <select formControlName="idArea" class="form-control">
+              <option [value]="null">Seleccionar…</option>
+              <option *ngFor="let a of areas" [value]="a.id">{{ a.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cargo *</label>
+            <select formControlName="idCargo" class="form-control">
+              <option [value]="null">Seleccionar…</option>
+              <option *ngFor="let c of cargos" [value]="c.id">{{ c.nombre }}</option>
+            </select>
+          </div>
+        </div>
+      </form>
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="prevStep()">← Atrás</button>
+        <button class="btn btn-primary" (click)="crearEmpleado()" [disabled]="laboralForm.invalid || isLoading">
+          {{ isLoading ? 'Registrando…' : 'Registrar Empleado' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── PASO 3: Confirmación ── -->
+    <div class="card form-card confirm-card" *ngIf="currentStep === 3 && selectedEmpleado">
+      <div class="confirm-icon">✅</div>
+      <h3>Empleado Registrado</h3>
+      <p><strong>{{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}</strong></p>
+      <p class="mono">Cédula: {{ selectedEmpleado.cedula }}</p>
+      <p>Área: {{ selectedEmpleado.nombreArea }} · Cargo: {{ selectedEmpleado.nombreCargo }}</p>
+      <div class="confirm-next-steps">
+        <p>📌 <strong>Próximos pasos:</strong></p>
+        <ol>
+          <li>Sube los documentos del empleado en la pestaña <em>Documentos</em>.</li>
+          <li>Valida al menos un documento (estado ACTIVO).</li>
+          <li>Habilita el acceso al sistema en la pestaña <em>Acceso</em>.</li>
+        </ol>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="goToList()">Volver a la lista</button>
+        <button class="btn btn-primary" (click)="openDetail(selectedEmpleado!)">Ver Detalle →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- VISTA: DETALLE DE EMPLEADO                                            -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="view === 'detail' && selectedEmpleado">
+    <div class="page-header">
+      <div>
+        <button class="btn-back" (click)="goToList()">← Volver</button>
+        <h2 class="page-title">
+          {{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}
+        </h2>
+        <p class="page-subtitle mono">{{ selectedEmpleado.cedula }}</p>
+      </div>
+    </div>
+
+    <!-- Tabs de navegación -->
+    <div class="detail-tabs">
+      <button class="tab" [class.active]="activeTab === 'datos'" (click)="activeTab = 'datos'">
+        📋 Datos
+      </button>
+      <button class="tab" [class.active]="activeTab === 'documentos'" (click)="activeTab = 'documentos'">
+        📄 Documentos
+        <span class="tab-badge" *ngIf="documentos.length">{{ documentos.length }}</span>
+      </button>
+      <button class="tab" [class.active]="activeTab === 'acceso'" (click)="activeTab = 'acceso'">
+        🔐 Acceso
+      </button>
+    </div>
+
+    <!-- ── Tab: Datos ── -->
+    <div class="card detail-card" *ngIf="activeTab === 'datos'">
+      <div class="detail-section">
+        <h4 class="section-title">Identidad Personal</h4>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="label">Cédula</span><span class="value mono">{{ selectedEmpleado.cedula }}</span></div>
+          <div class="detail-item"><span class="label">Nombre</span><span class="value">{{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}</span></div>
+          <div class="detail-item"><span class="label">Correo</span><span class="value">{{ selectedEmpleado.correo || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Celular</span><span class="value">{{ selectedEmpleado.celular || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Fecha de Nacimiento</span><span class="value">{{ selectedEmpleado.fechaNacimiento || '—' }}</span></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h4 class="section-title">Datos Laborales</h4>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="label">Fecha de Ingreso</span><span class="value">{{ selectedEmpleado.fechaIngreso }}</span></div>
+          <div class="detail-item"><span class="label">Área</span><span class="value">{{ selectedEmpleado.nombreArea || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Cargo</span><span class="value">{{ selectedEmpleado.nombreCargo || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Tipo de Contrato</span><span class="value">{{ selectedEmpleado.nombreTipoContrato || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Sucursal</span><span class="value">{{ selectedEmpleado.nombreSucursal || '—' }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: Documentos ── -->
+    <div class="card detail-card" *ngIf="activeTab === 'documentos'">
+      <div class="doc-header">
+        <h4 class="section-title">Documentos Laborales</h4>
+        <button class="btn btn-sm btn-primary" (click)="showUploadForm = !showUploadForm">
+          {{ showUploadForm ? 'Cancelar' : '+ Subir Documento' }}
+        </button>
+      </div>
+
+      <!-- Formulario de subida -->
+      <div class="upload-form" *ngIf="showUploadForm">
+        <p class="upload-note">⚠️ El documento se guardará con estado <strong>PENDIENTE</strong>. Deberás validarlo manualmente para habilitarlo.</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Archivo *</label>
+            <input type="file" id="uploadFileInput" class="form-control"
+              (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.md" />
+            <small *ngIf="uploadFile" class="field-hint">📎 {{ uploadFile.name }}</small>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Documento</label>
+            <select class="form-control" [(ngModel)]="uploadIdTipo">
+              <option [ngValue]="null">Sin tipo / General</option>
+              <option *ngFor="let t of tiposDocumento" [ngValue]="t.id">{{ t.codigo }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>N° Documento</label>
+            <input type="text" class="form-control" [(ngModel)]="uploadNumero"
+              placeholder="Ej: DOC-EMP-2026-001" />
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <input type="text" class="form-control" [(ngModel)]="uploadDescripcion"
+              placeholder="Ej: Constancia de vinculación laboral" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" (click)="subirDocumento()"
+            [disabled]="!uploadFile || uploadingDoc">
+            {{ uploadingDoc ? '⏳ Subiendo…' : '⬆ Subir Documento' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de documentos -->
+      <div *ngIf="!loadingDocs">
+        <div *ngFor="let doc of documentos" class="doc-item">
+          <div class="doc-info">
+            <div class="doc-name">{{ doc.nombreTipoDocumento || 'Documento' }}</div>
+            <div class="doc-num mono" *ngIf="doc.numeroDocumento">N°: {{ doc.numeroDocumento }}</div>
+            <div class="doc-desc" *ngIf="doc.descripcion">{{ doc.descripcion }}</div>
+            <div class="doc-date">Subido: {{ doc.fechaSubida | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+          <div class="doc-actions">
+            <span class="badge" [ngClass]="getEstadoBadgeClass(doc.codigoEstado)">
+              {{ doc.nombreEstado || doc.codigoEstado }}
+            </span>
+            <div class="estado-buttons">
+              <button class="btn btn-xs btn-success" (click)="cambiarEstado(doc, 'ACTIVO')"
+                *ngIf="doc.codigoEstado !== 'ACTIVO'" title="Validar documento">✓ Validar</button>
+              <button class="btn btn-xs btn-danger" (click)="cambiarEstado(doc, 'RECHAZADO')"
+                *ngIf="doc.codigoEstado !== 'RECHAZADO'" title="Rechazar documento">✗ Rechazar</button>
+              <button class="btn btn-xs btn-secondary" (click)="cambiarEstado(doc, 'PENDIENTE')"
+                *ngIf="doc.codigoEstado !== 'PENDIENTE'" title="Poner en revisión">↺ Revisar</button>
+            </div>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="documentos.length === 0">
+          No hay documentos. Sube el primer documento para poder habilitar el acceso.
+        </div>
+      </div>
+      <div *ngIf="loadingDocs" class="loading-spinner">⏳ Cargando documentos…</div>
+    </div>
+
+    <!-- ── Tab: Acceso ── -->
+    <div class="card detail-card" *ngIf="activeTab === 'acceso'">
+      <h4 class="section-title">Estado de Acceso al Sistema</h4>
+
+      <div *ngIf="!loadingAccess && accessStatus">
+
+        <!-- Checklist de precondiciones -->
+        <div class="checklist">
+          <div class="check-item" [class.ok]="accessStatus.personaExiste">
+            <span class="check-icon">{{ accessStatus.personaExiste ? '✅' : '❌' }}</span>
+            Persona registrada en el sistema
+          </div>
+          <div class="check-item" [class.ok]="accessStatus.empleadoExiste">
+            <span class="check-icon">{{ accessStatus.empleadoExiste ? '✅' : '❌' }}</span>
+            Registro laboral como empleado
+          </div>
+          <div class="check-item" [class.ok]="accessStatus.tieneDocumentoActivo">
+            <span class="check-icon">{{ accessStatus.tieneDocumentoActivo ? '✅' : '⚠️' }}</span>
+            Al menos un documento con estado ACTIVO
+          </div>
+          <div class="check-item" [class.ok]="!accessStatus.yaTieneUsuario">
+            <span class="check-icon">{{ !accessStatus.yaTieneUsuario ? '✅' : 'ℹ️' }}</span>
+            {{ accessStatus.yaTieneUsuario ? 'Ya tiene acceso: ' + accessStatus.usernameExistente : 'Sin usuario previo' }}
+          </div>
+        </div>
+
+        <!-- Razón de bloqueo -->
+        <div class="block-reason" *ngIf="accessStatus.razonBloqueo">
+          <span class="block-icon">ℹ️</span> {{ accessStatus.razonBloqueo }}
+        </div>
+
+        <!-- Botón activar (solo si cumple condiciones) -->
+        <div class="access-actions" *ngIf="accessStatus.puedeActivar">
+          <button class="btn btn-primary btn-lg" (click)="showActivarForm = !showActivarForm">
+            {{ showActivarForm ? 'Cancelar' : '🔓 Habilitar Acceso al Sistema' }}
+          </button>
+        </div>
+
+        <!-- Formulario de activación -->
+        <div class="activar-form" *ngIf="showActivarForm && accessStatus.puedeActivar">
+          <p class="activar-note">
+            El username y contraseña serán generados automáticamente por el sistema
+            a partir de la cédula y el año de nacimiento del empleado.
+          </p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Rol del Sistema *</label>
+              <select class="form-control" [(ngModel)]="activarRol">
+                <option value="">Seleccionar rol…</option>
+                <option *ngFor="let r of rolesEmpleado" [value]="r">{{ r }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ID Empresa *</label>
+              <input type="number" class="form-control" [(ngModel)]="activarEmpresa" placeholder="ID de la empresa" />
+            </div>
+            <div class="form-group">
+              <label>Año de Nacimiento *</label>
+              <input type="number" class="form-control" [(ngModel)]="activarAnio" placeholder="Ej: 1990" min="1950" max="2010" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" (click)="activarAcceso()"
+              [disabled]="!activarRol || !activarEmpresa || !activarAnio || activating">
+              {{ activating ? 'Activando…' : '✓ Confirmar Activación' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Ya tiene usuario -->
+        <div class="access-active" *ngIf="accessStatus.yaTieneUsuario">
+          <span class="access-icon">🔐</span>
+          <div>
+            <strong>Acceso activo</strong>
+            <p class="mono">Username: {{ accessStatus.usernameExistente }}</p>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="loadingAccess" class="loading-spinner">⏳ Verificando estado de acceso…</div>
+    </div>
+  </div>
+
+</div>

@@ -16,7 +16,7 @@ public class NetworkMapScheduler {
     @Autowired
     private GlobalpingService globalpingService;
 
-    // Ejecuta la medición cada 15 minutos (900000 ms)
+    // Ejecuta la medición cada 15 minutos
     @Scheduled(fixedRate = 900000, initialDelay = 10000)
     public void scheduleGlobalping() {
         logger.info("Initializing scheduled Globalping measurement task...");

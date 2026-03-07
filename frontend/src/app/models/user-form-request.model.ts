@@ -4,5 +4,8 @@ export interface UserFormRequest {
   email?: string; // Added for frontend form type compatibility
   password?: string; // Optional for update
   role: string;
-  estado: string;
+  estado?: string;
+  cedula?: string;
+  anioNacimiento?: number;
+  idEmpresa?: number;
 }

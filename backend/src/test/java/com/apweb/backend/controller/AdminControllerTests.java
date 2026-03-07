@@ -26,7 +26,7 @@ public class AdminControllerTests {
     private AdminService adminService;
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(roles = "ADMIN_MASTER")
     void deleteUser_shouldReturnOk_whenUserDeletedSuccessfully() throws Exception {
         Integer userId = 1;
         doNothing().when(adminService).deleteUser(userId);

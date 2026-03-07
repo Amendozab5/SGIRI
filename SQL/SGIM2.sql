@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict wBDEjOOqaWrVZmErKIj2H4srJnD6SBZbTUOp3tcVlaUVavTWeQ4h6wYqayEMTvp
+\restrict PVvTK1xwPAvlMBtmay4TQvM0GPD6IqTcu1newNPCsJLHONGENfWJBbveosc79gZ
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
 
--- Started on 2026-03-04 02:39:08 -05
+-- Started on 2026-03-07 06:44:22 -05
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -32,9 +32,9 @@ CREATE DATABASE "SGIM2" WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVI
 
 ALTER DATABASE "SGIM2" OWNER TO postgres;
 
-\unrestrict wBDEjOOqaWrVZmErKIj2H4srJnD6SBZbTUOp3tcVlaUVavTWeQ4h6wYqayEMTvp
+\unrestrict PVvTK1xwPAvlMBtmay4TQvM0GPD6IqTcu1newNPCsJLHONGENfWJBbveosc79gZ
 \connect "SGIM2"
-\restrict wBDEjOOqaWrVZmErKIj2H4srJnD6SBZbTUOp3tcVlaUVavTWeQ4h6wYqayEMTvp
+\restrict PVvTK1xwPAvlMBtmay4TQvM0GPD6IqTcu1newNPCsJLHONGENfWJBbveosc79gZ
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2243,7 +2243,8 @@ CREATE TABLE soporte.ticket (
     impacto integer,
     urgencia integer,
     puntaje_prioridad integer,
-    calificacion_satisfaccion integer
+    calificacion_satisfaccion integer,
+    comentario_calificacion text
 );
 
 
@@ -2286,6 +2287,15 @@ COMMENT ON COLUMN soporte.ticket.calificacion_satisfaccion IS 'Ponderación de s
 
 
 --
+-- TOC entry 5148 (class 0 OID 0)
+-- Dependencies: 291
+-- Name: COLUMN ticket.comentario_calificacion; Type: COMMENT; Schema: soporte; Owner: postgres
+--
+
+COMMENT ON COLUMN soporte.ticket.comentario_calificacion IS 'Comentario opcional del usuario al calificar al técnico';
+
+
+--
 -- TOC entry 292 (class 1259 OID 20976)
 -- Name: ticket_id_ticket_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
@@ -2302,7 +2312,7 @@ CREATE SEQUENCE soporte.ticket_id_ticket_seq
 ALTER SEQUENCE soporte.ticket_id_ticket_seq OWNER TO postgres;
 
 --
--- TOC entry 5148 (class 0 OID 0)
+-- TOC entry 5149 (class 0 OID 0)
 -- Dependencies: 292
 -- Name: ticket_id_ticket_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
@@ -2333,7 +2343,7 @@ CREATE TABLE soporte.visita_tecnica (
 ALTER TABLE soporte.visita_tecnica OWNER TO postgres;
 
 --
--- TOC entry 5149 (class 0 OID 0)
+-- TOC entry 5150 (class 0 OID 0)
 -- Dependencies: 293
 -- Name: TABLE visita_tecnica; Type: COMMENT; Schema: soporte; Owner: postgres
 --
@@ -2358,7 +2368,7 @@ CREATE SEQUENCE soporte.visita_tecnica_id_visita_seq
 ALTER SEQUENCE soporte.visita_tecnica_id_visita_seq OWNER TO postgres;
 
 --
--- TOC entry 5150 (class 0 OID 0)
+-- TOC entry 5151 (class 0 OID 0)
 -- Dependencies: 294
 -- Name: visita_tecnica_id_visita_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
@@ -2407,7 +2417,7 @@ CREATE SEQUENCE usuarios.persona_id_persona_seq
 ALTER SEQUENCE usuarios.persona_id_persona_seq OWNER TO postgres;
 
 --
--- TOC entry 5151 (class 0 OID 0)
+-- TOC entry 5152 (class 0 OID 0)
 -- Dependencies: 296
 -- Name: persona_id_persona_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
@@ -2460,7 +2470,7 @@ CREATE SEQUENCE usuarios.rol_bd_id_rol_bd_seq
 ALTER SEQUENCE usuarios.rol_bd_id_rol_bd_seq OWNER TO postgres;
 
 --
--- TOC entry 5152 (class 0 OID 0)
+-- TOC entry 5153 (class 0 OID 0)
 -- Dependencies: 299
 -- Name: rol_bd_id_rol_bd_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
@@ -2485,7 +2495,7 @@ CREATE SEQUENCE usuarios.rol_id_rol_seq
 ALTER SEQUENCE usuarios.rol_id_rol_seq OWNER TO postgres;
 
 --
--- TOC entry 5153 (class 0 OID 0)
+-- TOC entry 5154 (class 0 OID 0)
 -- Dependencies: 300
 -- Name: rol_id_rol_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
@@ -2546,7 +2556,7 @@ CREATE SEQUENCE usuarios.usuario_bd_id_usuario_bd_seq
 ALTER SEQUENCE usuarios.usuario_bd_id_usuario_bd_seq OWNER TO postgres;
 
 --
--- TOC entry 5154 (class 0 OID 0)
+-- TOC entry 5155 (class 0 OID 0)
 -- Dependencies: 303
 -- Name: usuario_bd_id_usuario_bd_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
@@ -2571,7 +2581,7 @@ CREATE SEQUENCE usuarios.usuario_id_usuario_seq
 ALTER SEQUENCE usuarios.usuario_id_usuario_seq OWNER TO postgres;
 
 --
--- TOC entry 5155 (class 0 OID 0)
+-- TOC entry 5156 (class 0 OID 0)
 -- Dependencies: 304
 -- Name: usuario_id_usuario_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
@@ -3092,7 +3102,7 @@ COPY clientes.cliente (id_cliente, id_sucursal, id_persona, fecha_inicio_contrat
 
 COPY clientes.documento_cliente (id_documento, numero_documento, ruta_archivo, descripcion, fecha_subida, id_cliente, id_tipo_documento, id_catalogo_item_estado) FROM stdin;
 2	1250062336	azambranoy_3bbd13fc-ca97-40e4-b886-5fb733ca3d51.png	Foto de perfil	2026-02-25 12:12:44.744385	4	1	\N
-1	0503360398	amendozab_ca3d3ac0-b1e3-44b8-af8d-024158b60c55.jpeg	Foto de perfil	2026-02-22 19:47:08.801353	1	1	\N
+1	0503360398	amendozab_7ac23502-b47e-4ea0-8b4e-c4685595ae88.jpeg	Foto de perfil	2026-02-22 19:47:08.801353	1	1	\N
 \.
 
 
@@ -3343,6 +3353,12 @@ COPY soporte.comentario_ticket (id_comentario, id_ticket, id_usuario, contenido,
 22	13	4	Segui al pie de la letra todo eso y no funciono	t	2026-03-02 08:49:35.860676	\N	6	Segui al pie de la letra todo eso y no funciono	f	2
 23	15	7	Hola papu	t	2026-03-02 09:20:24.553549	\N	6	Hola papu	f	1
 24	15	4	hola	t	2026-03-02 09:20:34.128651	\N	6	hola	f	2
+25	14	7	Hola muy buenas, yo estaré atendiendo su problema 	t	2026-03-04 05:10:53.952043	\N	6	Hola muy buenas, yo estaré atendiendo su problema 	f	1
+26	14	4	Mucho gusto	t	2026-03-04 05:11:07.39551	\N	6	Mucho gusto	f	2
+27	14	7	Listo, notifiqueme detalladamente cual es su problema 	t	2026-03-04 05:11:26.938054	\N	6	Listo, notifiqueme detalladamente cual es su problema 	f	1
+28	14	4	Lo que pasa es que desde ayer en la noche mi internet ha estado fallando, en el router aparece una luz en color amarillo con un tono anaranjado 	t	2026-03-04 05:12:30.874975	\N	6	Lo que pasa es que desde ayer en la noche mi internet ha estado fallando, en el router aparece una luz en color amarillo con un tono anaranjado 	f	2
+29	14	7	Listo, entonces siga estos pasos\n1. Mantenga presionado el botón de inicio/apagado por 3 segundos\n2. Suelte el botón y espere por 1 minuto \n3. Vuelva a encender el router 	t	2026-03-04 05:13:37.340851	\N	6	Listo, entonces siga estos pasos\n1. Mantenga presionado el botón de inicio/apagado por 3 segundos\n2. Suelte el botón y espere por 1 minuto \n3. Vuelva a encender el router 	f	1
+30	14	4	Perfecto, ya me sale conectado a internet 	t	2026-03-04 05:14:07.638871	\N	6	Perfecto, ya me sale conectado a internet 	f	2
 \.
 
 
@@ -3408,6 +3424,9 @@ COPY soporte.historial_estado (id_historial, id_ticket, usuario_bd, fecha_cambio
 43	12	tecnico01	2026-03-02 15:46:31.038298	resuelto	6	7	7	7
 44	14	adminmaster	2026-03-02 15:52:58.020298	Ticket asignado a tecnico01	4	5	6	5
 45	12	amendozab	2026-03-02 19:49:02.721738	Cliente calificó el servicio con 5 estrellas. 	7	8	4	8
+46	14	tecnico01	2026-03-04 05:10:30.053613	Inicio de la incidencia	5	6	7	6
+47	14	tecnico01	2026-03-04 05:14:37.82602	Cliente reporta una solución absoluta a su problema  	6	7	7	7
+48	14	tecnico01	2026-03-04 05:14:51.949306	Cliente satisfecho 	7	8	7	8
 \.
 
 
@@ -3597,6 +3616,21 @@ COPY soporte.network_probe_result (id_result, id_run, zone_type, zone_id, latenc
 177	178	COUNTRY	1	25.927	0	\N	100	GOOD
 178	179	COUNTRY	1	26.245	0	\N	100	GOOD
 179	180	COUNTRY	1	26.281	0	\N	100	GOOD
+180	181	COUNTRY	1	23.764	0	\N	100	GOOD
+181	182	COUNTRY	1	23.592	0	\N	100	GOOD
+182	183	COUNTRY	1	23.625	0	\N	100	GOOD
+183	184	COUNTRY	1	24.418	0	\N	100	GOOD
+184	185	COUNTRY	1	23.604	0	\N	100	GOOD
+185	186	COUNTRY	1	23.785	0	\N	100	GOOD
+186	187	COUNTRY	1	23.974	0	\N	100	GOOD
+187	188	COUNTRY	1	23.866	0	\N	100	GOOD
+188	189	COUNTRY	1	23.726	0	\N	100	GOOD
+189	190	COUNTRY	1	23.864	0	\N	100	GOOD
+190	191	COUNTRY	1	23.864	0	\N	100	GOOD
+191	192	COUNTRY	1	24.309	0	\N	100	GOOD
+192	193	COUNTRY	1	24.184	0	\N	100	GOOD
+193	194	COUNTRY	1	24.219	0	\N	100	GOOD
+194	195	COUNTRY	1	24.204	0	\N	100	GOOD
 \.
 
 
@@ -3787,6 +3821,21 @@ COPY soporte.network_probe_run (id_run, target, data_source, created_at, duratio
 178	8.8.8.8	REAL	2026-03-03 10:12:23.505979	2965	ping	1	t	\N
 179	8.8.8.8	REAL	2026-03-03 10:27:23.607833	3067	ping	1	t	\N
 180	8.8.8.8	REAL	2026-03-03 10:44:27.094379	3033	ping	1	t	\N
+181	2001:4860:4860::8888	REAL	2026-03-04 05:07:35.779636	3425	ping	1	t	\N
+182	2001:4860:4860::8888	REAL	2026-03-04 05:22:35.878739	3548	ping	1	t	\N
+183	2001:4860:4860::8888	REAL	2026-03-04 05:37:35.55875	3228	ping	1	t	\N
+184	2001:4860:4860::8888	REAL	2026-03-04 05:52:36.587574	4257	ping	1	t	\N
+185	2001:4860:4860::8888	REAL	2026-03-04 06:07:35.392916	3060	ping	1	t	\N
+186	2001:4860:4860::8888	REAL	2026-03-04 06:22:35.387963	3057	ping	1	t	\N
+187	2001:4860:4860::8888	REAL	2026-03-04 08:35:43.178583	4003	ping	1	t	\N
+188	2001:4860:4860::8888	REAL	2026-03-04 08:50:42.657453	3482	ping	1	t	\N
+189	2001:4860:4860::8888	REAL	2026-03-04 09:05:43.064973	3890	ping	1	t	\N
+190	2001:4860:4860::8888	REAL	2026-03-04 09:20:42.441483	3265	ping	1	t	\N
+191	FALLBACK	FALLBACK	2026-03-04 16:14:09.460986	32	ping	0	f	I/O error on POST request for "https://api.globalping.io/v1/measurements": api.globalping.io
+192	2001:4860:4860::8888	REAL	2026-03-04 16:53:14.417204	3055	ping	1	t	\N
+193	2001:4860:4860::8888	REAL	2026-03-04 17:49:26.306795	3017	ping	1	t	\N
+194	2001:4860:4860::8888	REAL	2026-03-04 18:04:28.990543	5701	ping	1	t	\N
+195	2001:4860:4860::8888	REAL	2026-03-04 18:19:27.040911	3026	ping	1	t	\N
 \.
 
 
@@ -3832,22 +3881,22 @@ COPY soporte.solucion_ticket (id_solucion, id_ticket, descripcion_solucion, fue_
 -- Data for Name: ticket; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
-COPY soporte.ticket (id_ticket, asunto, descripcion, fecha_creacion, fecha_actualizacion, id_servicio, id_sucursal, id_sla, id_estado_item, id_prioridad_item, id_categoria_item, id_usuario_creador, id_usuario_asignado, id_cliente, fecha_cierre, impacto, urgencia, puntaje_prioridad, calificacion_satisfaccion) FROM stdin;
-14	No tengo conexión a internet desde ayer en la noche	Tengo un pequeño problema al querer ver la TV y es que me sale que no tengo señal	2026-03-02 08:40:50.597389	2026-03-02 15:52:58.024377	5	2	\N	5	10	14	4	7	1	\N	\N	\N	\N	\N
-12	Sin señal en el servicio de televisión	Desde el día de hoy en la mañana el servicio de televisión no presenta señal. En la pantalla aparece el mensaje “Sin señal” y no se visualiza ningún canal.\n\nEl internet funciona con normalidad, pero el decodificador parece no recibir señal. Verifiqué que los cables HDMI y coaxial estén correctamente conectados y reinicié tanto el televisor como el decodificador, pero el problema continúa.\n\nSolicito por favor la revisión del equipo o validación del estado del servicio para restablecer la señal lo antes posible.	2026-02-27 10:49:04.316933	2026-03-02 19:49:02.725448	5	2	1	8	10	16	4	7	1	2026-03-02 19:49:02.721195	\N	\N	\N	5
-2	No tengo conexión a internet desde ayer en la noche	Desde el día de ayer (21/02/2026) aproximadamente a las 21:30 no tengo conexión a internet.\nEl módem está encendido, pero la luz de "Internet" está en rojo y parpadeando constantemente.	2026-02-23 09:09:49.326989	2026-02-23 09:49:44.427913	2	2	1	6	13	14	4	7	1	\N	\N	\N	\N	\N
-3	TENGO TENGO TENGO TENGO	TENGO TENGOTENGO TENGOTENGO TENGOTENGO TENGOTENGO TENGO	2026-02-25 12:23:45.421804	2026-02-25 12:30:36.858663	4	3	1	5	11	14	8	10	4	\N	\N	\N	\N	\N
-5	GONTE GONTE GONTE GONTE	GONTE GONTE GONTE GONTE GONTE GONTE	2026-02-25 12:24:32.932886	2026-02-25 14:10:41.505698	4	3	1	7	10	14	8	7	4	2026-02-25 14:10:41.476892	\N	\N	\N	\N
-8	HOLAAAAAAAAAA	HOLAAAAAAAAAA HOLAAAAAAAAAAHOLAAAAAAAAAAHOLAAAAAAAAAA	2026-02-25 14:37:55.420797	2026-02-25 14:56:45.227352	4	3	1	45	10	14	8	7	4	\N	\N	\N	\N	\N
-4	TENGO TENGO TENGO TENGO	TENGO TENGOTENGO TENGOTENGO TENGOTENGO TENGOTENGO TENGO	2026-02-25 12:23:47.203748	2026-02-25 15:02:56.964615	4	3	1	6	10	14	8	7	4	\N	\N	\N	\N	\N
-10	INSIDENCIA SOBRE MI VAINA	asdasdsadasdasdasdasdasda	2026-02-25 18:09:24.948352	2026-02-25 18:16:24.828277	1	1	1	8	10	14	2	7	2	2026-02-25 18:16:24.825773	\N	\N	\N	\N
-9	INSIDENCIA SOBRE MI VAINA	asdasdasdsadasdasdasdasd	2026-02-25 18:08:55.147609	2026-02-25 18:22:51.0712	4	3	1	5	10	14	8	7	4	\N	\N	\N	\N	\N
-1	Falla total de internet - Luz roja parpadeando	Desde hace dos horas el módem tiene la luz de LOS en color rojo. Ya intenté desconectarlo de la corriente y volverlo a conectar pero el problema persiste. No tengo navegación en ningún dispositivo.	2026-02-23 08:40:46.369847	2026-02-26 16:33:07.99939	2	2	1	5	10	14	4	10	1	\N	\N	\N	\N	\N
-6	TENGO MI FALLITO DE RED YA SABES	TENGO MI FALLITO DE RED YA SABESTENGO MI FALLITO DE RED YA SABESTENGO MI FALLITO DE RED YA SABES	2026-02-25 14:36:52.408091	2026-02-26 16:33:12.940424	4	3	1	5	10	14	8	7	4	\N	\N	\N	\N	\N
-7	TENGO MI FALLITO DE RED YA SABES	TENGO MI FALLITO DE RED YA SABESTENGO MI FALLITO DE RED YA SABESTENGO MI FALLITO DE RED YA SABES	2026-02-25 14:36:53.743848	2026-02-26 16:33:16.763414	4	3	1	5	10	14	8	7	4	\N	\N	\N	\N	\N
-11	PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA	PRUEBA PRUEBAPRUEBA PRUEBAPRUEBA PRUEBA	2026-02-26 07:42:24.342737	2026-02-26 16:33:18.785668	4	3	1	5	10	14	8	7	4	\N	\N	\N	\N	\N
-13	Sin señal en el servicio de televisión	Tengo un pequeño problema al querer ver la TV y es que me sale que no tengo señal	2026-03-02 08:28:23.955139	2026-03-02 08:49:51.46109	5	2	\N	45	10	14	4	7	1	\N	\N	\N	\N	\N
-15	Problemas de Latencia de Red	Tengo problemas de latencia de red cada 30 min	2026-03-02 09:17:36.425626	2026-03-02 09:20:49.310557	5	2	\N	45	10	14	4	7	1	\N	\N	\N	\N	\N
+COPY soporte.ticket (id_ticket, asunto, descripcion, fecha_creacion, fecha_actualizacion, id_servicio, id_sucursal, id_sla, id_estado_item, id_prioridad_item, id_categoria_item, id_usuario_creador, id_usuario_asignado, id_cliente, fecha_cierre, impacto, urgencia, puntaje_prioridad, calificacion_satisfaccion, comentario_calificacion) FROM stdin;
+12	Sin señal en el servicio de televisión	Desde el día de hoy en la mañana el servicio de televisión no presenta señal. En la pantalla aparece el mensaje “Sin señal” y no se visualiza ningún canal.\n\nEl internet funciona con normalidad, pero el decodificador parece no recibir señal. Verifiqué que los cables HDMI y coaxial estén correctamente conectados y reinicié tanto el televisor como el decodificador, pero el problema continúa.\n\nSolicito por favor la revisión del equipo o validación del estado del servicio para restablecer la señal lo antes posible.	2026-02-27 10:49:04.316933	2026-03-02 19:49:02.725448	5	2	1	8	10	16	4	7	1	2026-03-02 19:49:02.721195	\N	\N	\N	5	\N
+2	No tengo conexión a internet desde ayer en la noche	Desde el día de ayer (21/02/2026) aproximadamente a las 21:30 no tengo conexión a internet.\nEl módem está encendido, pero la luz de "Internet" está en rojo y parpadeando constantemente.	2026-02-23 09:09:49.326989	2026-02-23 09:49:44.427913	2	2	1	6	13	14	4	7	1	\N	\N	\N	\N	\N	\N
+3	TENGO TENGO TENGO TENGO	TENGO TENGOTENGO TENGOTENGO TENGOTENGO TENGOTENGO TENGO	2026-02-25 12:23:45.421804	2026-02-25 12:30:36.858663	4	3	1	5	11	14	8	10	4	\N	\N	\N	\N	\N	\N
+5	GONTE GONTE GONTE GONTE	GONTE GONTE GONTE GONTE GONTE GONTE	2026-02-25 12:24:32.932886	2026-02-25 14:10:41.505698	4	3	1	7	10	14	8	7	4	2026-02-25 14:10:41.476892	\N	\N	\N	\N	\N
+8	HOLAAAAAAAAAA	HOLAAAAAAAAAA HOLAAAAAAAAAAHOLAAAAAAAAAAHOLAAAAAAAAAA	2026-02-25 14:37:55.420797	2026-02-25 14:56:45.227352	4	3	1	45	10	14	8	7	4	\N	\N	\N	\N	\N	\N
+4	TENGO TENGO TENGO TENGO	TENGO TENGOTENGO TENGOTENGO TENGOTENGO TENGOTENGO TENGO	2026-02-25 12:23:47.203748	2026-02-25 15:02:56.964615	4	3	1	6	10	14	8	7	4	\N	\N	\N	\N	\N	\N
+10	INSIDENCIA SOBRE MI VAINA	asdasdsadasdasdasdasdasda	2026-02-25 18:09:24.948352	2026-02-25 18:16:24.828277	1	1	1	8	10	14	2	7	2	2026-02-25 18:16:24.825773	\N	\N	\N	\N	\N
+9	INSIDENCIA SOBRE MI VAINA	asdasdasdsadasdasdasdasd	2026-02-25 18:08:55.147609	2026-02-25 18:22:51.0712	4	3	1	5	10	14	8	7	4	\N	\N	\N	\N	\N	\N
+1	Falla total de internet - Luz roja parpadeando	Desde hace dos horas el módem tiene la luz de LOS en color rojo. Ya intenté desconectarlo de la corriente y volverlo a conectar pero el problema persiste. No tengo navegación en ningún dispositivo.	2026-02-23 08:40:46.369847	2026-02-26 16:33:07.99939	2	2	1	5	10	14	4	10	1	\N	\N	\N	\N	\N	\N
+6	TENGO MI FALLITO DE RED YA SABES	TENGO MI FALLITO DE RED YA SABESTENGO MI FALLITO DE RED YA SABESTENGO MI FALLITO DE RED YA SABES	2026-02-25 14:36:52.408091	2026-02-26 16:33:12.940424	4	3	1	5	10	14	8	7	4	\N	\N	\N	\N	\N	\N
+7	TENGO MI FALLITO DE RED YA SABES	TENGO MI FALLITO DE RED YA SABESTENGO MI FALLITO DE RED YA SABESTENGO MI FALLITO DE RED YA SABES	2026-02-25 14:36:53.743848	2026-02-26 16:33:16.763414	4	3	1	5	10	14	8	7	4	\N	\N	\N	\N	\N	\N
+11	PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA PRUEBA	PRUEBA PRUEBAPRUEBA PRUEBAPRUEBA PRUEBA	2026-02-26 07:42:24.342737	2026-02-26 16:33:18.785668	4	3	1	5	10	14	8	7	4	\N	\N	\N	\N	\N	\N
+14	No tengo conexión a internet desde ayer en la noche	Tengo un pequeño problema al querer ver la TV y es que me sale que no tengo señal	2026-03-02 08:40:50.597389	2026-03-04 05:17:06.526991	5	2	\N	8	10	14	4	7	1	2026-03-04 05:14:51.949151	\N	\N	\N	5	Un excelente servicio
+13	Sin señal en el servicio de televisión	Tengo un pequeño problema al querer ver la TV y es que me sale que no tengo señal	2026-03-02 08:28:23.955139	2026-03-02 08:49:51.46109	5	2	\N	45	10	14	4	7	1	\N	\N	\N	\N	\N	\N
+15	Problemas de Latencia de Red	Tengo problemas de latencia de red cada 30 min	2026-03-02 09:17:36.425626	2026-03-02 09:20:49.310557	5	2	\N	45	10	14	4	7	1	\N	\N	\N	\N	\N	\N
 \.
 
 
@@ -3941,7 +3990,7 @@ COPY usuarios.usuario_bd (id_usuario_bd, nombre, id_rol_bd, fecha_creacion, id_u
 
 
 --
--- TOC entry 5156 (class 0 OID 0)
+-- TOC entry 5157 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: auditoria_estado_ticket_id_auditoria_seq; Type: SEQUENCE SET; Schema: auditoria; Owner: postgres
 --
@@ -3950,7 +3999,7 @@ SELECT pg_catalog.setval('auditoria.auditoria_estado_ticket_id_auditoria_seq', 1
 
 
 --
--- TOC entry 5157 (class 0 OID 0)
+-- TOC entry 5158 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: auditoria_evento_id_evento_seq; Type: SEQUENCE SET; Schema: auditoria; Owner: postgres
 --
@@ -3959,7 +4008,7 @@ SELECT pg_catalog.setval('auditoria.auditoria_evento_id_evento_seq', 1, false);
 
 
 --
--- TOC entry 5158 (class 0 OID 0)
+-- TOC entry 5159 (class 0 OID 0)
 -- Dependencies: 234
 -- Name: auditoria_login_bd_id_auditoria_login_bd_seq; Type: SEQUENCE SET; Schema: auditoria; Owner: postgres
 --
@@ -3968,7 +4017,7 @@ SELECT pg_catalog.setval('auditoria.auditoria_login_bd_id_auditoria_login_bd_seq
 
 
 --
--- TOC entry 5159 (class 0 OID 0)
+-- TOC entry 5160 (class 0 OID 0)
 -- Dependencies: 235
 -- Name: auditoria_login_id_login_seq; Type: SEQUENCE SET; Schema: auditoria; Owner: postgres
 --
@@ -3977,7 +4026,7 @@ SELECT pg_catalog.setval('auditoria.auditoria_login_id_login_seq', 1, false);
 
 
 --
--- TOC entry 5160 (class 0 OID 0)
+-- TOC entry 5161 (class 0 OID 0)
 -- Dependencies: 237
 -- Name: catalogo_id_catalogo_seq; Type: SEQUENCE SET; Schema: catalogos; Owner: postgres
 --
@@ -3986,7 +4035,7 @@ SELECT pg_catalog.setval('catalogos.catalogo_id_catalogo_seq', 12, true);
 
 
 --
--- TOC entry 5161 (class 0 OID 0)
+-- TOC entry 5162 (class 0 OID 0)
 -- Dependencies: 239
 -- Name: catalogo_item_id_item_seq; Type: SEQUENCE SET; Schema: catalogos; Owner: postgres
 --
@@ -3995,7 +4044,7 @@ SELECT pg_catalog.setval('catalogos.catalogo_item_id_item_seq', 48, true);
 
 
 --
--- TOC entry 5162 (class 0 OID 0)
+-- TOC entry 5163 (class 0 OID 0)
 -- Dependencies: 241
 -- Name: canton_id_canton_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
@@ -4004,7 +4053,7 @@ SELECT pg_catalog.setval('clientes.canton_id_canton_seq', 1, false);
 
 
 --
--- TOC entry 5163 (class 0 OID 0)
+-- TOC entry 5164 (class 0 OID 0)
 -- Dependencies: 243
 -- Name: ciudad_id_ciudad_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
@@ -4013,7 +4062,7 @@ SELECT pg_catalog.setval('clientes.ciudad_id_ciudad_seq', 25, true);
 
 
 --
--- TOC entry 5164 (class 0 OID 0)
+-- TOC entry 5165 (class 0 OID 0)
 -- Dependencies: 245
 -- Name: cliente_id_cliente_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
@@ -4022,7 +4071,7 @@ SELECT pg_catalog.setval('clientes.cliente_id_cliente_seq', 5, true);
 
 
 --
--- TOC entry 5165 (class 0 OID 0)
+-- TOC entry 5166 (class 0 OID 0)
 -- Dependencies: 247
 -- Name: documento_cliente_id_documento_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
@@ -4031,7 +4080,7 @@ SELECT pg_catalog.setval('clientes.documento_cliente_id_documento_seq', 2, true)
 
 
 --
--- TOC entry 5166 (class 0 OID 0)
+-- TOC entry 5167 (class 0 OID 0)
 -- Dependencies: 249
 -- Name: pais_id_pais_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
@@ -4040,7 +4089,7 @@ SELECT pg_catalog.setval('clientes.pais_id_pais_seq', 1, false);
 
 
 --
--- TOC entry 5167 (class 0 OID 0)
+-- TOC entry 5168 (class 0 OID 0)
 -- Dependencies: 251
 -- Name: tipo_documento_id_tipo_documento_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
@@ -4049,7 +4098,7 @@ SELECT pg_catalog.setval('clientes.tipo_documento_id_tipo_documento_seq', 2, tru
 
 
 --
--- TOC entry 5168 (class 0 OID 0)
+-- TOC entry 5169 (class 0 OID 0)
 -- Dependencies: 253
 -- Name: area_id_area_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
@@ -4058,7 +4107,7 @@ SELECT pg_catalog.setval('empleados.area_id_area_seq', 7, true);
 
 
 --
--- TOC entry 5169 (class 0 OID 0)
+-- TOC entry 5170 (class 0 OID 0)
 -- Dependencies: 255
 -- Name: cargo_id_cargo_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
@@ -4067,7 +4116,7 @@ SELECT pg_catalog.setval('empleados.cargo_id_cargo_seq', 8, true);
 
 
 --
--- TOC entry 5170 (class 0 OID 0)
+-- TOC entry 5171 (class 0 OID 0)
 -- Dependencies: 257
 -- Name: documento_empleado_id_documento_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
@@ -4076,7 +4125,7 @@ SELECT pg_catalog.setval('empleados.documento_empleado_id_documento_seq', 1, fal
 
 
 --
--- TOC entry 5171 (class 0 OID 0)
+-- TOC entry 5172 (class 0 OID 0)
 -- Dependencies: 258
 -- Name: empleado_id_empleado_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
@@ -4085,7 +4134,7 @@ SELECT pg_catalog.setval('empleados.empleado_id_empleado_seq', 4, true);
 
 
 --
--- TOC entry 5172 (class 0 OID 0)
+-- TOC entry 5173 (class 0 OID 0)
 -- Dependencies: 261
 -- Name: tipo_contrato_id_tipo_contrato_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
@@ -4094,7 +4143,7 @@ SELECT pg_catalog.setval('empleados.tipo_contrato_id_tipo_contrato_seq', 5, true
 
 
 --
--- TOC entry 5173 (class 0 OID 0)
+-- TOC entry 5174 (class 0 OID 0)
 -- Dependencies: 263
 -- Name: documento_empresa_id_documento_seq; Type: SEQUENCE SET; Schema: empresa; Owner: postgres
 --
@@ -4103,7 +4152,7 @@ SELECT pg_catalog.setval('empresa.documento_empresa_id_documento_seq', 1, true);
 
 
 --
--- TOC entry 5174 (class 0 OID 0)
+-- TOC entry 5175 (class 0 OID 0)
 -- Dependencies: 265
 -- Name: empresa_id_empresa_seq; Type: SEQUENCE SET; Schema: empresa; Owner: postgres
 --
@@ -4112,7 +4161,7 @@ SELECT pg_catalog.setval('empresa.empresa_id_empresa_seq', 5, true);
 
 
 --
--- TOC entry 5175 (class 0 OID 0)
+-- TOC entry 5176 (class 0 OID 0)
 -- Dependencies: 268
 -- Name: servicio_id_servicio_seq; Type: SEQUENCE SET; Schema: empresa; Owner: postgres
 --
@@ -4121,7 +4170,7 @@ SELECT pg_catalog.setval('empresa.servicio_id_servicio_seq', 5, true);
 
 
 --
--- TOC entry 5176 (class 0 OID 0)
+-- TOC entry 5177 (class 0 OID 0)
 -- Dependencies: 270
 -- Name: sucursal_id_sucursal_seq; Type: SEQUENCE SET; Schema: empresa; Owner: postgres
 --
@@ -4130,7 +4179,7 @@ SELECT pg_catalog.setval('empresa.sucursal_id_sucursal_seq', 3, true);
 
 
 --
--- TOC entry 5177 (class 0 OID 0)
+-- TOC entry 5178 (class 0 OID 0)
 -- Dependencies: 272
 -- Name: canal_notificacion_id_canal_seq; Type: SEQUENCE SET; Schema: notificaciones; Owner: postgres
 --
@@ -4139,7 +4188,7 @@ SELECT pg_catalog.setval('notificaciones.canal_notificacion_id_canal_seq', 1, fa
 
 
 --
--- TOC entry 5178 (class 0 OID 0)
+-- TOC entry 5179 (class 0 OID 0)
 -- Dependencies: 274
 -- Name: notificacion_id_notificacion_seq; Type: SEQUENCE SET; Schema: notificaciones; Owner: postgres
 --
@@ -4148,7 +4197,7 @@ SELECT pg_catalog.setval('notificaciones.notificacion_id_notificacion_seq', 4, t
 
 
 --
--- TOC entry 5179 (class 0 OID 0)
+-- TOC entry 5180 (class 0 OID 0)
 -- Dependencies: 276
 -- Name: asignacion_id_asignacion_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
@@ -4157,7 +4206,7 @@ SELECT pg_catalog.setval('soporte.asignacion_id_asignacion_seq', 20, true);
 
 
 --
--- TOC entry 5180 (class 0 OID 0)
+-- TOC entry 5181 (class 0 OID 0)
 -- Dependencies: 278
 -- Name: categoria_id_categoria_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
@@ -4166,16 +4215,16 @@ SELECT pg_catalog.setval('soporte.categoria_id_categoria_seq', 4, true);
 
 
 --
--- TOC entry 5181 (class 0 OID 0)
+-- TOC entry 5182 (class 0 OID 0)
 -- Dependencies: 280
 -- Name: comentario_ticket_id_comentario_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
-SELECT pg_catalog.setval('soporte.comentario_ticket_id_comentario_seq', 24, true);
+SELECT pg_catalog.setval('soporte.comentario_ticket_id_comentario_seq', 30, true);
 
 
 --
--- TOC entry 5182 (class 0 OID 0)
+-- TOC entry 5183 (class 0 OID 0)
 -- Dependencies: 282
 -- Name: documento_ticket_id_documento_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
@@ -4184,34 +4233,34 @@ SELECT pg_catalog.setval('soporte.documento_ticket_id_documento_seq', 1, false);
 
 
 --
--- TOC entry 5183 (class 0 OID 0)
+-- TOC entry 5184 (class 0 OID 0)
 -- Dependencies: 284
 -- Name: historial_estado_id_historial_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
-SELECT pg_catalog.setval('soporte.historial_estado_id_historial_seq', 45, true);
-
-
---
--- TOC entry 5184 (class 0 OID 0)
--- Dependencies: 307
--- Name: network_probe_result_id_result_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
---
-
-SELECT pg_catalog.setval('soporte.network_probe_result_id_result_seq', 179, true);
+SELECT pg_catalog.setval('soporte.historial_estado_id_historial_seq', 48, true);
 
 
 --
 -- TOC entry 5185 (class 0 OID 0)
--- Dependencies: 305
--- Name: network_probe_run_id_run_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
+-- Dependencies: 307
+-- Name: network_probe_result_id_result_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
-SELECT pg_catalog.setval('soporte.network_probe_run_id_run_seq', 180, true);
+SELECT pg_catalog.setval('soporte.network_probe_result_id_result_seq', 194, true);
 
 
 --
 -- TOC entry 5186 (class 0 OID 0)
+-- Dependencies: 305
+-- Name: network_probe_run_id_run_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
+--
+
+SELECT pg_catalog.setval('soporte.network_probe_run_id_run_seq', 195, true);
+
+
+--
+-- TOC entry 5187 (class 0 OID 0)
 -- Dependencies: 286
 -- Name: prioridad_id_prioridad_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
@@ -4220,7 +4269,7 @@ SELECT pg_catalog.setval('soporte.prioridad_id_prioridad_seq', 5, true);
 
 
 --
--- TOC entry 5187 (class 0 OID 0)
+-- TOC entry 5188 (class 0 OID 0)
 -- Dependencies: 288
 -- Name: sla_ticket_id_sla_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
@@ -4229,7 +4278,7 @@ SELECT pg_catalog.setval('soporte.sla_ticket_id_sla_seq', 1, true);
 
 
 --
--- TOC entry 5188 (class 0 OID 0)
+-- TOC entry 5189 (class 0 OID 0)
 -- Dependencies: 290
 -- Name: solucion_ticket_id_solucion_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
@@ -4238,7 +4287,7 @@ SELECT pg_catalog.setval('soporte.solucion_ticket_id_solucion_seq', 1, false);
 
 
 --
--- TOC entry 5189 (class 0 OID 0)
+-- TOC entry 5190 (class 0 OID 0)
 -- Dependencies: 292
 -- Name: ticket_id_ticket_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
@@ -4247,7 +4296,7 @@ SELECT pg_catalog.setval('soporte.ticket_id_ticket_seq', 15, true);
 
 
 --
--- TOC entry 5190 (class 0 OID 0)
+-- TOC entry 5191 (class 0 OID 0)
 -- Dependencies: 294
 -- Name: visita_tecnica_id_visita_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
@@ -4256,7 +4305,7 @@ SELECT pg_catalog.setval('soporte.visita_tecnica_id_visita_seq', 5, true);
 
 
 --
--- TOC entry 5191 (class 0 OID 0)
+-- TOC entry 5192 (class 0 OID 0)
 -- Dependencies: 296
 -- Name: persona_id_persona_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
@@ -4265,7 +4314,7 @@ SELECT pg_catalog.setval('usuarios.persona_id_persona_seq', 9, true);
 
 
 --
--- TOC entry 5192 (class 0 OID 0)
+-- TOC entry 5193 (class 0 OID 0)
 -- Dependencies: 299
 -- Name: rol_bd_id_rol_bd_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
@@ -4274,7 +4323,7 @@ SELECT pg_catalog.setval('usuarios.rol_bd_id_rol_bd_seq', 5, true);
 
 
 --
--- TOC entry 5193 (class 0 OID 0)
+-- TOC entry 5194 (class 0 OID 0)
 -- Dependencies: 300
 -- Name: rol_id_rol_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
@@ -4283,7 +4332,7 @@ SELECT pg_catalog.setval('usuarios.rol_id_rol_seq', 5, true);
 
 
 --
--- TOC entry 5194 (class 0 OID 0)
+-- TOC entry 5195 (class 0 OID 0)
 -- Dependencies: 303
 -- Name: usuario_bd_id_usuario_bd_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
@@ -4292,7 +4341,7 @@ SELECT pg_catalog.setval('usuarios.usuario_bd_id_usuario_bd_seq', 1, false);
 
 
 --
--- TOC entry 5195 (class 0 OID 0)
+-- TOC entry 5196 (class 0 OID 0)
 -- Dependencies: 304
 -- Name: usuario_id_usuario_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
@@ -5739,11 +5788,11 @@ ALTER TABLE ONLY usuarios.usuario
     ADD CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES usuarios.rol(id_rol);
 
 
--- Completed on 2026-03-04 02:39:08 -05
+-- Completed on 2026-03-07 06:44:22 -05
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict wBDEjOOqaWrVZmErKIj2H4srJnD6SBZbTUOp3tcVlaUVavTWeQ4h6wYqayEMTvp
+\unrestrict PVvTK1xwPAvlMBtmay4TQvM0GPD6IqTcu1newNPCsJLHONGENfWJBbveosc79gZ
 
