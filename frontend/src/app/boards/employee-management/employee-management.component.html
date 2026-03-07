@@ -1,437 +1,438 @@
 <div class="emp-mgmt-container">
 
-  <!-- ── Alertas ───────────────────────────────────────────────────────────── -->
-  <div *ngIf="errorMsg" class="alert alert-danger alert-dismissible">
-    {{ errorMsg }}
-    <button type="button" class="btn-close-alert" (click)="clearMessages()">✕</button>
+  <!-- ── Alerts ── -->
+  <div *ngIf="errorMsg" class="aura-alert alert-error animate__animated animate__shakeX">
+    <i class="bi bi-exclamation-octagon-fill"></i>
+    <div class="flex-grow-1">{{ errorMsg }}</div>
+    <button type="button" class="btn-close-aura" (click)="clearMessages()">✕</button>
   </div>
-  <div *ngIf="successMsg" class="alert alert-success alert-dismissible">
-    {{ successMsg }}
-    <button type="button" class="btn-close-alert" (click)="clearMessages()">✕</button>
+  <div *ngIf="successMsg" class="aura-alert alert-success animate__animated animate__fadeIn">
+    <i class="bi bi-check-circle-fill"></i>
+    <div class="flex-grow-1">{{ successMsg }}</div>
+    <button type="button" class="btn-close-aura" (click)="clearMessages()">✕</button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- VISTA: LISTA                                                           -->
+  <!-- VIEW: LIST                                                            -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <div *ngIf="view === 'list'">
-    <div class="page-header">
+  <div *ngIf="view === 'list'" class="animate__animated animate__fadeIn">
+    <header class="page-header">
       <div>
-        <h2 class="page-title">👥 Gestión de Empleados</h2>
-        <p class="page-subtitle">Registra, documenta y activa el acceso de tus colaboradores.</p>
+        <h2 class="page-title">Gestión de Talento</h2>
+        <p class="page-subtitle">Administra el ciclo de vida de tus colaboradores y sus accesos.</p>
       </div>
-      <button class="btn btn-primary" (click)="goToCreate()">
-        + Nuevo Empleado
+      <button class="btn-aura btn-primary" (click)="goToCreate()">
+        <i class="bi bi-person-plus-fill"></i> Nuevo Colaborador
       </button>
-    </div>
+    </header>
 
-    <!-- Buscador -->
-    <div class="search-bar">
+    <!-- Search Tool -->
+    <div class="search-container">
+      <i class="bi bi-search search-icon"></i>
       <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()"
-        placeholder="Buscar por nombre o cédula…" class="search-input" />
+        placeholder="Buscar por nombre, apellido o cédula…" class="search-input" />
     </div>
 
-    <!-- Tabla -->
-    <div class="card table-card" *ngIf="!isLoading; else loadingBlock">
-      <table class="emp-table">
-        <thead>
-          <tr>
-            <th>Nombre Completo</th>
-            <th>Cédula</th>
-            <th>Área</th>
-            <th>Cargo</th>
-            <th>Docs</th>
-            <th>Acceso</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let emp of filteredEmpleados" class="table-row" (click)="openDetail(emp)">
-            <td class="name-cell">
-              <span class="avatar">{{ (emp.nombre || 'U').charAt(0) }}{{ (emp.apellido || 'N').charAt(0) }}</span>
-              {{ emp.nombre }} {{ emp.apellido }}
-            </td>
-            <td class="mono">{{ emp.cedula }}</td>
-            <td>{{ emp.nombreArea || '—' }}</td>
-            <td>{{ emp.nombreCargo || '—' }}</td>
-            <td>
-              <span class="pill" [class.pill-ok]="emp.tieneDocumentoActivo" [class.pill-warn]="!emp.tieneDocumentoActivo">
-                {{ emp.tieneDocumentoActivo ? '✓ Activo' : '⚠ Sin doc' }}
-              </span>
-            </td>
-            <td>
-              <span class="pill" [class.pill-ok]="emp.tieneUsuarioActivo" [class.pill-neutral]="!emp.tieneUsuarioActivo">
-                {{ emp.tieneUsuarioActivo ? emp.usernameSistema : 'Sin acceso' }}
-              </span>
-            </td>
-            <td (click)="$event.stopPropagation()">
-              <button class="btn btn-sm btn-outline" (click)="openDetail(emp)">Ver</button>
-            </td>
-          </tr>
-          <tr *ngIf="filteredEmpleados.length === 0">
-            <td colspan="7" class="empty-state">No hay empleados registrados.</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Table Section -->
+    <div class="glass-card" *ngIf="!isLoading; else loadingBlock">
+      <div class="table-responsive">
+        <table class="emp-table">
+          <thead>
+            <tr>
+              <th>Colaborador</th>
+              <th>Documento ID</th>
+              <th>Área Operativa</th>
+              <th>Cargo</th>
+              <th>Estado Docs</th>
+              <th>Acceso Sistema</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let emp of filteredEmpleados" class="table-row" (click)="openDetail(emp)">
+              <td class="name-cell">
+                <div class="avatar">
+                  {{ (emp.nombre || 'U').charAt(0) }}{{ (emp.apellido || 'N').charAt(0) }}
+                </div>
+                <div>
+                  <div class="fw-bold">{{ emp.nombre }} {{ emp.apellido }}</div>
+                  <small class="text-muted">{{ emp.correo || 'Sin correo' }}</small>
+                </div>
+              </td>
+              <td><span class="pill-access mono">{{ emp.cedula }}</span></td>
+              <td>{{ emp.nombreArea || '—' }}</td>
+              <td>{{ emp.nombreCargo || '—' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="emp.tieneDocumentoActivo ? 'status-active' : 'status-pending'">
+                  <i class="bi" [ngClass]="emp.tieneDocumentoActivo ? 'bi-check-circle' : 'bi-hourglass'"></i>
+                  {{ emp.tieneDocumentoActivo ? 'Validados' : 'Pendientes' }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="emp.tieneUsuarioActivo ? 'status-active' : 'status-none'">
+                  <i class="bi" [ngClass]="emp.tieneUsuarioActivo ? 'bi-shield-check' : 'bi-shield-slash'"></i>
+                  {{ emp.tieneUsuarioActivo ? emp.usernameSistema : 'Sin Acceso' }}
+                </span>
+              </td>
+              <td class="text-end">
+                <button class="btn-aura btn-secondary btn-sm" (click)="openDetail(emp)">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredEmpleados.length === 0">
+              <td colspan="7" class="shimmer-loader">
+                <i class="bi bi-people-fill opacity-20 display-1 d-block mb-3"></i>
+                <p class="text-muted">No se encontraron colaboradores que coincidan con la búsqueda.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
     <ng-template #loadingBlock>
-      <div class="loading-spinner">⏳ Cargando empleados…</div>
+      <div class="glass-card shimmer-loader">
+        <div class="spinner-wave"></div>
+        <p class="text-muted fw-bold">Optimizando la carga de datos...</p>
+      </div>
     </ng-template>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- VISTA: CREAR EMPLEADO (Wizard 3 pasos)                                -->
+  <!-- VIEW: CREATE (Wizard)                                                 -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <div *ngIf="view === 'create'">
-    <div class="page-header">
+  <div *ngIf="view === 'create'" class="animate__animated animate__fadeInRight">
+    <header class="page-header">
       <div>
-        <button class="btn-back" (click)="goToList()">← Volver</button>
-        <h2 class="page-title">Registrar Nuevo Empleado</h2>
+        <button class="btn-aura btn-secondary btn-sm mb-3" (click)="goToList()">
+          <i class="bi bi-arrow-left"></i> Volver al listado
+        </button>
+        <h2 class="page-title">Onboarding de Colaborador</h2>
+      </div>
+    </header>
+
+    <div class="wizard-steps">
+      <div class="wizard-line"></div>
+      <div class="step-item" [class.active]="currentStep === 1" [class.done]="currentStep > 1">
+        <div class="step-circle">1</div>
+        <small>Identidad</small>
+      </div>
+      <div class="step-item" [class.active]="currentStep === 2" [class.done]="currentStep > 2">
+        <div class="step-circle">2</div>
+        <small>Laboral</small>
+      </div>
+      <div class="step-item" [class.active]="currentStep === 3">
+        <div class="step-circle">3</div>
+        <small>Éxito</small>
       </div>
     </div>
 
-    <!-- Indicador de pasos -->
-    <div class="steps-indicator">
-      <div class="step" [class.active]="currentStep >= 1" [class.done]="currentStep > 1">
-        <span class="step-number">1</span> Identidad
-      </div>
-      <div class="step-line" [class.done]="currentStep > 1"></div>
-      <div class="step" [class.active]="currentStep >= 2" [class.done]="currentStep > 2">
-        <span class="step-number">2</span> Datos Laborales
-      </div>
-      <div class="step-line" [class.done]="currentStep > 2"></div>
-      <div class="step" [class.active]="currentStep === 3">
-        <span class="step-number">3</span> Confirmación
-      </div>
-    </div>
-
-    <!-- ── PASO 1: Persona ── -->
-    <div class="card form-card" *ngIf="currentStep === 1">
-      <h3 class="card-title">Paso 1: Datos de Identidad</h3>
-      <p class="card-hint">Ingresa la cédula. Si la persona ya existe en el sistema se reutilizarán sus datos; de lo contrario, completa el formulario.</p>
+    <!-- Step 1 Form -->
+    <div class="glass-card max-w-700 mx-auto" *ngIf="currentStep === 1">
+      <h3 class="fw-bold mb-4">Información de Identidad</h3>
       <form [formGroup]="personaForm">
-        <div class="form-row">
-          <div class="form-group full-width">
-            <label>Cédula *</label>
-            <div class="cedula-search">
-              <input formControlName="cedula" class="form-control" placeholder="Ej: 1712345678"
-                maxlength="10" (blur)="buscarPersonaPorCedula()" />
-            </div>
-            <span class="field-error" *ngIf="personaForm.get('cedula')?.touched && personaForm.get('cedula')?.invalid">
-              La cédula debe tener exactamente 10 dígitos.
-            </span>
+        <div class="mb-4">
+          <label class="form-label">Número de Cédula *</label>
+          <div class="input-group">
+            <input formControlName="cedula" class="form-control" placeholder="10 dígitos sin guiones"
+              maxlength="10" (blur)="buscarPersonaPorCedula()" />
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nombre *</label>
-            <input formControlName="nombre" class="form-control" placeholder="Juan Carlos" />
+        <div class="grid-2">
+          <div class="mb-4">
+            <label class="form-label">Nombres *</label>
+            <input formControlName="nombre" class="form-control" placeholder="Ej: Roberto Carlos" />
           </div>
-          <div class="form-group">
-            <label>Apellido *</label>
-            <input formControlName="apellido" class="form-control" placeholder="Pérez Mora" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Correo</label>
-            <input formControlName="correo" class="form-control" type="email" placeholder="correo@empresa.com" />
-          </div>
-          <div class="form-group">
-            <label>Celular</label>
-            <input formControlName="celular" class="form-control" placeholder="0991234567" />
+          <div class="mb-4">
+            <label class="form-label">Apellidos *</label>
+            <input formControlName="apellido" class="form-control" placeholder="Ej: Sosa Méndez" />
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Fecha de Nacimiento</label>
-            <input formControlName="fechaNacimiento" class="form-control" type="date" />
+        <div class="grid-2">
+          <div class="mb-4">
+            <label class="form-label">Correo Electrónico</label>
+            <input formControlName="correo" class="form-control" type="email" placeholder="personal@example.com" />
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Teléfono / Celular</label>
+            <input formControlName="celular" class="form-control" placeholder="09XXXXXXXX" />
           </div>
         </div>
       </form>
-      <div class="form-actions">
-        <button class="btn btn-secondary" (click)="goToList()">Cancelar</button>
-        <button class="btn btn-primary" (click)="nextStep()" [disabled]="personaForm.invalid">
-          Siguiente →
+      <div class="mt-4 text-end">
+        <button class="btn-aura btn-primary" (click)="nextStep()" [disabled]="personaForm.invalid">
+          Continuar <i class="bi bi-arrow-right"></i>
         </button>
       </div>
     </div>
 
-    <!-- ── PASO 2: Datos Laborales ── -->
-    <div class="card form-card" *ngIf="currentStep === 2">
-      <h3 class="card-title">Paso 2: Datos Laborales</h3>
-      <p class="card-hint">Asigna el puesto, área y condiciones contractuales del empleado.</p>
+    <!-- Step 2 Form -->
+    <div class="glass-card max-w-700 mx-auto" *ngIf="currentStep === 2">
+      <h3 class="fw-bold mb-4">Vinculación Laboral</h3>
       <form [formGroup]="laboralForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Fecha de Ingreso *</label>
+        <div class="grid-2">
+          <div class="mb-4">
+            <label class="form-label">Fecha de Ingreso *</label>
             <input formControlName="fechaIngreso" class="form-control" type="date" />
           </div>
-          <div class="form-group">
-            <label>Tipo de Contrato *</label>
+          <div class="mb-4">
+            <label class="form-label">Tipo de Contrato *</label>
             <select formControlName="idTipoContrato" class="form-control">
-              <option [value]="null">Seleccionar…</option>
+              <option [value]="null">Seleccione uno...</option>
               <option *ngFor="let tc of tiposContrato" [value]="tc.id">{{ tc.nombre }}</option>
             </select>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Área *</label>
+        <div class="grid-2">
+          <div class="mb-4">
+            <label class="form-label">Área *</label>
             <select formControlName="idArea" class="form-control">
-              <option [value]="null">Seleccionar…</option>
+              <option [value]="null">Seleccione área...</option>
               <option *ngFor="let a of areas" [value]="a.id">{{ a.nombre }}</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Cargo *</label>
+          <div class="mb-4">
+            <label class="form-label">Cargo Asignado *</label>
             <select formControlName="idCargo" class="form-control">
-              <option [value]="null">Seleccionar…</option>
+              <option [value]="null">Seleccione cargo...</option>
               <option *ngFor="let c of cargos" [value]="c.id">{{ c.nombre }}</option>
             </select>
           </div>
         </div>
       </form>
-      <div class="form-actions">
-        <button class="btn btn-secondary" (click)="prevStep()">← Atrás</button>
-        <button class="btn btn-primary" (click)="crearEmpleado()" [disabled]="laboralForm.invalid || isLoading">
-          {{ isLoading ? 'Registrando…' : 'Registrar Empleado' }}
+      <div class="mt-4 d-flex justify-content-between">
+        <button class="btn-aura btn-secondary" (click)="prevStep()">
+          <i class="bi bi-chevron-left"></i> Atrás
+        </button>
+        <button class="btn-aura btn-primary" (click)="crearEmpleado()" [disabled]="laboralForm.invalid || isLoading">
+          {{ isLoading ? 'Procesando...' : 'Finalizar Registro' }}
         </button>
       </div>
     </div>
 
-    <!-- ── PASO 3: Confirmación ── -->
-    <div class="card form-card confirm-card" *ngIf="currentStep === 3 && selectedEmpleado">
-      <div class="confirm-icon">✅</div>
-      <h3>Empleado Registrado</h3>
-      <p><strong>{{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}</strong></p>
-      <p class="mono">Cédula: {{ selectedEmpleado.cedula }}</p>
-      <p>Área: {{ selectedEmpleado.nombreArea }} · Cargo: {{ selectedEmpleado.nombreCargo }}</p>
-      <div class="confirm-next-steps">
-        <p>📌 <strong>Próximos pasos:</strong></p>
-        <ol>
-          <li>Sube los documentos del empleado en la pestaña <em>Documentos</em>.</li>
-          <li>Valida al menos un documento (estado ACTIVO).</li>
-          <li>Habilita el acceso al sistema en la pestaña <em>Acceso</em>.</li>
-        </ol>
+    <!-- Step 3 Succession -->
+    <div class="glass-card max-w-700 mx-auto text-center py-5" *ngIf="currentStep === 3 && selectedEmpleado">
+      <div class="profile-avatar-large mx-auto mb-4">
+        <i class="bi bi-check-lg"></i>
       </div>
-      <div class="form-actions">
-        <button class="btn btn-secondary" (click)="goToList()">Volver a la lista</button>
-        <button class="btn btn-primary" (click)="openDetail(selectedEmpleado!)">Ver Detalle →</button>
+      <h3 class="fw-bold">Alta Completa</h3>
+      <p class="text-muted mb-4">El colaborador <strong>{{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}</strong> ha sido registrado exitosamente.</p>
+      
+      <div class="alert-success aura-alert fw-500 mb-4 justify-content-center">
+        Identificador de sistema: <span class="mono ms-2">{{ selectedEmpleado.cedula }}</span>
+      </div>
+
+      <div class="text-center">
+        <button class="btn-aura btn-primary" (click)="openDetail(selectedEmpleado!)">
+          Gestionar Documentos y Acceso <i class="bi bi-arrow-right"></i>
+        </button>
       </div>
     </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <!-- VISTA: DETALLE DE EMPLEADO                                            -->
+  <!-- VIEW: DETAIL                                                          -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
-  <div *ngIf="view === 'detail' && selectedEmpleado">
-    <div class="page-header">
-      <div>
-        <button class="btn-back" (click)="goToList()">← Volver</button>
-        <h2 class="page-title">
-          {{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}
-        </h2>
-        <p class="page-subtitle mono">{{ selectedEmpleado.cedula }}</p>
-      </div>
-    </div>
-
-    <!-- Tabs de navegación -->
-    <div class="detail-tabs">
-      <button class="tab" [class.active]="activeTab === 'datos'" (click)="activeTab = 'datos'">
-        📋 Datos
-      </button>
-      <button class="tab" [class.active]="activeTab === 'documentos'" (click)="activeTab = 'documentos'">
-        📄 Documentos
-        <span class="tab-badge" *ngIf="documentos.length">{{ documentos.length }}</span>
-      </button>
-      <button class="tab" [class.active]="activeTab === 'acceso'" (click)="activeTab = 'acceso'">
-        🔐 Acceso
-      </button>
-    </div>
-
-    <!-- ── Tab: Datos ── -->
-    <div class="card detail-card" *ngIf="activeTab === 'datos'">
-      <div class="detail-section">
-        <h4 class="section-title">Identidad Personal</h4>
-        <div class="detail-grid">
-          <div class="detail-item"><span class="label">Cédula</span><span class="value mono">{{ selectedEmpleado.cedula }}</span></div>
-          <div class="detail-item"><span class="label">Nombre</span><span class="value">{{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}</span></div>
-          <div class="detail-item"><span class="label">Correo</span><span class="value">{{ selectedEmpleado.correo || '—' }}</span></div>
-          <div class="detail-item"><span class="label">Celular</span><span class="value">{{ selectedEmpleado.celular || '—' }}</span></div>
-          <div class="detail-item"><span class="label">Fecha de Nacimiento</span><span class="value">{{ selectedEmpleado.fechaNacimiento || '—' }}</span></div>
-        </div>
-      </div>
-      <div class="detail-section">
-        <h4 class="section-title">Datos Laborales</h4>
-        <div class="detail-grid">
-          <div class="detail-item"><span class="label">Fecha de Ingreso</span><span class="value">{{ selectedEmpleado.fechaIngreso }}</span></div>
-          <div class="detail-item"><span class="label">Área</span><span class="value">{{ selectedEmpleado.nombreArea || '—' }}</span></div>
-          <div class="detail-item"><span class="label">Cargo</span><span class="value">{{ selectedEmpleado.nombreCargo || '—' }}</span></div>
-          <div class="detail-item"><span class="label">Tipo de Contrato</span><span class="value">{{ selectedEmpleado.nombreTipoContrato || '—' }}</span></div>
-          <div class="detail-item"><span class="label">Sucursal</span><span class="value">{{ selectedEmpleado.nombreSucursal || '—' }}</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Tab: Documentos ── -->
-    <div class="card detail-card" *ngIf="activeTab === 'documentos'">
-      <div class="doc-header">
-        <h4 class="section-title">Documentos Laborales</h4>
-        <button class="btn btn-sm btn-primary" (click)="showUploadForm = !showUploadForm">
-          {{ showUploadForm ? 'Cancelar' : '+ Subir Documento' }}
-        </button>
-      </div>
-
-      <!-- Formulario de subida -->
-      <div class="upload-form" *ngIf="showUploadForm">
-        <p class="upload-note">⚠️ El documento se guardará con estado <strong>PENDIENTE</strong>. Deberás validarlo manualmente para habilitarlo.</p>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Archivo *</label>
-            <input type="file" id="uploadFileInput" class="form-control"
-              (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.md" />
-            <small *ngIf="uploadFile" class="field-hint">📎 {{ uploadFile.name }}</small>
+  <div *ngIf="view === 'detail' && selectedEmpleado" class="animate__animated animate__fadeIn">
+    
+    <div class="detail-layout">
+      
+      <!-- Aside Profile -->
+      <aside>
+        <div class="glass-card profile-card-mini">
+          <div class="profile-avatar-large">
+            {{ (selectedEmpleado.nombre || 'U').charAt(0) }}{{ (selectedEmpleado.apellido || 'N').charAt(0) }}
           </div>
-          <div class="form-group">
-            <label>Tipo de Documento</label>
-            <select class="form-control" [(ngModel)]="uploadIdTipo">
-              <option [ngValue]="null">Sin tipo / General</option>
-              <option *ngFor="let t of tiposDocumento" [ngValue]="t.id">{{ t.codigo }}</option>
-            </select>
+          <h3 class="fw-bold m-0">{{ selectedEmpleado.nombre }}</h3>
+          <h4 class="fw-bold text-muted">{{ selectedEmpleado.apellido }}</h4>
+          <div class="mt-3 pill-access mono d-inline-block">{{ selectedEmpleado.cedula }}</div>
+          
+          <hr class="my-4 opacity-10">
+          
+          <div class="text-start">
+            <div class="mb-3">
+              <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Área</small>
+              <div class="fw-bold">{{ selectedEmpleado.nombreArea }}</div>
+            </div>
+            <div class="mb-3">
+              <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Cargo</small>
+              <div class="fw-bold">{{ selectedEmpleado.nombreCargo }}</div>
+            </div>
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>N° Documento</label>
-            <input type="text" class="form-control" [(ngModel)]="uploadNumero"
-              placeholder="Ej: DOC-EMP-2026-001" />
-          </div>
-          <div class="form-group">
-            <label>Descripción</label>
-            <input type="text" class="form-control" [(ngModel)]="uploadDescripcion"
-              placeholder="Ej: Constancia de vinculación laboral" />
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn btn-primary" (click)="subirDocumento()"
-            [disabled]="!uploadFile || uploadingDoc">
-            {{ uploadingDoc ? '⏳ Subiendo…' : '⬆ Subir Documento' }}
+          <button class="btn-aura btn-secondary btn-sm w-100 mt-4" (click)="goToList()">
+            <i class="bi bi-arrow-left"></i> Volver a lista
           </button>
         </div>
-      </div>
+      </aside>
 
-      <!-- Lista de documentos -->
-      <div *ngIf="!loadingDocs">
-        <div *ngFor="let doc of documentos" class="doc-item">
-          <div class="doc-info">
-            <div class="doc-name">{{ doc.nombreTipoDocumento || 'Documento' }}</div>
-            <div class="doc-num mono" *ngIf="doc.numeroDocumento">N°: {{ doc.numeroDocumento }}</div>
-            <div class="doc-desc" *ngIf="doc.descripcion">{{ doc.descripcion }}</div>
-            <div class="doc-date">Subido: {{ doc.fechaSubida | date:'dd/MM/yyyy HH:mm' }}</div>
-          </div>
-          <div class="doc-actions">
-            <span class="badge" [ngClass]="getEstadoBadgeClass(doc.codigoEstado)">
-              {{ doc.nombreEstado || doc.codigoEstado }}
-            </span>
-            <div class="estado-buttons">
-              <button class="btn btn-xs btn-success" (click)="cambiarEstado(doc, 'ACTIVO')"
-                *ngIf="doc.codigoEstado !== 'ACTIVO'" title="Validar documento">✓ Validar</button>
-              <button class="btn btn-xs btn-danger" (click)="cambiarEstado(doc, 'RECHAZADO')"
-                *ngIf="doc.codigoEstado !== 'RECHAZADO'" title="Rechazar documento">✗ Rechazar</button>
-              <button class="btn btn-xs btn-secondary" (click)="cambiarEstado(doc, 'PENDIENTE')"
-                *ngIf="doc.codigoEstado !== 'PENDIENTE'" title="Poner en revisión">↺ Revisar</button>
-            </div>
-          </div>
-        </div>
-        <div class="empty-state" *ngIf="documentos.length === 0">
-          No hay documentos. Sube el primer documento para poder habilitar el acceso.
-        </div>
-      </div>
-      <div *ngIf="loadingDocs" class="loading-spinner">⏳ Cargando documentos…</div>
-    </div>
-
-    <!-- ── Tab: Acceso ── -->
-    <div class="card detail-card" *ngIf="activeTab === 'acceso'">
-      <h4 class="section-title">Estado de Acceso al Sistema</h4>
-
-      <div *ngIf="!loadingAccess && accessStatus">
-
-        <!-- Checklist de precondiciones -->
-        <div class="checklist">
-          <div class="check-item" [class.ok]="accessStatus.personaExiste">
-            <span class="check-icon">{{ accessStatus.personaExiste ? '✅' : '❌' }}</span>
-            Persona registrada en el sistema
-          </div>
-          <div class="check-item" [class.ok]="accessStatus.empleadoExiste">
-            <span class="check-icon">{{ accessStatus.empleadoExiste ? '✅' : '❌' }}</span>
-            Registro laboral como empleado
-          </div>
-          <div class="check-item" [class.ok]="accessStatus.tieneDocumentoActivo">
-            <span class="check-icon">{{ accessStatus.tieneDocumentoActivo ? '✅' : '⚠️' }}</span>
-            Al menos un documento con estado ACTIVO
-          </div>
-          <div class="check-item" [class.ok]="!accessStatus.yaTieneUsuario">
-            <span class="check-icon">{{ !accessStatus.yaTieneUsuario ? '✅' : 'ℹ️' }}</span>
-            {{ accessStatus.yaTieneUsuario ? 'Ya tiene acceso: ' + accessStatus.usernameExistente : 'Sin usuario previo' }}
-          </div>
-        </div>
-
-        <!-- Razón de bloqueo -->
-        <div class="block-reason" *ngIf="accessStatus.razonBloqueo">
-          <span class="block-icon">ℹ️</span> {{ accessStatus.razonBloqueo }}
-        </div>
-
-        <!-- Botón activar (solo si cumple condiciones) -->
-        <div class="access-actions" *ngIf="accessStatus.puedeActivar">
-          <button class="btn btn-primary btn-lg" (click)="showActivarForm = !showActivarForm">
-            {{ showActivarForm ? 'Cancelar' : '🔓 Habilitar Acceso al Sistema' }}
+      <!-- Main Detail Content -->
+      <main>
+        <nav class="tabs-nav">
+          <button class="tab-btn" [class.active]="activeTab === 'datos'" (click)="activeTab = 'datos'">
+            <i class="bi bi-info-circle me-1"></i> Perfil
           </button>
-        </div>
+          <button class="tab-btn" [class.active]="activeTab === 'documentos'" (click)="activeTab = 'documentos'">
+            <i class="bi bi-files me-1"></i> Expediente
+            <span class="badge bg-primary ms-1" *ngIf="documentos.length">{{ documentos.length }}</span>
+          </button>
+          <button class="tab-btn" [class.active]="activeTab === 'acceso'" (click)="activeTab = 'acceso'">
+            <i class="bi bi-shield-lock me-1"></i> Acceso
+          </button>
+        </nav>
 
-        <!-- Formulario de activación -->
-        <div class="activar-form" *ngIf="showActivarForm && accessStatus.puedeActivar">
-          <p class="activar-note">
-            El username y contraseña serán generados automáticamente por el sistema
-            a partir de la cédula y el año de nacimiento del empleado.
-          </p>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Rol del Sistema *</label>
-              <select class="form-control" [(ngModel)]="activarRol">
-                <option value="">Seleccionar rol…</option>
-                <option *ngFor="let r of rolesEmpleado" [value]="r">{{ r }}</option>
-              </select>
+        <!-- Profile Tab -->
+        <div class="glass-card" *ngIf="activeTab === 'datos'">
+          <h5 class="fw-bold mb-4 border-bottom pb-2">Datos Maestros</h5>
+          <div class="grid-2">
+            <div class="mb-3">
+              <label class="text-muted small fw-bold text-uppercase">Correo</label>
+              <div class="fw-500">{{ selectedEmpleado.correo || 'No registrado' }}</div>
             </div>
-            <div class="form-group">
-              <label>ID Empresa *</label>
-              <input type="number" class="form-control" [(ngModel)]="activarEmpresa" placeholder="ID de la empresa" />
+            <div class="mb-3">
+              <label class="text-muted small fw-bold text-uppercase">Celular</label>
+              <div class="fw-500">{{ selectedEmpleado.celular || 'No registrado' }}</div>
             </div>
-            <div class="form-group">
-              <label>Año de Nacimiento *</label>
-              <input type="number" class="form-control" [(ngModel)]="activarAnio" placeholder="Ej: 1990" min="1950" max="2010" />
+            <div class="mb-3">
+              <label class="text-muted small fw-bold text-uppercase">Fecha Nacimiento</label>
+              <div class="fw-500">{{ selectedEmpleado.fechaNacimiento || '—' }}</div>
+            </div>
+            <div class="mb-3">
+              <label class="text-muted small fw-bold text-uppercase">Fecha Ingreso</label>
+              <div class="fw-500">{{ selectedEmpleado.fechaIngreso }}</div>
             </div>
           </div>
-          <div class="form-actions">
-            <button class="btn btn-primary" (click)="activarAcceso()"
-              [disabled]="!activarRol || !activarEmpresa || !activarAnio || activating">
-              {{ activating ? 'Activando…' : '✓ Confirmar Activación' }}
+        </div>
+
+        <!-- Documents Tab -->
+        <div class="glass-card" *ngIf="activeTab === 'documentos'">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold m-0">Expediente Digital</h5>
+            <button class="btn-aura btn-primary btn-sm" (click)="showUploadForm = !showUploadForm">
+              <i class="bi" [ngClass]="showUploadForm ? 'bi-x-lg' : 'bi-plus-lg'"></i>
+              {{ showUploadForm ? 'Cancelar' : 'Subir Documento' }}
             </button>
           </div>
-        </div>
 
-        <!-- Ya tiene usuario -->
-        <div class="access-active" *ngIf="accessStatus.yaTieneUsuario">
-          <span class="access-icon">🔐</span>
-          <div>
-            <strong>Acceso activo</strong>
-            <p class="mono">Username: {{ accessStatus.usernameExistente }}</p>
+          <!-- Upload Form -->
+          <div class="aura-alert alert-success d-block mb-4" *ngIf="showUploadForm" style="background: #f8faff;">
+            <div class="grid-2">
+              <div class="mb-3">
+                <label class="form-label">Archivo</label>
+                <input type="file" class="form-control" (change)="onFileSelected($event)" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Tipo</label>
+                <select class="form-control" [(ngModel)]="uploadIdTipo">
+                  <option [ngValue]="null">General</option>
+                  <option *ngFor="let t of tiposDocumento" [ngValue]="t.id">{{ t.codigo }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end mt-2">
+              <button class="btn-aura btn-primary" (click)="subirDocumento()" [disabled]="!uploadFile || uploadingDoc">
+                {{ uploadingDoc ? 'Subiendo...' : 'Confirmar Carga' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Documents List -->
+          <div class="list-group list-group-flush" *ngIf="!loadingDocs">
+            <div *ngFor="let doc of documentos" class="d-flex justify-content-between align-items-center py-3 border-bottom">
+              <div>
+                <div class="fw-bold">{{ doc.nombreTipoDocumento || 'Documento' }}</div>
+                <small class="text-muted mono">{{ doc.numeroDocumento }}</small>
+                <div class="text-muted small">{{ doc.fechaSubida | date:'short' }}</div>
+              </div>
+              <div class="text-end">
+                <span class="status-badge mb-2" [ngClass]="getEstadoBadgeClass(doc.codigoEstado)">
+                  {{ doc.nombreEstado }}
+                </span>
+                <div class="btn-group">
+                  <button class="btn btn-outline-success btn-xs" (click)="cambiarEstado(doc, 'ACTIVO')" *ngIf="doc.codigoEstado !== 'ACTIVO'">✓</button>
+                  <button class="btn btn-outline-danger btn-xs" (click)="cambiarEstado(doc, 'RECHAZADO')" *ngIf="doc.codigoEstado !== 'RECHAZADO'">✗</button>
+                </div>
+              </div>
+            </div>
+            <div class="text-center py-5 text-muted" *ngIf="documentos.length === 0">
+              <i class="bi bi-folder-x display-4 d-block mb-2"></i>
+              No hay documentos digitales registrados.
+            </div>
+          </div>
+          <div class="text-center py-4" *ngIf="loadingDocs">
+            <div class="spinner-border text-primary spinner-border-sm"></div>
           </div>
         </div>
-      </div>
-      <div *ngIf="loadingAccess" class="loading-spinner">⏳ Verificando estado de acceso…</div>
+
+        <!-- Access Tab -->
+        <div class="glass-card" *ngIf="activeTab === 'acceso'">
+          <h5 class="fw-bold mb-4">Credenciales y Seguridad</h5>
+
+          <div *ngIf="!loadingAccess && accessStatus">
+            <div class="checklist mb-4">
+              <div class="d-flex align-items-center gap-2 mb-2" [class.text-success]="accessStatus.personaExiste">
+                <i class="bi" [ngClass]="accessStatus.personaExiste ? 'bi-check-circle-fill' : 'bi-x-circle'"></i>
+                Persona registrada
+              </div>
+              <div class="d-flex align-items-center gap-2 mb-2" [class.text-success]="accessStatus.empleadoExiste">
+                <i class="bi" [ngClass]="accessStatus.empleadoExiste ? 'bi-check-circle-fill' : 'bi-x-circle'"></i>
+                Contrato vigente
+              </div>
+              <div class="d-flex align-items-center gap-2 mb-2" [class.text-success]="accessStatus.tieneDocumentoActivo">
+                <i class="bi" [ngClass]="accessStatus.tieneDocumentoActivo ? 'bi-check-circle-fill' : 'bi-dash-circle'"></i>
+                Expediente verificado
+              </div>
+            </div>
+
+            <div class="alert-error aura-alert mb-4" *ngIf="accessStatus.razonBloqueo && !accessStatus.yaTieneUsuario">
+              <i class="bi bi-info-circle"></i>
+              {{ accessStatus.razonBloqueo }}
+            </div>
+
+            <div class="text-center py-4" *ngIf="accessStatus.puedeActivar && !accessStatus.yaTieneUsuario">
+              <button class="btn-aura btn-primary btn-lg" (click)="showActivarForm = !showActivarForm">
+                <i class="bi bi-unlock-fill"></i> Habilitar Acceso Digital
+              </button>
+              
+              <div class="glass-card mt-4 text-start animate__animated animate__fadeIn" *ngIf="showActivarForm">
+                <div class="grid-2">
+                  <div class="mb-3">
+                    <label class="form-label">Rol del Sistema</label>
+                    <select class="form-control" [(ngModel)]="activarRol">
+                      <option value="">Seleccione rol...</option>
+                      <option *ngFor="let r of rolesEmpleado" [value]="r">{{ r }}</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Año de Nacimiento (Seguridad)</label>
+                    <input type="number" class="form-control" [(ngModel)]="activarAnio" placeholder="Ej: 1990" />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">ID Empresa</label>
+                  <input type="number" class="form-control" [(ngModel)]="activarEmpresa" placeholder="Normalmente 1" />
+                </div>
+                <button class="btn-aura btn-primary w-100" (click)="activarAcceso()" [disabled]="activating">
+                  Confirmar y Generar Credenciales
+                </button>
+              </div>
+            </div>
+
+            <div class="alert-success aura-alert d-flex align-items-center gap-4" *ngIf="accessStatus.yaTieneUsuario">
+              <div class="display-6"><i class="bi bi-shield-lock-fill"></i></div>
+              <div>
+                <h5 class="m-0 fw-bold">Acceso Activo</h5>
+                <div class="mono fs-5">{{ accessStatus.usernameExistente }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-center py-4" *ngIf="loadingAccess">
+            <div class="spinner-border text-primary"></div>
+          </div>
+        </div>
+      </main>
     </div>
   </div>
 

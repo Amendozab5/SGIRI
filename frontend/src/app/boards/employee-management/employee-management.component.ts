@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeService, EmpleadoActivarAccesoRequest, TipoDocumentoDTO } from '../../_services/employee.service';
@@ -74,8 +74,9 @@ export class EmployeeManagementComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private employeeService: EmployeeService
-  ) {}
+    private employeeService: EmployeeService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
     this.buildForms();
@@ -87,20 +88,20 @@ export class EmployeeManagementComponent implements OnInit {
 
   private buildForms(): void {
     this.personaForm = this.fb.group({
-      cedula:          ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]],
-      nombre:          ['', Validators.required],
-      apellido:        ['', Validators.required],
-      correo:          ['', Validators.email],
-      celular:         [''],
+      cedula: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]],
+      nombre: ['', Validators.required],
+      apellido: ['', Validators.required],
+      correo: ['', Validators.email],
+      celular: [''],
       fechaNacimiento: ['']
     });
 
     this.laboralForm = this.fb.group({
-      fechaIngreso:    ['', Validators.required],
-      idArea:          [null, Validators.required],
-      idCargo:         [null, Validators.required],
-      idTipoContrato:  [null, Validators.required],
-      idSucursal:      [null]
+      fechaIngreso: ['', Validators.required],
+      idArea: [null, Validators.required],
+      idCargo: [null, Validators.required],
+      idTipoContrato: [null, Validators.required],
+      idSucursal: [null]
     });
   }
 
@@ -118,10 +119,12 @@ export class EmployeeManagementComponent implements OnInit {
         this.empleados = list;
         this.filteredEmpleados = list;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: err => {
         this.errorMsg = 'Error al cargar la lista de empleados.';
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -358,10 +361,10 @@ export class EmployeeManagementComponent implements OnInit {
 
   getEstadoBadgeClass(codigo?: string): string {
     switch (codigo) {
-      case 'ACTIVO':    return 'badge-activo';
+      case 'ACTIVO': return 'badge-activo';
       case 'PENDIENTE': return 'badge-pendiente';
       case 'RECHAZADO': return 'badge-rechazado';
-      default:          return 'badge-default';
+      default: return 'badge-default';
     }
   }
 }
