@@ -1,5 +1,6 @@
 package com.apweb.backend.repository;
 
+import com.apweb.backend.model.Persona;
 import com.apweb.backend.model.Role; // Import Role
 import com.apweb.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Boolean existsByUsername(String username);
 
     List<User> findByRole(Role role);
+
+    Optional<User> findByPersona_Cedula(String cedula);
+
+    Optional<User> findByPersona(Persona persona);
 }
