@@ -17,11 +17,9 @@ import lombok.Data;
 @Data
 public class UserCreateRequest {
 
-    @NotBlank
     @Size(min = 3, max = 50)
     private String username;
 
-    @NotBlank
     @Size(min = 6, max = 120)
     private String password;
 
@@ -30,9 +28,6 @@ public class UserCreateRequest {
 
     // Requerido para roles de empleado — usado por fn_crear_usuario_empleado
     private String cedula;
-
-    // Requerido para roles de empleado — año de nacimiento para contraseña temporal
-    private Integer anioNacimiento;
 
     // Requerido para roles de empleado — empresa a la que pertenece
     private Integer idEmpresa;

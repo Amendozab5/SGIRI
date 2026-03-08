@@ -3,6 +3,8 @@ export interface UserAdminView {
   id: number;
   username: string;
   fullName: string;
+  nombre: string;
+  apellido: string;
   email: string;
   roles: string[];
   estado: string;

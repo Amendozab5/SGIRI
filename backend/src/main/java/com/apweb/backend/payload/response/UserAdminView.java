@@ -8,6 +8,8 @@ public class UserAdminView {
     private Integer id;
     private String username;
     private String fullName;
+    private String nombre;
+    private String apellido;
     private String email;
     private List<String> roles;
     private String estado;
@@ -20,11 +22,13 @@ public class UserAdminView {
 
     public UserAdminView() {}
 
-    public UserAdminView(Integer id, String username, String fullName, String email, List<String> roles, String estado,
+    public UserAdminView(Integer id, String username, String fullName, String nombre, String apellido, String email, List<String> roles, String estado,
             LocalDateTime fechaCreacion, LocalDateTime lastLogin) {
         this.id = id;
         this.username = username;
         this.fullName = fullName;
+        this.nombre = nombre;
+        this.apellido = apellido;
         this.email = email;
         this.roles = roles;
         this.estado = estado;
@@ -55,6 +59,22 @@ public class UserAdminView {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
     }
 
     public String getEmail() {

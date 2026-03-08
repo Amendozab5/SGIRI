@@ -8,7 +8,7 @@
       </div>
       <div class="modal-body">
         <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-          <div class="mb-3">
+          <div class="mb-3" *ngIf="isEditMode">
             <label for="username" class="form-label">Username</label>
             <input type="text" id="username" class="form-control" formControlName="username"
                    [ngClass]="{ 'is-invalid': f['username'].touched && f['username'].errors }">
@@ -19,15 +19,36 @@
             </div>
           </div>
 
-          <!-- fullName and Email fields will be displayed but changes won't be saved directly via this form -->
-          <div class="mb-3">
-            <label for="fullName" class="form-label">Nombre Completo</label>
-            <input type="text" id="fullName" class="form-control" formControlName="fullName"
-                   [ngClass]="{ 'is-invalid': f['fullName'].touched && f['fullName'].errors }">
-            <div *ngIf="f['fullName'].touched && f['fullName'].errors" class="invalid-feedback">
-              <div *ngIf="f['fullName'].errors['required']">El Nombre Completo es requerido.</div>
-              <div *ngIf="f['fullName'].errors['minlength']">El Nombre Completo debe tener al menos 3 caracteres.</div>
-              <div *ngIf="f['fullName'].errors['maxlength']">El Nombre Completo no puede exceder los 100 caracteres.</div>
+          <!-- Fields for automated credential generation (Create Mode only) -->
+          <div class="mb-3" *ngIf="!isEditMode">
+            <label for="cedula" class="form-label">Cédula</label>
+            <input type="text" id="cedula" class="form-control" formControlName="cedula"
+                   placeholder="Ej: 120..." [ngClass]="{ 'is-invalid': f['cedula'].touched && f['cedula'].errors }">
+            <div *ngIf="f['cedula'].touched && f['cedula'].errors" class="invalid-feedback">
+              <div *ngIf="f['cedula'].errors['required']">La Cédula es requerida.</div>
+              <div *ngIf="f['cedula'].errors['pattern']">Cédula inválida (10 dígitos).</div>
+            </div>
+          </div>
+
+          <!-- Name split into Nombres and Apellidos -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="nombre" class="form-label">Nombres</label>
+              <input type="text" id="nombre" class="form-control" formControlName="nombre"
+                     [ngClass]="{ 'is-invalid': f['nombre'].touched && f['nombre'].errors }">
+              <div *ngIf="f['nombre'].touched && f['nombre'].errors" class="invalid-feedback">
+                <div *ngIf="f['nombre'].errors['required']">Los Nombres son requeridos.</div>
+                <div *ngIf="f['nombre'].errors['minlength']">Mínimo 3 caracteres.</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="apellido" class="form-label">Apellidos</label>
+              <input type="text" id="apellido" class="form-control" formControlName="apellido"
+                     [ngClass]="{ 'is-invalid': f['apellido'].touched && f['apellido'].errors }">
+              <div *ngIf="f['apellido'].touched && f['apellido'].errors" class="invalid-feedback">
+                <div *ngIf="f['apellido'].errors['required']">Los Apellidos son requeridos.</div>
+                <div *ngIf="f['apellido'].errors['minlength']">Mínimo 3 caracteres.</div>
+              </div>
             </div>
           </div>
 
@@ -42,15 +63,10 @@
             </div>
           </div>
 
-          <div class="mb-3" *ngIf="!isEditMode">
+          <!-- Password field is never needed in this modal as it's generated automatically or updated elsewhere -->
+          <div class="mb-3" *ngIf="false">
             <label for="password" class="form-label">Password</label>
-            <input type="password" id="password" class="form-control" formControlName="password"
-                   [ngClass]="{ 'is-invalid': f['password'].touched && f['password'].errors }">
-            <div *ngIf="f['password'].touched && f['password'].errors" class="invalid-feedback">
-              <div *ngIf="f['password'].errors['required']">La Contraseña es requerida.</div>
-              <div *ngIf="f['password'].errors['minlength']">La Contraseña debe tener al menos 6 caracteres.</div>
-              <div *ngIf="f['password'].errors['maxlength']">La Contraseña no puede exceder los 120 caracteres.</div>
-            </div>
+            <input type="password" id="password" class="form-control" formControlName="password">
           </div>
 
           <div class="mb-3">

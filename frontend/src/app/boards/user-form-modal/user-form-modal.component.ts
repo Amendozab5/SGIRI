@@ -32,12 +32,14 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
     private masterDataService: MasterDataService
   ) {
     this.userForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
-      fullName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      username: ['', [Validators.minLength(3), Validators.maxLength(50)]],
+      nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      apellido: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       password: ['', [Validators.minLength(6), Validators.maxLength(120)]],
       role: ['', Validators.required],
-      estado: ['ACTIVO', Validators.required]
+      estado: ['ACTIVO', Validators.required],
+      cedula: ['', [Validators.pattern('^[0-9]{10}$')]] // Usar cédula para búsqueda/creación
     });
   }
 
@@ -83,9 +85,10 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
     if (this.isEditMode && user) {
       this.userForm.patchValue({
         username: user.username,
-        fullName: user.fullName,
+        nombre: user.nombre,
+        apellido: user.apellido,
         email: user.email,
-        role: user.roles[0],
+        role: user.roles && user.roles.length > 0 ? user.roles[0] : '',
         estado: user.estado
       });
 
@@ -106,8 +109,18 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
       this.userForm.get('password')?.updateValueAndValidity();
 
       this.userForm.get('username')?.enable();
-      this.userForm.get('fullName')?.enable();
+      this.userForm.get('nombre')?.enable();
+      this.userForm.get('apellido')?.enable();
       this.userForm.get('email')?.enable();
+
+      // En modo creación, desactivar validadores de username/password y activar los de metadata
+      this.userForm.get('username')?.clearValidators();
+      this.userForm.get('password')?.clearValidators();
+      this.userForm.get('cedula')?.setValidators([Validators.required, Validators.pattern('^[0-9]{10}$')]);
+      
+      this.userForm.get('username')?.updateValueAndValidity();
+      this.userForm.get('password')?.updateValueAndValidity();
+      this.userForm.get('cedula')?.updateValueAndValidity();
     }
   }
 
@@ -120,16 +133,19 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
     }
 
     const formValue = this.userForm.getRawValue();
-    const request: UserFormRequest = {
+    const request: any = { // Usar any temporalmente o actualizar interface
       username: formValue.username,
-      fullName: formValue.fullName,
+      nombre: formValue.nombre,
+      apellido: formValue.apellido,
       email: formValue.email,
       role: formValue.role,
       estado: formValue.estado,
+      cedula: formValue.cedula
     };
 
-    if (!this.isEditMode) {
-      request.password = formValue.password;
+    if (!this.isEditMode && formValue.role !== 'CLIENTE' && formValue.role !== 'ROLE_USER') {
+      // Opcional: para otros roles que pudieran necesitarlo en el futuro
+      if (formValue.password) request.password = formValue.password;
     }
 
     this.save.emit({ request, userId: this.currentUserId });

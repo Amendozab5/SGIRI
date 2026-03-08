@@ -141,15 +141,35 @@ public class AdminService {
     @Transactional
     public UserAdminView createUser(UserCreateRequest request) {
         String roleCode = normalizeRoleCode(request.getRole());
-        UserAdminView result = createClientUser(request, roleCode);
+        
+        // Asegurar idEmpresa si viene nulo del frontend
+        if (request.getIdEmpresa() == null) {
+            request.setIdEmpresa(1); // Default a empresa 1
+            log.warn("[ADMIN] idEmpresa no proporcionado en la creación. Usando default 1.");
+        }
 
-        // ── AUDITORÍA: Registro Usuario Cliente ──────────────────────────────
+        UserAdminView result;
+
+        if (EMPLOYEE_ROLES.contains(roleCode)) {
+            // Ruta A: Empleados (Automático via DB)
+            result = crearUsuarioEmpleado(
+                request.getCedula(), 
+                0, // Año de nacimiento (No usado por el SP, pasamos 0)
+                roleCode, 
+                request.getIdEmpresa()
+            );
+        } else {
+            // Ruta B: Clientes (Automático via DB - fn_crear_usuario_cliente)
+            result = createClientUser(request, roleCode);
+        }
+
+        // ── AUDITORÍA: Registro Usuario ─────────────────────────────────────
         auditService.registrarEventoContextual(
                 AuditModulo.USUARIOS,
                 "usuarios", "usuario",
                 result.getId(),
                 AuditAccion.REGISTRO_USUARIO,
-                "Creación administrativa de cuenta para cliente",
+                "Creación administrativa de cuenta (" + roleCode + ")",
                 null,
                 java.util.Map.of("username", result.getUsername(), "rol", roleCode)
         );
@@ -243,11 +263,6 @@ public class AdminService {
      * No crea usuario físico en PostgreSQL.
      */
     private UserAdminView createClientUser(UserCreateRequest request, String roleCode) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException(
-                    "Error: El username '" + request.getUsername() + "' ya está en uso.");
-        }
-
         Role role = roleRepository.findByCodigo(roleCode)
                 .orElseThrow(() -> new RuntimeException(
                         "Error: Rol '" + roleCode + "' no encontrado."));
@@ -256,17 +271,43 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException(
                         "Error: Estado 'ACTIVO' no encontrado."));
 
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEstado(estadoActivo);
-        user.setPrimerLogin(true);
-        user.setIdEmpresa(request.getIdEmpresa());
-        user.setRole(role);
+        // Validar que tengamos los datos necesarios para fn_crear_usuario_cliente
+        // En este flujo, si es creación administrativa, usamos la cédula de la persona si existe,
+        // o la del request si se proporciona.
+        String cedula = request.getCedula();
 
-        User savedUser = userRepository.save(user);
-        log.info("[TRAZABILIDAD] Usuario cliente creado — id={}, username={}", savedUser.getId(),
-                savedUser.getUsername());
+        if (cedula == null) {
+            // Intentar obtener de la persona si está vinculada (un poco redundante pero seguro)
+            // Sin embargo, fn_crear_usuario_cliente REQUIERE la cédula para generar credenciales.
+            throw new RuntimeException("Error: La cédula es obligatoria para generar credenciales automáticas del cliente.");
+        }
+
+        log.info("[TRAZABILIDAD] Creando usuario cliente vía DB: cedula={}, rol={}, empresa={}",
+                cedula, roleCode, request.getIdEmpresa());
+
+        Integer idUsuarioCreado;
+        try {
+            idUsuarioCreado = (Integer) entityManager.createNativeQuery(
+                    "SELECT usuarios.fn_crear_usuario_cliente(:cedula, :anio, :idRol, :idEmpresa, :idEstado)")
+                    .setParameter("cedula", cedula)
+                    .setParameter("anio", 0) // Año de nacimiento no usado
+                    .setParameter("idRol", role.getId())
+                    .setParameter("idEmpresa", request.getIdEmpresa())
+                    .setParameter("idEstado", estadoActivo.getId())
+                    .getSingleResult();
+        } catch (Exception ex) {
+            String msg = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
+            log.error("[TRAZABILIDAD] Error al crear usuario cliente cedula={}: {}", cedula, msg);
+            throw new RuntimeException("Error al crear usuario cliente en DB: " + msg);
+        }
+
+        User savedUser = userRepository.findById(idUsuarioCreado)
+                .orElseThrow(() -> new RuntimeException(
+                        "Error interno: El usuario cliente se creó pero no se encontró con ID=" + idUsuarioCreado));
+
+        log.info("[TRAZABILIDAD] Usuario cliente creado exitosamente — id={}, username={}", 
+                savedUser.getId(), savedUser.getUsername());
+        
         return mapToUserAdminView(savedUser);
     }
 
@@ -488,11 +529,15 @@ public class AdminService {
     private UserAdminView mapToUserAdminView(User user) {
         String email = "N/A";
         String fullName = "N/A";
+        String nombre = "N/A";
+        String apellido = "N/A";
 
         Persona persona = user.getPersona();
         if (persona != null) {
             email = persona.getCorreo();
-            fullName = persona.getNombre() + " " + persona.getApellido();
+            nombre = persona.getNombre();
+            apellido = persona.getApellido();
+            fullName = nombre + " " + apellido;
         }
 
         List<String> roles = Collections.singletonList(user.getRole().getCodigo());
@@ -501,6 +546,8 @@ public class AdminService {
                 user.getId(),
                 user.getUsername(),
                 fullName,
+                nombre,
+                apellido,
                 email,
                 roles,
                 user.getEstado() != null ? user.getEstado().getCodigo() : "N/A",
