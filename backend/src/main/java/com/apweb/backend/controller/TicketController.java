@@ -51,7 +51,7 @@ public class TicketController {
                 return ResponseEntity.ok(ticketService.getAllTickets());
         }
 
-        @PostMapping("/{id}/assign")
+        @PostMapping("/{id:[0-9]+}/assign")
         @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> assignTicket(@PathVariable("id") Integer id,
                         @RequestBody Map<String, Integer> payload) {
@@ -83,6 +83,27 @@ public class TicketController {
                 return ResponseEntity.ok(tickets);
         }
 
+        @GetMapping("/my-tickets-paged")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
+        public ResponseEntity<org.springframework.data.domain.Page<Ticket>> getMyTicketsPaged(
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(required = false) String searchTerm,
+                        @RequestParam(required = false) Integer statusId,
+                        @RequestParam(required = false) Integer categoryId) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentUserName = authentication.getName();
+
+                User currentUser = userRepository.findByUsername(currentUserName)
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                                org.springframework.data.domain.Sort.by("fechaCreacion").descending());
+
+                return ResponseEntity.ok(ticketService.getTicketsByUserPaginated(
+                                currentUser, searchTerm, statusId, categoryId, pageable));
+        }
+
         @GetMapping("/assigned")
         @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
         public ResponseEntity<List<Ticket>> getAssignedTickets() {
@@ -96,13 +117,9 @@ public class TicketController {
                 return ResponseEntity.ok(ticketService.getTicketsByAssignedUser(currentUser));
         }
 
-        @GetMapping("/{id}")
-        @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
-        public ResponseEntity<Ticket> getTicketById(@PathVariable("id") Integer id) {
-                return ResponseEntity.ok(ticketService.getTicketById(id));
-        }
 
-        @PostMapping("/{id}/comments")
+
+        @PostMapping("/{id:[0-9]+}/comments")
         @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> addComment(@PathVariable("id") Integer id,
                         @Valid @RequestBody CommentRequest commentRequest) {
@@ -117,7 +134,13 @@ public class TicketController {
                 return ResponseEntity.ok(new MessageResponse("Comentario agregado exitosamente"));
         }
 
-        @PutMapping("/{id}/status")
+        @GetMapping("/{id:[0-9]+}")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<Ticket> getTicketById(@PathVariable("id") Integer id) {
+                return ResponseEntity.ok(ticketService.getTicketById(id));
+        }
+
+        @PutMapping("/{id:[0-9]+}/status")
         @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> updateStatus(@PathVariable("id") Integer id,
                         @RequestBody Map<String, String> payload) {
@@ -138,7 +161,7 @@ public class TicketController {
                 return ResponseEntity.ok(new MessageResponse("Estado del ticket actualizado exitosamente"));
         }
 
-        @PostMapping("/{id}/rating")
+        @PostMapping("/{id:[0-9]+}/rating")
         @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
         public ResponseEntity<?> rateTicket(@PathVariable("id") Integer id,
                         @Valid @RequestBody RatingRequest ratingRequest) {

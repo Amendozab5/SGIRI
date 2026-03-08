@@ -42,11 +42,29 @@
   <!-- Main Content: Ticket Feed -->
   <main class="ticket-feed">
     <div class="feed-header">
-      <h2>Mis Solicitudes Recientes</h2>
+      <h2>Mis Solicitudes</h2>
       <div class="feed-controls">
         <button class="btn-refresh-simple" (click)="loadIncidents()" [disabled]="isLoadingIncidents">
           <i class="bi bi-arrow-repeat" [class.spin]="isLoadingIncidents"></i> Actualizar
         </button>
+      </div>
+    </div>
+
+    <!-- Filter Toolbar -->
+    <div class="filter-toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Buscar por código o asunto...">
+      </div>
+      <div class="filter-group">
+        <select [(ngModel)]="selectedStatusId" (change)="onFilterChange()" class="filter-select">
+          <option [ngValue]="null">Todos los Estados</option>
+          <option *ngFor="let s of availableStatuses" [ngValue]="s.id">{{ s.nombre }}</option>
+        </select>
+        <select [(ngModel)]="selectedCategoryId" (change)="onFilterChange()" class="filter-select">
+          <option [ngValue]="null">Todas las Categorías</option>
+          <option *ngFor="let c of availableCategories" [ngValue]="c.id">{{ c.nombre }}</option>
+        </select>
       </div>
     </div>
 
@@ -60,8 +78,8 @@
       <div class="empty-graphic">
         <i class="bi bi-search"></i>
       </div>
-      <h3>No tienes reportes activos</h3>
-      <p>Todo se ve en orden por aquí. Si necesitas ayuda, crea una nueva incidencia.</p>
+      <h3>No se encontraron incidencias</h3>
+      <p>Intenta ajustar tus filtros o crea una nueva si no encuentras lo que buscas.</p>
     </div>
 
     <!-- Ticket Card List -->
@@ -106,6 +124,31 @@
             Ver Detalles <i class="bi bi-chevron-right"></i>
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="pagination-footer" *ngIf="!isLoadingIncidents && totalPages > 1">
+      <div class="pagination-info">
+        Mostrando {{ incidents.length }} de {{ totalElements }} incidencias
+      </div>
+      <div class="pagination-controls">
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">
+          <i class="bi bi-chevron-left"></i> Anterior
+        </button>
+        
+        <div class="page-numbers">
+          <button *ngFor="let p of getPagesArray()" 
+                  class="btn-page-num" 
+                  [class.active]="p === currentPage"
+                  (click)="changePage(p)">
+            {{ p + 1 }}
+          </button>
+        </div>
+
+        <button class="btn-page" [disabled]="currentPage === totalPages - 1" (click)="changePage(currentPage + 1)">
+          Siguiente <i class="bi bi-chevron-right"></i>
+        </button>
       </div>
     </div>
 

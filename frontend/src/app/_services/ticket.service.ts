@@ -21,6 +21,14 @@ export class TicketService {
     return this.http.get<Ticket[]>(API_URL + '/my-tickets');
   }
 
+  getMyTicketsPaged(page: number, size: number, searchTerm?: string, statusId?: number, categoryId?: number): Observable<any> {
+    let params = `?page=${page}&size=${size}`;
+    if (searchTerm) params += `&searchTerm=${searchTerm}`;
+    if (statusId) params += `&statusId=${statusId}`;
+    if (categoryId) params += `&categoryId=${categoryId}`;
+    return this.http.get<any>(API_URL + '/my-tickets-paged' + params);
+  }
+
   getAllTickets(): Observable<Ticket[]> {
     return this.http.get<Ticket[]>(API_URL + '/all');
   }

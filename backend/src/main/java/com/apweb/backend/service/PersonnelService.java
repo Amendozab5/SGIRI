@@ -42,6 +42,8 @@ public class PersonnelService {
         private UserRepository userRepository;
         @Autowired
         private AdminService adminService;
+        @Autowired
+        private MailService mailService;
 
         // ─── Consultas de solo lectura ────────────────────────────────────────────
 
@@ -221,18 +223,45 @@ public class PersonnelService {
         public UserAdminView activarAccesoEmpleado(
                         String cedula, EmpleadoActivarAccesoRequest req) {
 
-                // Validar previamente que el empleado exista en este dominio
-                if (!empleadoRepository.existsByPersona_Cedula(cedula)) {
-                        throw new IllegalArgumentException(
-                                        "No existe ningún empleado registrado con la cédula '" + cedula + "'. " +
-                                                        "Complete primero el alta laboral antes de activar el acceso.");
-                }
+                // 1. Validar previamente que el empleado exista
+                Empleado empleado = empleadoRepository.findByPersona_Cedula(cedula)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "No existe ningún empleado registrado con la cédula '" + cedula + "'. " +
+                                                                "Complete primero el alta laboral antes de activar el acceso."));
 
-                return adminService.crearUsuarioEmpleado(
+                // 2. Ejecutar creación (SQL + Rol físico)
+                UserAdminView createdUser = adminService.crearUsuarioEmpleado(
                                 cedula,
                                 req.getAnioNacimiento(),
                                 req.getRol(),
                                 req.getIdEmpresa());
+
+                // 3. Intentar envío de correo (No transaccional para evitar rollback por falla de red/mail)
+                try {
+                        Persona p = empleado.getPersona();
+                        if (p.getCorreo() != null && !p.getCorreo().isBlank()) {
+                                String subject = "Bienvenido al Equipo SGIM - Tus Credenciales de Acceso";
+                                String body = mailService.getWelcomeEmailTemplate(
+                                                p.getNombre(),
+                                                createdUser.getUsername(),
+                                                createdUser.getTemporaryPassword(),
+                                                true);
+                                mailService.sendEmail(p.getCorreo(), subject, body);
+                                createdUser.setEmailSent(true);
+                                log.info("[EMPLEADOS] Correo de bienvenida enviado a {} para el usuario {}", 
+                                        p.getCorreo(), createdUser.getUsername());
+                        } else {
+                                createdUser.setEmailSent(false);
+                                log.warn("[EMPLEADOS] No se pudo enviar correo de bienvenida: El empleado con cédula {} no tiene correo registrado.", cedula);
+                        }
+                } catch (Exception e) {
+                        createdUser.setEmailSent(false);
+                        log.error("[EMPLEADOS] Error al enviar correo de bienvenida para {}: {}", 
+                                createdUser.getUsername(), e.getMessage());
+                        // No lanzamos excepción para no revertir la creación del usuario si ya fue exitosa
+                }
+
+                return createdUser;
         }
 
         // ─── Helpers ─────────────────────────────────────────────────────────────

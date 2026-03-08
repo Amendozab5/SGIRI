@@ -2,6 +2,7 @@ package com.apweb.backend.payload.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class UserAdminView {
     private Integer id;
@@ -10,8 +11,14 @@ public class UserAdminView {
     private String email;
     private List<String> roles;
     private String estado;
+    private String temporaryPassword;
+    private boolean emailSent;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime fechaCreacion;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime lastLogin;
+
+    public UserAdminView() {}
 
     public UserAdminView(Integer id, String username, String fullName, String email, List<String> roles, String estado,
             LocalDateTime fechaCreacion, LocalDateTime lastLogin) {
@@ -88,5 +95,21 @@ public class UserAdminView {
 
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public String getTemporaryPassword() {
+        return temporaryPassword;
+    }
+
+    public void setTemporaryPassword(String temporaryPassword) {
+        this.temporaryPassword = temporaryPassword;
+    }
+
+    public boolean isEmailSent() {
+        return emailSent;
+    }
+
+    public void setEmailSent(boolean emailSent) {
+        this.emailSent = emailSent;
     }
 }

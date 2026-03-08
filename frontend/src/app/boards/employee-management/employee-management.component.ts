@@ -59,6 +59,7 @@ export class EmployeeManagementComponent implements OnInit {
   uploadIdTipo: number | undefined = undefined;
   uploadNumero = '';
   uploadDescripcion = '';
+  updatingStatusIds: number[] = [];
 
   // ── Panel de acceso ────────────────────────────────────────────────────────
   accessStatus: EmpleadoAccessStatusDTO | null = null;
@@ -194,6 +195,7 @@ export class EmployeeManagementComponent implements OnInit {
         // Ya es empleado — no debería llegarse aquí normalmente
         this.errorMsg = `La cédula ${cedula} ya pertenece al empleado "${emp.nombre} ${emp.apellido}".`;
         this.buscandoPersona = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         // 404 = no existe como empleado, podría existir como persona
@@ -201,6 +203,7 @@ export class EmployeeManagementComponent implements OnInit {
         this.personaEncontrada = false;
         this.buscandoPersona = false;
         this.errorMsg = '';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -238,10 +241,13 @@ export class EmployeeManagementComponent implements OnInit {
         this.currentStep = 3;
         this.selectedEmpleado = emp;
         this.successMsg = `Empleado "${emp.nombre} ${emp.apellido}" registrado correctamente.`;
+        this.loadEmpleados();
+        this.cdr.detectChanges();
       },
       error: err => {
         this.isLoading = false;
         this.errorMsg = err?.error?.message || 'Error al registrar el empleado.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -250,12 +256,17 @@ export class EmployeeManagementComponent implements OnInit {
 
   loadDocumentos(idEmpleado: number): void {
     this.loadingDocs = true;
+    this.cdr.detectChanges();
     this.employeeService.getDocumentos(idEmpleado).subscribe({
       next: docs => {
         this.documentos = docs;
         this.loadingDocs = false;
+        this.cdr.detectChanges();
       },
-      error: () => { this.loadingDocs = false; }
+      error: () => { 
+        this.loadingDocs = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -290,8 +301,14 @@ export class EmployeeManagementComponent implements OnInit {
         this.uploadNumero = '';
         this.uploadDescripcion = '';
         this.uploadingDoc = false;
-        this.successMsg = 'Documento subido correctamente. Estado: PENDIENTE — un administrador deve validarlo.';
-        this.loadAccessStatus(this.selectedEmpleado!.cedula);
+        this.successMsg = 'Documento subido correctamente. Estado: PENDIENTE — un administrador debe validarlo.';
+        
+        // No necesitamos recargar todo el empleado por ahora (el 404 venía de intentar recargar antes)
+        // Pero sí debemos refrescar los requisitos de acceso si el documento afecta al estado
+        if (this.selectedEmpleado) {
+          this.loadAccessStatus(this.selectedEmpleado.cedula);
+        }
+        this.cdr.detectChanges();
       },
       error: err => {
         this.uploadingDoc = false;
@@ -301,14 +318,32 @@ export class EmployeeManagementComponent implements OnInit {
   }
 
   cambiarEstado(doc: DocumentoEmpleadoDTO, nuevoEstado: string): void {
+    if (this.updatingStatusIds.includes(doc.idDocumento)) return;
+    
+    this.updatingStatusIds.push(doc.idDocumento);
+    this.errorMsg = '';
+    this.cdr.detectChanges();
+
     this.employeeService.cambiarEstadoDocumento(doc.idDocumento, nuevoEstado).subscribe({
       next: updated => {
+        this.updatingStatusIds = this.updatingStatusIds.filter(id => id !== doc.idDocumento);
         const idx = this.documentos.findIndex(d => d.idDocumento === doc.idDocumento);
-        if (idx >= 0) this.documentos[idx] = updated;
-        this.successMsg = `Documento actualizado a estado: ${nuevoEstado}`;
-        if (this.selectedEmpleado) this.loadAccessStatus(this.selectedEmpleado.cedula);
+        if (idx >= 0) {
+          this.documentos[idx] = updated;
+        }
+        this.successMsg = `Documento validado exitosamente como: ${nuevoEstado}`;
+        
+        // Refrescar requisitos de acceso ya que esto cambia el estado global
+        if (this.selectedEmpleado) {
+          this.loadAccessStatus(this.selectedEmpleado.cedula);
+        }
+        this.cdr.detectChanges();
       },
-      error: err => { this.errorMsg = err?.error?.message || 'Error al cambiar el estado.'; }
+      error: err => {
+        this.updatingStatusIds = this.updatingStatusIds.filter(id => id !== doc.idDocumento);
+        this.errorMsg = err?.error?.message || 'Error al cambiar el estado del documento.';
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -316,12 +351,17 @@ export class EmployeeManagementComponent implements OnInit {
 
   loadAccessStatus(cedula: string): void {
     this.loadingAccess = true;
+    this.cdr.detectChanges();
     this.employeeService.getAccessStatus(cedula).subscribe({
       next: status => {
         this.accessStatus = status;
         this.loadingAccess = false;
+        this.cdr.detectChanges();
       },
-      error: () => { this.loadingAccess = false; }
+      error: () => { 
+        this.loadingAccess = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -340,14 +380,43 @@ export class EmployeeManagementComponent implements OnInit {
       next: user => {
         this.activating = false;
         this.showActivarForm = false;
-        this.successMsg = `Acceso habilitado. Username generado: ${user.username}`;
-        this.loadAccessStatus(this.selectedEmpleado!.cedula);
+        
+        if (user.emailSent) {
+          this.successMsg = `Acceso habilitado y credenciales enviadas al correo del colaborador. Username: ${user.username}`;
+        } else {
+          this.successMsg = `Acceso habilitado. Username: ${user.username}. AVISO: No se pudo enviar el correo con las credenciales, repórtelo al administrador.`;
+        }
+        
+        // Limpiar campos del formulario de activación
+        this.activarRol = '';
+        this.activarAnio = null;
+        this.activarEmpresa = null;
+
+        // 1. Actualizar el empleado seleccionado
         this.selectedEmpleado!.tieneUsuarioActivo = true;
         this.selectedEmpleado!.usernameSistema = user.username;
+        
+        // 2. Actualizar la tabla general para que ya no diga "Sin acceso"
+        const idx = this.empleados.findIndex(e => e.idEmpleado === this.selectedEmpleado!.idEmpleado);
+        if (idx !== -1) {
+          this.empleados[idx].tieneUsuarioActivo = true;
+          this.empleados[idx].usernameSistema = user.username;
+        }
+
+        // 3. Forzar el estado visual en la pestaña Acceso al instante
+        if (this.accessStatus) {
+          this.accessStatus.yaTieneUsuario = true;
+          this.accessStatus.usernameExistente = user.username;
+        }
+
+        // 4. Recargar del backend para confirmación definitiva
+        this.loadAccessStatus(this.selectedEmpleado!.cedula);
+        this.cdr.detectChanges();
       },
       error: err => {
         this.activating = false;
         this.errorMsg = err?.error?.message || 'Error al habilitar el acceso.';
+        this.cdr.detectChanges();
       }
     });
   }

@@ -128,6 +128,22 @@ export class BoardAdminComponent implements OnInit {
     return this.availableStatuses.some(status => status.codigo === codigo);
   }
 
+  isEmployee(user: UserAdminView | undefined | null): boolean {
+    if (!user || !user.roles || !Array.isArray(user.roles)) {
+      return false;
+    }
+    const employeeRoles = [
+      'TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_VISUAL', 
+      'ROLE_TECHNICIAN', 'ROLE_ADMIN_TECNICOS', 'ROLE_ADMIN_MASTER', 'ROLE_ADMIN_VISUAL',
+      'ROLE_TECNICO', 'TECHNICIAN'
+    ];
+    return user.roles.some(role => {
+      if (!role) return false;
+      const r = role.toUpperCase();
+      return employeeRoles.includes(r) || employeeRoles.includes(r.replace('ROLE_', ''));
+    });
+  }
+
   openToggleStatusModal(user: UserAdminView): void {
     this.userToToggleStatus = user;
     if (this.toggleStatusModal) {

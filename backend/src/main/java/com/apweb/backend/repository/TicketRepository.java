@@ -15,6 +15,25 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
     List<Ticket> findAllWithAssociations();
 
     List<Ticket> findByUsuarioCreador(User user);
+    
+    org.springframework.data.domain.Page<Ticket> findByUsuarioCreador(User user, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT t FROM Ticket t " +
+           "LEFT JOIN FETCH t.estadoItem " +
+           "LEFT JOIN FETCH t.categoriaItem " +
+           "LEFT JOIN FETCH t.sucursal " +
+           "WHERE t.usuarioCreador = :user " +
+           "AND (:searchTerm IS NULL OR :searchTerm = '' OR " +
+           "     LOWER(t.asunto) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "     CAST(t.idTicket AS String) LIKE CONCAT('%', :searchTerm, '%')) " +
+           "AND (:statusId IS NULL OR t.estadoItem.id = :statusId) " +
+           "AND (:categoryId IS NULL OR t.categoriaItem.id = :categoryId)")
+    org.springframework.data.domain.Page<Ticket> findByUsuarioCreadorWithFilters(
+            @Param("user") User user,
+            @Param("searchTerm") String searchTerm,
+            @Param("statusId") Integer statusId,
+            @Param("categoryId") Integer categoryId,
+            org.springframework.data.domain.Pageable pageable);
 
     List<Ticket> findByUsuarioAsignado(User user);
 

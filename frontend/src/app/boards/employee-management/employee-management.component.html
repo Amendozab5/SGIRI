@@ -212,19 +212,74 @@
     </div>
 
     <!-- Step 3 Succession -->
-    <div class="glass-card max-w-700 mx-auto text-center py-5" *ngIf="currentStep === 3 && selectedEmpleado">
-      <div class="profile-avatar-large mx-auto mb-4">
-        <i class="bi bi-check-lg"></i>
-      </div>
-      <h3 class="fw-bold">Alta Completa</h3>
-      <p class="text-muted mb-4">El colaborador <strong>{{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}</strong> ha sido registrado exitosamente.</p>
+    <div class="success-layout max-w-700 mx-auto" *ngIf="currentStep === 3 && selectedEmpleado">
       
-      <div class="alert-success aura-alert fw-500 mb-4 justify-content-center">
-        Identificador de sistema: <span class="mono ms-2">{{ selectedEmpleado.cedula }}</span>
+      <div class="glass-card success-hero-card text-center py-5">
+        <div class="success-icon-container animate__animated animate__zoomIn">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+        
+        <h2 class="fw-bold mb-1">¡Registro Completado!</h2>
+        <p class="text-muted mb-4">La ficha de identidad y vinculación laboral ha sido procesada con éxito.</p>
+
+        <div class="prof-identity mb-4">
+            <h3 class="fw-bold m-0 text-primary">{{ selectedEmpleado.nombre }} {{ selectedEmpleado.apellido }}</h3>
+            <div class="mt-2 badge bg-light text-primary mono px-3 py-2 fs-6" style="border: 1px solid #e0e5f2;">
+              ID: {{ selectedEmpleado.cedula }}
+            </div>
+        </div>
+
+        <div class="employee-summary">
+            <div class="summary-item">
+                <i class="bi bi-briefcase"></i>
+                {{ selectedEmpleado.nombreCargo }}
+            </div>
+            <div class="summary-item">
+                <i class="bi bi-diagram-3"></i>
+                {{ selectedEmpleado.nombreArea }}
+            </div>
+            <div class="summary-item">
+                <i class="bi bi-file-earmark-text"></i>
+                {{ selectedEmpleado.nombreTipoContrato }}
+            </div>
+        </div>
       </div>
 
-      <div class="text-center">
-        <button class="btn-aura btn-primary" (click)="openDetail(selectedEmpleado!)">
+      <div class="next-steps-container mb-5">
+        <h6 class="text-uppercase fw-bold text-muted mb-4 letter-spacing-1 d-flex align-items-center gap-2">
+            <i class="bi bi-magic text-primary"></i> Siguientes pasos recomendados
+        </h6>
+        
+        <div class="steps-grid">
+            <div class="step-card active">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="step-number-circle">1</span>
+                    <i class="bi bi-cloud-arrow-up text-primary fs-5"></i>
+                </div>
+                <div>
+                  <div class="step-title">Expediente Digital</div>
+                  <div class="step-desc">Carga el contrato y documentos legales para validar el perfil.</div>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="step-number-circle">2</span>
+                    <i class="bi bi-shield-lock text-muted fs-5"></i>
+                </div>
+                <div>
+                  <div class="step-title">Acceso SGIM</div>
+                  <div class="step-desc">Una vez verificado el expediente, genera las credenciales de acceso.</div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button class="btn-aura btn-secondary" (click)="goToList()">
+          <i class="bi bi-list-ul"></i> Finalizar y salir
+        </button>
+        <button class="btn-aura btn-primary btn-lg" (click)="openDetail(selectedEmpleado!)">
           Gestionar Documentos y Acceso <i class="bi bi-arrow-right"></i>
         </button>
       </div>
@@ -349,10 +404,13 @@
                 <span class="status-badge mb-2" [ngClass]="getEstadoBadgeClass(doc.codigoEstado)">
                   {{ doc.nombreEstado }}
                 </span>
-                <div class="btn-group">
+                <div class="btn-group" *ngIf="!updatingStatusIds.includes(doc.idDocumento); else statusLoading">
                   <button class="btn btn-outline-success btn-xs" (click)="cambiarEstado(doc, 'ACTIVO')" *ngIf="doc.codigoEstado !== 'ACTIVO'">✓</button>
                   <button class="btn btn-outline-danger btn-xs" (click)="cambiarEstado(doc, 'RECHAZADO')" *ngIf="doc.codigoEstado !== 'RECHAZADO'">✗</button>
                 </div>
+                <ng-template #statusLoading>
+                  <div class="spinner-border spinner-border-sm text-primary"></div>
+                </ng-template>
               </div>
             </div>
             <div class="text-center py-5 text-muted" *ngIf="documentos.length === 0">

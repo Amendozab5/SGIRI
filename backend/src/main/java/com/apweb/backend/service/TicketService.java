@@ -58,6 +58,13 @@ public class TicketService {
                 return ticketRepository.findByUsuarioCreador(user);
         }
 
+        @org.springframework.transaction.annotation.Transactional(readOnly = true)
+        public org.springframework.data.domain.Page<Ticket> getTicketsByUserPaginated(
+                        User user, String searchTerm, Integer statusId, Integer categoryId,
+                        org.springframework.data.domain.Pageable pageable) {
+                return ticketRepository.findByUsuarioCreadorWithFilters(user, searchTerm, statusId, categoryId, pageable);
+        }
+
         @Transactional
         public Ticket getTicketById(Integer id) {
                 Ticket ticket = ticketRepository.findById(id)

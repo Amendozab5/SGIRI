@@ -170,14 +170,28 @@
         <button type="button" class="btn-close" (click)="closeDeleteConfirmModal()" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p *ngIf="userToDelete">
-          ¿Estás seguro de que quieres eliminar al usuario <strong>{{ userToDelete.username }}</strong>?
-        </p>
-        <p class="text-danger">Esta acción es irreversible y el usuario será eliminado permanentemente.</p>
+        <div *ngIf="userToDelete">
+          <p>
+            ¿Estás seguro de que quieres eliminar al usuario <strong>{{ userToDelete.username }}</strong>?
+          </p>
+
+          <div *ngIf="isEmployee(userToDelete)" class="alert alert-info border-0">
+            <i class="bi bi-shield-lock-fill me-2"></i>
+            <strong>Nota de Revocación:</strong> Este usuario pertenece a un <strong>colaborador</strong>.
+            No se borrará su expediente laboral ni su identidad, solo se <strong>revocará su acceso</strong> al sistema.
+          </div>
+
+          <div *ngIf="!isEmployee(userToDelete)" class="alert alert-warning border-0 text-dark">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Esta acción es irreversible y el acceso será revocado permanentemente.
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="closeDeleteConfirmModal()">Cancelar</button>
-        <button type="button" class="btn btn-danger" (click)="confirmDelete()">Eliminar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()">
+          {{ isEmployee(userToDelete) ? 'Revocar Acceso' : 'Eliminar Usuario' }}
+        </button>
       </div>
     </div>
   </div>

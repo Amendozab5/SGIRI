@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Data
 @Builder
@@ -17,6 +18,7 @@ public class DocumentoEmpleadoDTO {
     private String numeroDocumento;
     private String rutaArchivo;
     private String descripcion;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime fechaSubida;
 
     // Tipo de documento

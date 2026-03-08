@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict PVvTK1xwPAvlMBtmay4TQvM0GPD6IqTcu1newNPCsJLHONGENfWJBbveosc79gZ
+\restrict UG1Uf8NtTY5ARlHIkaImch6dUBndujQ5sOLxurvFqGt1svvcOEdhZEOOtbvBGMW
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1
 
--- Started on 2026-03-07 06:44:22 -05
+-- Started on 2026-03-07 20:06:12 -05
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -23,7 +23,7 @@ SET row_security = off;
 
 DROP DATABASE "SGIM2";
 --
--- TOC entry 5110 (class 1262 OID 20602)
+-- TOC entry 5113 (class 1262 OID 20602)
 -- Name: SGIM2; Type: DATABASE; Schema: -; Owner: postgres
 --
 
@@ -32,9 +32,9 @@ CREATE DATABASE "SGIM2" WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVI
 
 ALTER DATABASE "SGIM2" OWNER TO postgres;
 
-\unrestrict PVvTK1xwPAvlMBtmay4TQvM0GPD6IqTcu1newNPCsJLHONGENfWJBbveosc79gZ
+\unrestrict UG1Uf8NtTY5ARlHIkaImch6dUBndujQ5sOLxurvFqGt1svvcOEdhZEOOtbvBGMW
 \connect "SGIM2"
-\restrict PVvTK1xwPAvlMBtmay4TQvM0GPD6IqTcu1newNPCsJLHONGENfWJBbveosc79gZ
+\restrict UG1Uf8NtTY5ARlHIkaImch6dUBndujQ5sOLxurvFqGt1svvcOEdhZEOOtbvBGMW
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -49,7 +49,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 7 (class 2615 OID 20603)
+-- TOC entry 15 (class 2615 OID 20603)
 -- Name: auditoria; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -59,7 +59,7 @@ CREATE SCHEMA auditoria;
 ALTER SCHEMA auditoria OWNER TO postgres;
 
 --
--- TOC entry 8 (class 2615 OID 20604)
+-- TOC entry 17 (class 2615 OID 20604)
 -- Name: catalogos; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -69,7 +69,7 @@ CREATE SCHEMA catalogos;
 ALTER SCHEMA catalogos OWNER TO postgres;
 
 --
--- TOC entry 9 (class 2615 OID 20605)
+-- TOC entry 14 (class 2615 OID 20605)
 -- Name: clientes; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -79,7 +79,7 @@ CREATE SCHEMA clientes;
 ALTER SCHEMA clientes OWNER TO postgres;
 
 --
--- TOC entry 10 (class 2615 OID 20606)
+-- TOC entry 18 (class 2615 OID 20606)
 -- Name: empleados; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -89,7 +89,7 @@ CREATE SCHEMA empleados;
 ALTER SCHEMA empleados OWNER TO postgres;
 
 --
--- TOC entry 11 (class 2615 OID 20607)
+-- TOC entry 13 (class 2615 OID 20607)
 -- Name: empresa; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -99,7 +99,7 @@ CREATE SCHEMA empresa;
 ALTER SCHEMA empresa OWNER TO postgres;
 
 --
--- TOC entry 12 (class 2615 OID 20608)
+-- TOC entry 11 (class 2615 OID 20608)
 -- Name: notificaciones; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -109,7 +109,7 @@ CREATE SCHEMA notificaciones;
 ALTER SCHEMA notificaciones OWNER TO postgres;
 
 --
--- TOC entry 13 (class 2615 OID 20609)
+-- TOC entry 16 (class 2615 OID 20609)
 -- Name: soporte; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -119,7 +119,7 @@ CREATE SCHEMA soporte;
 ALTER SCHEMA soporte OWNER TO postgres;
 
 --
--- TOC entry 14 (class 2615 OID 20610)
+-- TOC entry 12 (class 2615 OID 20610)
 -- Name: usuarios; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -137,7 +137,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 
 
 --
--- TOC entry 5111 (class 0 OID 0)
+-- TOC entry 5122 (class 0 OID 0)
 -- Dependencies: 2
 -- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
 --
@@ -146,7 +146,7 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
--- TOC entry 357 (class 1255 OID 20649)
+-- TOC entry 361 (class 1255 OID 20649)
 -- Name: fn_upsert_catalogo_item(character varying, text, character varying, character varying, integer); Type: FUNCTION; Schema: catalogos; Owner: postgres
 --
 
@@ -205,7 +205,7 @@ $$;
 ALTER FUNCTION catalogos.fn_upsert_catalogo_item(p_nombre_catalogo character varying, p_descripcion_catalogo text, p_codigo_item character varying, p_nombre_item character varying, p_orden integer) OWNER TO postgres;
 
 --
--- TOC entry 358 (class 1255 OID 20650)
+-- TOC entry 362 (class 1255 OID 20650)
 -- Name: fn_crear_empleado(character varying, character varying, character varying, character varying, character varying, date, date, integer, integer, integer); Type: FUNCTION; Schema: empleados; Owner: postgres
 --
 
@@ -282,7 +282,7 @@ $$;
 ALTER FUNCTION empleados.fn_crear_empleado(p_cedula character varying, p_nombre character varying, p_apellido character varying, p_celular character varying, p_correo_personal character varying, p_fecha_nacimiento date, p_fecha_ingreso date, p_id_cargo integer, p_id_area integer, p_id_tipo_contrato integer) OWNER TO postgres;
 
 --
--- TOC entry 359 (class 1255 OID 20651)
+-- TOC entry 363 (class 1255 OID 20651)
 -- Name: fn_subir_documento(character varying, character varying, text, text); Type: FUNCTION; Schema: empleados; Owner: postgres
 --
 
@@ -328,7 +328,7 @@ $$;
 ALTER FUNCTION empleados.fn_subir_documento(p_cedula character varying, p_tipo_documento character varying, p_ruta_archivo text, p_descripcion text) OWNER TO postgres;
 
 --
--- TOC entry 360 (class 1255 OID 20652)
+-- TOC entry 364 (class 1255 OID 20652)
 -- Name: fn_cambiar_credenciales(integer, character varying, text); Type: FUNCTION; Schema: usuarios; Owner: postgres
 --
 
@@ -386,7 +386,7 @@ $$;
 ALTER FUNCTION usuarios.fn_cambiar_credenciales(p_id_usuario integer, p_nuevo_username character varying, p_nueva_password text) OWNER TO postgres;
 
 --
--- TOC entry 361 (class 1255 OID 20653)
+-- TOC entry 365 (class 1255 OID 20653)
 -- Name: fn_crear_usuario_cliente(character varying, integer, integer, integer, integer); Type: FUNCTION; Schema: usuarios; Owner: postgres
 --
 
@@ -456,230 +456,91 @@ $$;
 ALTER FUNCTION usuarios.fn_crear_usuario_cliente(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_empresa integer, p_id_estado_item integer) OWNER TO postgres;
 
 --
--- TOC entry 362 (class 1255 OID 20654)
--- Name: fn_crear_usuario_empleado(character varying, integer, integer, integer); Type: FUNCTION; Schema: usuarios; Owner: postgres
---
-
-CREATE FUNCTION usuarios.fn_crear_usuario_empleado(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_estado_item integer) RETURNS integer
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    v_username VARCHAR;
-    v_password_hash TEXT;
-    v_password_plano TEXT;
-    v_id_usuario INTEGER;
-    v_nombre_bd TEXT;
-    v_codigo_rol VARCHAR;
-    v_nombre_rol_bd TEXT;
-BEGIN
-
-    -----------------------------------------------------
-    -- 1️⃣ Validar que empleado exista
-    -----------------------------------------------------
-    IF NOT EXISTS (
-        SELECT 1
-        FROM empleados.empleado e
-        WHERE e.cedula = p_cedula
-    ) THEN
-        RAISE EXCEPTION 'El empleado no existe';
-    END IF;
-
-    -----------------------------------------------------
-    -- 2️⃣ Generar credenciales
-    -----------------------------------------------------
-    SELECT
-        f.username,
-        f.password_plano,
-        f.password_hash
-    INTO
-        v_username,
-        v_password_plano,
-        v_password_hash
-    FROM usuarios.fn_generar_credenciales(p_cedula, p_anio_nacimiento) f;
-
-    -----------------------------------------------------
-    -- 3️⃣ Obtener código del rol aplicativo
-    -----------------------------------------------------
-    SELECT r.codigo
-    INTO v_codigo_rol
-    FROM usuarios.rol r
-    WHERE r.id_rol = p_id_rol;
-
-    IF v_codigo_rol IS NULL THEN
-        RAISE EXCEPTION 'El rol aplicativo no existe';
-    END IF;
-
-    -----------------------------------------------------
-    -- 4️⃣ Construir nombre del rol físico BD
-    -----------------------------------------------------
-    v_nombre_rol_bd := 'rol_' || LOWER(v_codigo_rol);
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM usuarios.rol_bd rb
-        WHERE rb.nombre = v_nombre_rol_bd
-    ) THEN
-        RAISE EXCEPTION 'El rol BD asociado no existe';
-    END IF;
-
-    -----------------------------------------------------
-    -- 5️⃣ Insertar usuario aplicativo
-    -----------------------------------------------------
-    INSERT INTO usuarios.usuario AS u (
-        username,
-        password_hash,
-        id_rol,
-        id_catalogo_item_estado,
-        primer_login,
-        fecha_creacion
-    )
-    VALUES (
-        v_username,
-        v_password_hash,
-        p_id_rol,
-        p_id_estado_item,
-        TRUE,
-        NOW()
-    )
-    RETURNING u.id_usuario INTO v_id_usuario;
-
-    -----------------------------------------------------
-    -- 6️⃣ Relacionar empleado
-    -----------------------------------------------------
-    INSERT INTO usuarios.usuario_empleado (
-        id_usuario,
-        cedula_empleado,
-        id_empleado
-    )
-    SELECT
-        v_id_usuario,
-        e.cedula,
-        e.id_empleado
-    FROM empleados.empleado e
-    WHERE e.cedula = p_cedula;
-
-    -----------------------------------------------------
-    -- 7️⃣ Crear usuario físico PostgreSQL
-    -----------------------------------------------------
-    v_nombre_bd := 'emp_' || p_cedula || '_' || v_id_usuario;
-
-    EXECUTE format(
-        'CREATE ROLE %I LOGIN PASSWORD %L',
-        v_nombre_bd,
-        v_password_plano
-    );
-
-    -----------------------------------------------------
-    -- 8️⃣ Asignar rol físico
-    -----------------------------------------------------
-    EXECUTE format(
-        'GRANT %I TO %I',
-        v_nombre_rol_bd,
-        v_nombre_bd
-    );
-
-    -----------------------------------------------------
-    -- 9️⃣ Registrar usuario BD lógico
-    -----------------------------------------------------
-    INSERT INTO usuarios.usuario_bd (
-        nombre,
-        id_rol_bd,
-        id_usuario,
-        fecha_creacion
-    )
-    SELECT
-        v_nombre_bd,
-        rb.id_rol_bd,
-        v_id_usuario,
-        NOW()
-    FROM usuarios.rol_bd rb
-    WHERE rb.nombre = v_nombre_rol_bd;
-
-    -----------------------------------------------------
-    -- 🔟 Retornar solo el ID creado
-    -----------------------------------------------------
-    RETURN v_id_usuario;
-
-END;
-$$;
-
-
-ALTER FUNCTION usuarios.fn_crear_usuario_empleado(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_estado_item integer) OWNER TO postgres;
-
---
--- TOC entry 363 (class 1255 OID 20655)
+-- TOC entry 367 (class 1255 OID 21755)
 -- Name: fn_crear_usuario_empleado(character varying, integer, integer, integer, integer); Type: FUNCTION; Schema: usuarios; Owner: postgres
 --
 
-CREATE FUNCTION usuarios.fn_crear_usuario_empleado(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_empresa integer, p_id_estado_item integer) RETURNS integer
-    LANGUAGE plpgsql
+CREATE FUNCTION usuarios.fn_crear_usuario_empleado(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_empresa integer, p_id_estado_item integer) RETURNS TABLE(r_id_usuario integer, r_username character varying, r_password_plano character varying)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'usuarios', 'empleados', 'catalogos', 'public', 'pg_temp'
     AS $$
 DECLARE
+    v_id_persona INTEGER;
     v_username VARCHAR;
     v_password_hash TEXT;
     v_password_plano TEXT;
     v_id_usuario INTEGER;
-    v_nombre_bd TEXT;
-    v_codigo_rol VARCHAR;
     v_nombre_rol_bd TEXT;
+    v_codigo_rol VARCHAR;
+    v_nombre_bd TEXT;
 BEGIN
+    -- 1. Validar que la persona existe
+    SELECT id_persona
+    INTO v_id_persona
+    FROM usuarios.persona
+    WHERE cedula = p_cedula;
 
-    -----------------------------------------------------
-    -- 1️⃣ Validar que empleado exista
-    -----------------------------------------------------
-    IF NOT EXISTS (
-        SELECT 1 FROM empleados.empleado WHERE cedula = p_cedula
-    ) THEN
-        RAISE EXCEPTION 'El empleado no existe';
+    IF v_id_persona IS NULL THEN
+        RAISE EXCEPTION 'La persona con cédula % no existe en el sistema.', p_cedula;
     END IF;
-	
--- Validar que tenga documento activo
-IF NOT EXISTS (
-    SELECT 1
-    FROM empleados.documento_empleado d
-    WHERE d.cedula_empleado = p_cedula
-      AND d.estado = 'ACTIVO'
-) THEN
-    RAISE EXCEPTION 'El empleado no tiene documento validado';
-END IF;
 
-    -----------------------------------------------------
-    -- 2️⃣ Generar credenciales
-    -----------------------------------------------------
-    SELECT username, password_plano, password_hash
+    -- 2. Validar que el empleado existe
+    IF NOT EXISTS (
+        SELECT 1
+        FROM empleados.empleado
+        WHERE id_persona = v_id_persona
+    ) THEN
+        RAISE EXCEPTION 'No existe un registro de empleado para la persona con cédula %.', p_cedula;
+    END IF;
+
+    -- 3. Validar que no tenga ya un usuario asociado
+    IF EXISTS (
+        SELECT 1
+        FROM usuarios.persona
+        WHERE id_persona = v_id_persona
+          AND id_usuario IS NOT NULL
+    ) THEN
+        RAISE EXCEPTION 'La persona ya tiene un usuario de acceso asociado.';
+    END IF;
+
+    -- 4. Validar que tenga documento ACTIVO
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM empleados.documento_empleado d
+        INNER JOIN catalogos.catalogo_item ci
+            ON d.id_catalogo_item_estado = ci.id_item
+        WHERE d.cedula_empleado = p_cedula
+          AND ci.codigo = 'ACTIVO'
+    ) THEN
+        RAISE EXCEPTION 'El empleado no tiene documento validado (estado ACTIVO).';
+    END IF;
+
+    -- 5. Generar credenciales
+    SELECT f.r_username, f.r_password_plano, f.r_password_hash
     INTO v_username, v_password_plano, v_password_hash
-    FROM usuarios.fn_generar_credenciales(p_cedula, p_anio_nacimiento);
+    FROM usuarios.fn_generar_credenciales(p_cedula, p_anio_nacimiento) f;
 
-    -----------------------------------------------------
-    -- 3️⃣ Obtener código del rol aplicativo
-    -----------------------------------------------------
+    -- 6. Obtener código del rol para rol físico
     SELECT codigo
     INTO v_codigo_rol
     FROM usuarios.rol
     WHERE id_rol = p_id_rol;
 
     IF v_codigo_rol IS NULL THEN
-        RAISE EXCEPTION 'El rol aplicativo no existe';
+        RAISE EXCEPTION 'El rol aplicativo no existe.';
     END IF;
 
-    -----------------------------------------------------
-    -- 4️⃣ Construir nombre rol BD automáticamente
-    -----------------------------------------------------
     v_nombre_rol_bd := 'rol_' || LOWER(v_codigo_rol);
 
-    -----------------------------------------------------
-    -- 5️⃣ Validar que rol BD exista en tabla lógica
-    -----------------------------------------------------
     IF NOT EXISTS (
-        SELECT 1 FROM usuarios.rol_bd
+        SELECT 1
+        FROM usuarios.rol_bd
         WHERE nombre = v_nombre_rol_bd
     ) THEN
-        RAISE EXCEPTION 'El rol BD asociado no existe';
+        RAISE EXCEPTION 'El rol BD asociado % no está registrado en la tabla lógica.', v_nombre_rol_bd;
     END IF;
 
-    -----------------------------------------------------
-    -- 6️⃣ Crear usuario aplicativo
-    -----------------------------------------------------
+    -- 7. Crear usuario aplicativo
     INSERT INTO usuarios.usuario (
         username,
         password_hash,
@@ -698,59 +559,53 @@ END IF;
     )
     RETURNING id_usuario INTO v_id_usuario;
 
-    -----------------------------------------------------
-    -- 7️⃣ Relacionar con empleado
-    -----------------------------------------------------
-    INSERT INTO usuarios.usuario_empleado (
-        id_usuario,
-        cedula_empleado,
-        id_empleado
-    )
-    SELECT v_id_usuario, cedula, id_empleado
-    FROM empleados.empleado
-    WHERE cedula = p_cedula;
+    -- 8. Relacionar persona -> usuario
+    UPDATE usuarios.persona 
+    SET id_usuario = v_id_usuario
+    WHERE id_persona = v_id_persona;
 
-    -----------------------------------------------------
-    -- 8️⃣ Crear nombre usuario físico BD
-    -- Permite múltiples usuarios por empleado
-    -----------------------------------------------------
+    -- 9. Crear usuario físico PostgreSQL
     v_nombre_bd := 'emp_' || p_cedula || '_' || v_id_usuario;
 
-    -----------------------------------------------------
-    -- 9️⃣ Crear usuario físico PostgreSQL
-    -----------------------------------------------------
     EXECUTE format(
         'CREATE ROLE %I LOGIN PASSWORD %L',
         v_nombre_bd,
         v_password_plano
     );
 
-    -----------------------------------------------------
-    -- 🔟 Asignar rol BD automáticamente
-    -----------------------------------------------------
+    -- 10. Asignar rol físico
     EXECUTE format(
         'GRANT %I TO %I',
         v_nombre_rol_bd,
         v_nombre_bd
     );
 
-    -----------------------------------------------------
-    -- 1️⃣1️⃣ Registrar usuario BD en tabla
-    -----------------------------------------------------
+    -- 11. Registrar usuario en tabla lógica usuario_bd
     INSERT INTO usuarios.usuario_bd (
         nombre,
         id_rol_bd,
         id_usuario
     )
-    SELECT
+    SELECT 
         v_nombre_bd,
         rb.id_rol_bd,
         v_id_usuario
     FROM usuarios.rol_bd rb
     WHERE rb.nombre = v_nombre_rol_bd;
 
-    RETURN v_id_usuario;
+    -- 12. Conceder SET ROLE para sgiri_app
+    EXECUTE format(
+        'GRANT %I TO %I',
+        v_nombre_bd,
+        'sgiri_app'
+    );
 
+    -- 13. Retornar datos creados con cast explícito para evitar error de tipos
+    RETURN QUERY
+    SELECT 
+        v_id_usuario::integer, 
+        v_username::character varying, 
+        v_password_plano::character varying;
 END;
 $$;
 
@@ -758,7 +613,7 @@ $$;
 ALTER FUNCTION usuarios.fn_crear_usuario_empleado(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_empresa integer, p_id_estado_item integer) OWNER TO postgres;
 
 --
--- TOC entry 364 (class 1255 OID 20656)
+-- TOC entry 366 (class 1255 OID 20656)
 -- Name: fn_generar_credenciales(character varying, integer); Type: FUNCTION; Schema: usuarios; Owner: postgres
 --
 
@@ -815,7 +670,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 228 (class 1259 OID 20657)
+-- TOC entry 232 (class 1259 OID 20657)
 -- Name: auditoria_estado_ticket; Type: TABLE; Schema: auditoria; Owner: postgres
 --
 
@@ -834,7 +689,7 @@ CREATE TABLE auditoria.auditoria_estado_ticket (
 ALTER TABLE auditoria.auditoria_estado_ticket OWNER TO postgres;
 
 --
--- TOC entry 229 (class 1259 OID 20665)
+-- TOC entry 233 (class 1259 OID 20665)
 -- Name: auditoria_estado_ticket_id_auditoria_seq; Type: SEQUENCE; Schema: auditoria; Owner: postgres
 --
 
@@ -850,8 +705,8 @@ CREATE SEQUENCE auditoria.auditoria_estado_ticket_id_auditoria_seq
 ALTER SEQUENCE auditoria.auditoria_estado_ticket_id_auditoria_seq OWNER TO postgres;
 
 --
--- TOC entry 5112 (class 0 OID 0)
--- Dependencies: 229
+-- TOC entry 5127 (class 0 OID 0)
+-- Dependencies: 233
 -- Name: auditoria_estado_ticket_id_auditoria_seq; Type: SEQUENCE OWNED BY; Schema: auditoria; Owner: postgres
 --
 
@@ -859,7 +714,7 @@ ALTER SEQUENCE auditoria.auditoria_estado_ticket_id_auditoria_seq OWNED BY audit
 
 
 --
--- TOC entry 230 (class 1259 OID 20666)
+-- TOC entry 234 (class 1259 OID 20666)
 -- Name: auditoria_evento; Type: TABLE; Schema: auditoria; Owner: postgres
 --
 
@@ -881,7 +736,7 @@ CREATE TABLE auditoria.auditoria_evento (
 ALTER TABLE auditoria.auditoria_evento OWNER TO postgres;
 
 --
--- TOC entry 231 (class 1259 OID 20680)
+-- TOC entry 235 (class 1259 OID 20680)
 -- Name: auditoria_evento_id_evento_seq; Type: SEQUENCE; Schema: auditoria; Owner: postgres
 --
 
@@ -897,8 +752,8 @@ CREATE SEQUENCE auditoria.auditoria_evento_id_evento_seq
 ALTER SEQUENCE auditoria.auditoria_evento_id_evento_seq OWNER TO postgres;
 
 --
--- TOC entry 5113 (class 0 OID 0)
--- Dependencies: 231
+-- TOC entry 5130 (class 0 OID 0)
+-- Dependencies: 235
 -- Name: auditoria_evento_id_evento_seq; Type: SEQUENCE OWNED BY; Schema: auditoria; Owner: postgres
 --
 
@@ -906,7 +761,7 @@ ALTER SEQUENCE auditoria.auditoria_evento_id_evento_seq OWNED BY auditoria.audit
 
 
 --
--- TOC entry 232 (class 1259 OID 20681)
+-- TOC entry 236 (class 1259 OID 20681)
 -- Name: auditoria_login; Type: TABLE; Schema: auditoria; Owner: postgres
 --
 
@@ -925,7 +780,7 @@ CREATE TABLE auditoria.auditoria_login (
 ALTER TABLE auditoria.auditoria_login OWNER TO postgres;
 
 --
--- TOC entry 233 (class 1259 OID 20688)
+-- TOC entry 237 (class 1259 OID 20688)
 -- Name: auditoria_login_bd; Type: TABLE; Schema: auditoria; Owner: postgres
 --
 
@@ -942,7 +797,7 @@ CREATE TABLE auditoria.auditoria_login_bd (
 ALTER TABLE auditoria.auditoria_login_bd OWNER TO postgres;
 
 --
--- TOC entry 234 (class 1259 OID 20698)
+-- TOC entry 238 (class 1259 OID 20698)
 -- Name: auditoria_login_bd_id_auditoria_login_bd_seq; Type: SEQUENCE; Schema: auditoria; Owner: postgres
 --
 
@@ -958,8 +813,8 @@ CREATE SEQUENCE auditoria.auditoria_login_bd_id_auditoria_login_bd_seq
 ALTER SEQUENCE auditoria.auditoria_login_bd_id_auditoria_login_bd_seq OWNER TO postgres;
 
 --
--- TOC entry 5114 (class 0 OID 0)
--- Dependencies: 234
+-- TOC entry 5134 (class 0 OID 0)
+-- Dependencies: 238
 -- Name: auditoria_login_bd_id_auditoria_login_bd_seq; Type: SEQUENCE OWNED BY; Schema: auditoria; Owner: postgres
 --
 
@@ -967,7 +822,7 @@ ALTER SEQUENCE auditoria.auditoria_login_bd_id_auditoria_login_bd_seq OWNED BY a
 
 
 --
--- TOC entry 235 (class 1259 OID 20699)
+-- TOC entry 239 (class 1259 OID 20699)
 -- Name: auditoria_login_id_login_seq; Type: SEQUENCE; Schema: auditoria; Owner: postgres
 --
 
@@ -983,8 +838,8 @@ CREATE SEQUENCE auditoria.auditoria_login_id_login_seq
 ALTER SEQUENCE auditoria.auditoria_login_id_login_seq OWNER TO postgres;
 
 --
--- TOC entry 5115 (class 0 OID 0)
--- Dependencies: 235
+-- TOC entry 5136 (class 0 OID 0)
+-- Dependencies: 239
 -- Name: auditoria_login_id_login_seq; Type: SEQUENCE OWNED BY; Schema: auditoria; Owner: postgres
 --
 
@@ -992,7 +847,7 @@ ALTER SEQUENCE auditoria.auditoria_login_id_login_seq OWNED BY auditoria.auditor
 
 
 --
--- TOC entry 236 (class 1259 OID 20700)
+-- TOC entry 240 (class 1259 OID 20700)
 -- Name: catalogo; Type: TABLE; Schema: catalogos; Owner: postgres
 --
 
@@ -1007,7 +862,7 @@ CREATE TABLE catalogos.catalogo (
 ALTER TABLE catalogos.catalogo OWNER TO postgres;
 
 --
--- TOC entry 237 (class 1259 OID 20708)
+-- TOC entry 241 (class 1259 OID 20708)
 -- Name: catalogo_id_catalogo_seq; Type: SEQUENCE; Schema: catalogos; Owner: postgres
 --
 
@@ -1023,8 +878,8 @@ CREATE SEQUENCE catalogos.catalogo_id_catalogo_seq
 ALTER SEQUENCE catalogos.catalogo_id_catalogo_seq OWNER TO postgres;
 
 --
--- TOC entry 5116 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5139 (class 0 OID 0)
+-- Dependencies: 241
 -- Name: catalogo_id_catalogo_seq; Type: SEQUENCE OWNED BY; Schema: catalogos; Owner: postgres
 --
 
@@ -1032,7 +887,7 @@ ALTER SEQUENCE catalogos.catalogo_id_catalogo_seq OWNED BY catalogos.catalogo.id
 
 
 --
--- TOC entry 238 (class 1259 OID 20709)
+-- TOC entry 242 (class 1259 OID 20709)
 -- Name: catalogo_item; Type: TABLE; Schema: catalogos; Owner: postgres
 --
 
@@ -1049,7 +904,7 @@ CREATE TABLE catalogos.catalogo_item (
 ALTER TABLE catalogos.catalogo_item OWNER TO postgres;
 
 --
--- TOC entry 239 (class 1259 OID 20716)
+-- TOC entry 243 (class 1259 OID 20716)
 -- Name: catalogo_item_id_item_seq; Type: SEQUENCE; Schema: catalogos; Owner: postgres
 --
 
@@ -1065,8 +920,8 @@ CREATE SEQUENCE catalogos.catalogo_item_id_item_seq
 ALTER SEQUENCE catalogos.catalogo_item_id_item_seq OWNER TO postgres;
 
 --
--- TOC entry 5117 (class 0 OID 0)
--- Dependencies: 239
+-- TOC entry 5142 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: catalogo_item_id_item_seq; Type: SEQUENCE OWNED BY; Schema: catalogos; Owner: postgres
 --
 
@@ -1074,7 +929,7 @@ ALTER SEQUENCE catalogos.catalogo_item_id_item_seq OWNED BY catalogos.catalogo_i
 
 
 --
--- TOC entry 240 (class 1259 OID 20717)
+-- TOC entry 244 (class 1259 OID 20717)
 -- Name: canton; Type: TABLE; Schema: clientes; Owner: postgres
 --
 
@@ -1088,7 +943,7 @@ CREATE TABLE clientes.canton (
 ALTER TABLE clientes.canton OWNER TO postgres;
 
 --
--- TOC entry 241 (class 1259 OID 20723)
+-- TOC entry 245 (class 1259 OID 20723)
 -- Name: canton_id_canton_seq; Type: SEQUENCE; Schema: clientes; Owner: postgres
 --
 
@@ -1104,8 +959,8 @@ CREATE SEQUENCE clientes.canton_id_canton_seq
 ALTER SEQUENCE clientes.canton_id_canton_seq OWNER TO postgres;
 
 --
--- TOC entry 5118 (class 0 OID 0)
--- Dependencies: 241
+-- TOC entry 5145 (class 0 OID 0)
+-- Dependencies: 245
 -- Name: canton_id_canton_seq; Type: SEQUENCE OWNED BY; Schema: clientes; Owner: postgres
 --
 
@@ -1113,7 +968,7 @@ ALTER SEQUENCE clientes.canton_id_canton_seq OWNED BY clientes.canton.id_canton;
 
 
 --
--- TOC entry 242 (class 1259 OID 20724)
+-- TOC entry 246 (class 1259 OID 20724)
 -- Name: ciudad; Type: TABLE; Schema: clientes; Owner: postgres
 --
 
@@ -1127,7 +982,7 @@ CREATE TABLE clientes.ciudad (
 ALTER TABLE clientes.ciudad OWNER TO postgres;
 
 --
--- TOC entry 243 (class 1259 OID 20730)
+-- TOC entry 247 (class 1259 OID 20730)
 -- Name: ciudad_id_ciudad_seq; Type: SEQUENCE; Schema: clientes; Owner: postgres
 --
 
@@ -1143,8 +998,8 @@ CREATE SEQUENCE clientes.ciudad_id_ciudad_seq
 ALTER SEQUENCE clientes.ciudad_id_ciudad_seq OWNER TO postgres;
 
 --
--- TOC entry 5119 (class 0 OID 0)
--- Dependencies: 243
+-- TOC entry 5148 (class 0 OID 0)
+-- Dependencies: 247
 -- Name: ciudad_id_ciudad_seq; Type: SEQUENCE OWNED BY; Schema: clientes; Owner: postgres
 --
 
@@ -1152,7 +1007,7 @@ ALTER SEQUENCE clientes.ciudad_id_ciudad_seq OWNED BY clientes.ciudad.id_ciudad;
 
 
 --
--- TOC entry 244 (class 1259 OID 20731)
+-- TOC entry 248 (class 1259 OID 20731)
 -- Name: cliente; Type: TABLE; Schema: clientes; Owner: postgres
 --
 
@@ -1171,7 +1026,7 @@ CREATE TABLE clientes.cliente (
 ALTER TABLE clientes.cliente OWNER TO postgres;
 
 --
--- TOC entry 245 (class 1259 OID 20738)
+-- TOC entry 249 (class 1259 OID 20738)
 -- Name: cliente_id_cliente_seq; Type: SEQUENCE; Schema: clientes; Owner: postgres
 --
 
@@ -1187,8 +1042,8 @@ CREATE SEQUENCE clientes.cliente_id_cliente_seq
 ALTER SEQUENCE clientes.cliente_id_cliente_seq OWNER TO postgres;
 
 --
--- TOC entry 5120 (class 0 OID 0)
--- Dependencies: 245
+-- TOC entry 5151 (class 0 OID 0)
+-- Dependencies: 249
 -- Name: cliente_id_cliente_seq; Type: SEQUENCE OWNED BY; Schema: clientes; Owner: postgres
 --
 
@@ -1196,7 +1051,7 @@ ALTER SEQUENCE clientes.cliente_id_cliente_seq OWNED BY clientes.cliente.id_clie
 
 
 --
--- TOC entry 246 (class 1259 OID 20739)
+-- TOC entry 250 (class 1259 OID 20739)
 -- Name: documento_cliente; Type: TABLE; Schema: clientes; Owner: postgres
 --
 
@@ -1215,7 +1070,7 @@ CREATE TABLE clientes.documento_cliente (
 ALTER TABLE clientes.documento_cliente OWNER TO postgres;
 
 --
--- TOC entry 247 (class 1259 OID 20750)
+-- TOC entry 251 (class 1259 OID 20750)
 -- Name: documento_cliente_id_documento_seq; Type: SEQUENCE; Schema: clientes; Owner: postgres
 --
 
@@ -1231,8 +1086,8 @@ CREATE SEQUENCE clientes.documento_cliente_id_documento_seq
 ALTER SEQUENCE clientes.documento_cliente_id_documento_seq OWNER TO postgres;
 
 --
--- TOC entry 5121 (class 0 OID 0)
--- Dependencies: 247
+-- TOC entry 5154 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: documento_cliente_id_documento_seq; Type: SEQUENCE OWNED BY; Schema: clientes; Owner: postgres
 --
 
@@ -1240,7 +1095,7 @@ ALTER SEQUENCE clientes.documento_cliente_id_documento_seq OWNED BY clientes.doc
 
 
 --
--- TOC entry 248 (class 1259 OID 20751)
+-- TOC entry 252 (class 1259 OID 20751)
 -- Name: pais; Type: TABLE; Schema: clientes; Owner: postgres
 --
 
@@ -1253,7 +1108,7 @@ CREATE TABLE clientes.pais (
 ALTER TABLE clientes.pais OWNER TO postgres;
 
 --
--- TOC entry 249 (class 1259 OID 20756)
+-- TOC entry 253 (class 1259 OID 20756)
 -- Name: pais_id_pais_seq; Type: SEQUENCE; Schema: clientes; Owner: postgres
 --
 
@@ -1269,8 +1124,8 @@ CREATE SEQUENCE clientes.pais_id_pais_seq
 ALTER SEQUENCE clientes.pais_id_pais_seq OWNER TO postgres;
 
 --
--- TOC entry 5122 (class 0 OID 0)
--- Dependencies: 249
+-- TOC entry 5157 (class 0 OID 0)
+-- Dependencies: 253
 -- Name: pais_id_pais_seq; Type: SEQUENCE OWNED BY; Schema: clientes; Owner: postgres
 --
 
@@ -1278,7 +1133,7 @@ ALTER SEQUENCE clientes.pais_id_pais_seq OWNED BY clientes.pais.id_pais;
 
 
 --
--- TOC entry 250 (class 1259 OID 20757)
+-- TOC entry 254 (class 1259 OID 20757)
 -- Name: tipo_documento; Type: TABLE; Schema: clientes; Owner: postgres
 --
 
@@ -1291,7 +1146,7 @@ CREATE TABLE clientes.tipo_documento (
 ALTER TABLE clientes.tipo_documento OWNER TO postgres;
 
 --
--- TOC entry 251 (class 1259 OID 20762)
+-- TOC entry 255 (class 1259 OID 20762)
 -- Name: tipo_documento_id_tipo_documento_seq; Type: SEQUENCE; Schema: clientes; Owner: postgres
 --
 
@@ -1307,8 +1162,8 @@ CREATE SEQUENCE clientes.tipo_documento_id_tipo_documento_seq
 ALTER SEQUENCE clientes.tipo_documento_id_tipo_documento_seq OWNER TO postgres;
 
 --
--- TOC entry 5123 (class 0 OID 0)
--- Dependencies: 251
+-- TOC entry 5160 (class 0 OID 0)
+-- Dependencies: 255
 -- Name: tipo_documento_id_tipo_documento_seq; Type: SEQUENCE OWNED BY; Schema: clientes; Owner: postgres
 --
 
@@ -1316,7 +1171,7 @@ ALTER SEQUENCE clientes.tipo_documento_id_tipo_documento_seq OWNED BY clientes.t
 
 
 --
--- TOC entry 252 (class 1259 OID 20763)
+-- TOC entry 256 (class 1259 OID 20763)
 -- Name: area; Type: TABLE; Schema: empleados; Owner: postgres
 --
 
@@ -1329,7 +1184,7 @@ CREATE TABLE empleados.area (
 ALTER TABLE empleados.area OWNER TO postgres;
 
 --
--- TOC entry 253 (class 1259 OID 20768)
+-- TOC entry 257 (class 1259 OID 20768)
 -- Name: area_id_area_seq; Type: SEQUENCE; Schema: empleados; Owner: postgres
 --
 
@@ -1345,8 +1200,8 @@ CREATE SEQUENCE empleados.area_id_area_seq
 ALTER SEQUENCE empleados.area_id_area_seq OWNER TO postgres;
 
 --
--- TOC entry 5124 (class 0 OID 0)
--- Dependencies: 253
+-- TOC entry 5163 (class 0 OID 0)
+-- Dependencies: 257
 -- Name: area_id_area_seq; Type: SEQUENCE OWNED BY; Schema: empleados; Owner: postgres
 --
 
@@ -1354,7 +1209,7 @@ ALTER SEQUENCE empleados.area_id_area_seq OWNED BY empleados.area.id_area;
 
 
 --
--- TOC entry 254 (class 1259 OID 20769)
+-- TOC entry 258 (class 1259 OID 20769)
 -- Name: cargo; Type: TABLE; Schema: empleados; Owner: postgres
 --
 
@@ -1367,7 +1222,7 @@ CREATE TABLE empleados.cargo (
 ALTER TABLE empleados.cargo OWNER TO postgres;
 
 --
--- TOC entry 255 (class 1259 OID 20774)
+-- TOC entry 259 (class 1259 OID 20774)
 -- Name: cargo_id_cargo_seq; Type: SEQUENCE; Schema: empleados; Owner: postgres
 --
 
@@ -1383,8 +1238,8 @@ CREATE SEQUENCE empleados.cargo_id_cargo_seq
 ALTER SEQUENCE empleados.cargo_id_cargo_seq OWNER TO postgres;
 
 --
--- TOC entry 5125 (class 0 OID 0)
--- Dependencies: 255
+-- TOC entry 5166 (class 0 OID 0)
+-- Dependencies: 259
 -- Name: cargo_id_cargo_seq; Type: SEQUENCE OWNED BY; Schema: empleados; Owner: postgres
 --
 
@@ -1392,7 +1247,7 @@ ALTER SEQUENCE empleados.cargo_id_cargo_seq OWNED BY empleados.cargo.id_cargo;
 
 
 --
--- TOC entry 256 (class 1259 OID 20775)
+-- TOC entry 260 (class 1259 OID 20775)
 -- Name: documento_empleado; Type: TABLE; Schema: empleados; Owner: postgres
 --
 
@@ -1412,7 +1267,7 @@ CREATE TABLE empleados.documento_empleado (
 ALTER TABLE empleados.documento_empleado OWNER TO postgres;
 
 --
--- TOC entry 257 (class 1259 OID 20786)
+-- TOC entry 261 (class 1259 OID 20786)
 -- Name: documento_empleado_id_documento_seq; Type: SEQUENCE; Schema: empleados; Owner: postgres
 --
 
@@ -1428,8 +1283,8 @@ CREATE SEQUENCE empleados.documento_empleado_id_documento_seq
 ALTER SEQUENCE empleados.documento_empleado_id_documento_seq OWNER TO postgres;
 
 --
--- TOC entry 5126 (class 0 OID 0)
--- Dependencies: 257
+-- TOC entry 5169 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: documento_empleado_id_documento_seq; Type: SEQUENCE OWNED BY; Schema: empleados; Owner: postgres
 --
 
@@ -1437,7 +1292,7 @@ ALTER SEQUENCE empleados.documento_empleado_id_documento_seq OWNED BY empleados.
 
 
 --
--- TOC entry 258 (class 1259 OID 20787)
+-- TOC entry 262 (class 1259 OID 20787)
 -- Name: empleado_id_empleado_seq; Type: SEQUENCE; Schema: empleados; Owner: postgres
 --
 
@@ -1452,7 +1307,7 @@ CREATE SEQUENCE empleados.empleado_id_empleado_seq
 ALTER SEQUENCE empleados.empleado_id_empleado_seq OWNER TO postgres;
 
 --
--- TOC entry 259 (class 1259 OID 20788)
+-- TOC entry 263 (class 1259 OID 20788)
 -- Name: empleado; Type: TABLE; Schema: empleados; Owner: postgres
 --
 
@@ -1470,7 +1325,7 @@ CREATE TABLE empleados.empleado (
 ALTER TABLE empleados.empleado OWNER TO postgres;
 
 --
--- TOC entry 260 (class 1259 OID 20797)
+-- TOC entry 264 (class 1259 OID 20797)
 -- Name: tipo_contrato; Type: TABLE; Schema: empleados; Owner: postgres
 --
 
@@ -1483,7 +1338,7 @@ CREATE TABLE empleados.tipo_contrato (
 ALTER TABLE empleados.tipo_contrato OWNER TO postgres;
 
 --
--- TOC entry 261 (class 1259 OID 20802)
+-- TOC entry 265 (class 1259 OID 20802)
 -- Name: tipo_contrato_id_tipo_contrato_seq; Type: SEQUENCE; Schema: empleados; Owner: postgres
 --
 
@@ -1499,8 +1354,8 @@ CREATE SEQUENCE empleados.tipo_contrato_id_tipo_contrato_seq
 ALTER SEQUENCE empleados.tipo_contrato_id_tipo_contrato_seq OWNER TO postgres;
 
 --
--- TOC entry 5127 (class 0 OID 0)
--- Dependencies: 261
+-- TOC entry 5174 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: tipo_contrato_id_tipo_contrato_seq; Type: SEQUENCE OWNED BY; Schema: empleados; Owner: postgres
 --
 
@@ -1508,7 +1363,7 @@ ALTER SEQUENCE empleados.tipo_contrato_id_tipo_contrato_seq OWNED BY empleados.t
 
 
 --
--- TOC entry 262 (class 1259 OID 20803)
+-- TOC entry 266 (class 1259 OID 20803)
 -- Name: documento_empresa; Type: TABLE; Schema: empresa; Owner: postgres
 --
 
@@ -1527,7 +1382,7 @@ CREATE TABLE empresa.documento_empresa (
 ALTER TABLE empresa.documento_empresa OWNER TO postgres;
 
 --
--- TOC entry 263 (class 1259 OID 20814)
+-- TOC entry 267 (class 1259 OID 20814)
 -- Name: documento_empresa_id_documento_seq; Type: SEQUENCE; Schema: empresa; Owner: postgres
 --
 
@@ -1543,8 +1398,8 @@ CREATE SEQUENCE empresa.documento_empresa_id_documento_seq
 ALTER SEQUENCE empresa.documento_empresa_id_documento_seq OWNER TO postgres;
 
 --
--- TOC entry 5128 (class 0 OID 0)
--- Dependencies: 263
+-- TOC entry 5177 (class 0 OID 0)
+-- Dependencies: 267
 -- Name: documento_empresa_id_documento_seq; Type: SEQUENCE OWNED BY; Schema: empresa; Owner: postgres
 --
 
@@ -1552,7 +1407,7 @@ ALTER SEQUENCE empresa.documento_empresa_id_documento_seq OWNED BY empresa.docum
 
 
 --
--- TOC entry 264 (class 1259 OID 20815)
+-- TOC entry 268 (class 1259 OID 20815)
 -- Name: empresa; Type: TABLE; Schema: empresa; Owner: postgres
 --
 
@@ -1574,7 +1429,7 @@ CREATE TABLE empresa.empresa (
 ALTER TABLE empresa.empresa OWNER TO postgres;
 
 --
--- TOC entry 265 (class 1259 OID 20826)
+-- TOC entry 269 (class 1259 OID 20826)
 -- Name: empresa_id_empresa_seq; Type: SEQUENCE; Schema: empresa; Owner: postgres
 --
 
@@ -1590,8 +1445,8 @@ CREATE SEQUENCE empresa.empresa_id_empresa_seq
 ALTER SEQUENCE empresa.empresa_id_empresa_seq OWNER TO postgres;
 
 --
--- TOC entry 5129 (class 0 OID 0)
--- Dependencies: 265
+-- TOC entry 5180 (class 0 OID 0)
+-- Dependencies: 269
 -- Name: empresa_id_empresa_seq; Type: SEQUENCE OWNED BY; Schema: empresa; Owner: postgres
 --
 
@@ -1599,7 +1454,7 @@ ALTER SEQUENCE empresa.empresa_id_empresa_seq OWNED BY empresa.empresa.id_empres
 
 
 --
--- TOC entry 266 (class 1259 OID 20827)
+-- TOC entry 270 (class 1259 OID 20827)
 -- Name: empresa_servicio; Type: TABLE; Schema: empresa; Owner: postgres
 --
 
@@ -1612,7 +1467,7 @@ CREATE TABLE empresa.empresa_servicio (
 ALTER TABLE empresa.empresa_servicio OWNER TO postgres;
 
 --
--- TOC entry 267 (class 1259 OID 20832)
+-- TOC entry 271 (class 1259 OID 20832)
 -- Name: servicio; Type: TABLE; Schema: empresa; Owner: postgres
 --
 
@@ -1627,7 +1482,7 @@ CREATE TABLE empresa.servicio (
 ALTER TABLE empresa.servicio OWNER TO postgres;
 
 --
--- TOC entry 268 (class 1259 OID 20839)
+-- TOC entry 272 (class 1259 OID 20839)
 -- Name: servicio_id_servicio_seq; Type: SEQUENCE; Schema: empresa; Owner: postgres
 --
 
@@ -1643,8 +1498,8 @@ CREATE SEQUENCE empresa.servicio_id_servicio_seq
 ALTER SEQUENCE empresa.servicio_id_servicio_seq OWNER TO postgres;
 
 --
--- TOC entry 5130 (class 0 OID 0)
--- Dependencies: 268
+-- TOC entry 5184 (class 0 OID 0)
+-- Dependencies: 272
 -- Name: servicio_id_servicio_seq; Type: SEQUENCE OWNED BY; Schema: empresa; Owner: postgres
 --
 
@@ -1652,7 +1507,7 @@ ALTER SEQUENCE empresa.servicio_id_servicio_seq OWNED BY empresa.servicio.id_ser
 
 
 --
--- TOC entry 269 (class 1259 OID 20840)
+-- TOC entry 273 (class 1259 OID 20840)
 -- Name: sucursal; Type: TABLE; Schema: empresa; Owner: postgres
 --
 
@@ -1671,7 +1526,7 @@ CREATE TABLE empresa.sucursal (
 ALTER TABLE empresa.sucursal OWNER TO postgres;
 
 --
--- TOC entry 270 (class 1259 OID 20849)
+-- TOC entry 274 (class 1259 OID 20849)
 -- Name: sucursal_id_sucursal_seq; Type: SEQUENCE; Schema: empresa; Owner: postgres
 --
 
@@ -1687,8 +1542,8 @@ CREATE SEQUENCE empresa.sucursal_id_sucursal_seq
 ALTER SEQUENCE empresa.sucursal_id_sucursal_seq OWNER TO postgres;
 
 --
--- TOC entry 5131 (class 0 OID 0)
--- Dependencies: 270
+-- TOC entry 5187 (class 0 OID 0)
+-- Dependencies: 274
 -- Name: sucursal_id_sucursal_seq; Type: SEQUENCE OWNED BY; Schema: empresa; Owner: postgres
 --
 
@@ -1696,7 +1551,7 @@ ALTER SEQUENCE empresa.sucursal_id_sucursal_seq OWNED BY empresa.sucursal.id_suc
 
 
 --
--- TOC entry 271 (class 1259 OID 20850)
+-- TOC entry 275 (class 1259 OID 20850)
 -- Name: canal_notificacion; Type: TABLE; Schema: notificaciones; Owner: postgres
 --
 
@@ -1710,7 +1565,7 @@ CREATE TABLE notificaciones.canal_notificacion (
 ALTER TABLE notificaciones.canal_notificacion OWNER TO postgres;
 
 --
--- TOC entry 272 (class 1259 OID 20856)
+-- TOC entry 276 (class 1259 OID 20856)
 -- Name: canal_notificacion_id_canal_seq; Type: SEQUENCE; Schema: notificaciones; Owner: postgres
 --
 
@@ -1726,8 +1581,8 @@ CREATE SEQUENCE notificaciones.canal_notificacion_id_canal_seq
 ALTER SEQUENCE notificaciones.canal_notificacion_id_canal_seq OWNER TO postgres;
 
 --
--- TOC entry 5132 (class 0 OID 0)
--- Dependencies: 272
+-- TOC entry 5190 (class 0 OID 0)
+-- Dependencies: 276
 -- Name: canal_notificacion_id_canal_seq; Type: SEQUENCE OWNED BY; Schema: notificaciones; Owner: postgres
 --
 
@@ -1735,7 +1590,7 @@ ALTER SEQUENCE notificaciones.canal_notificacion_id_canal_seq OWNED BY notificac
 
 
 --
--- TOC entry 273 (class 1259 OID 20857)
+-- TOC entry 277 (class 1259 OID 20857)
 -- Name: notificacion; Type: TABLE; Schema: notificaciones; Owner: postgres
 --
 
@@ -1760,7 +1615,7 @@ CREATE TABLE notificaciones.notificacion (
 ALTER TABLE notificaciones.notificacion OWNER TO postgres;
 
 --
--- TOC entry 274 (class 1259 OID 20869)
+-- TOC entry 278 (class 1259 OID 20869)
 -- Name: notificacion_id_notificacion_seq; Type: SEQUENCE; Schema: notificaciones; Owner: postgres
 --
 
@@ -1776,8 +1631,8 @@ CREATE SEQUENCE notificaciones.notificacion_id_notificacion_seq
 ALTER SEQUENCE notificaciones.notificacion_id_notificacion_seq OWNER TO postgres;
 
 --
--- TOC entry 5133 (class 0 OID 0)
--- Dependencies: 274
+-- TOC entry 5193 (class 0 OID 0)
+-- Dependencies: 278
 -- Name: notificacion_id_notificacion_seq; Type: SEQUENCE OWNED BY; Schema: notificaciones; Owner: postgres
 --
 
@@ -1785,7 +1640,7 @@ ALTER SEQUENCE notificaciones.notificacion_id_notificacion_seq OWNED BY notifica
 
 
 --
--- TOC entry 275 (class 1259 OID 20870)
+-- TOC entry 279 (class 1259 OID 20870)
 -- Name: asignacion; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -1801,7 +1656,7 @@ CREATE TABLE soporte.asignacion (
 ALTER TABLE soporte.asignacion OWNER TO postgres;
 
 --
--- TOC entry 276 (class 1259 OID 20878)
+-- TOC entry 280 (class 1259 OID 20878)
 -- Name: asignacion_id_asignacion_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -1817,8 +1672,8 @@ CREATE SEQUENCE soporte.asignacion_id_asignacion_seq
 ALTER SEQUENCE soporte.asignacion_id_asignacion_seq OWNER TO postgres;
 
 --
--- TOC entry 5134 (class 0 OID 0)
--- Dependencies: 276
+-- TOC entry 5196 (class 0 OID 0)
+-- Dependencies: 280
 -- Name: asignacion_id_asignacion_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -1826,7 +1681,7 @@ ALTER SEQUENCE soporte.asignacion_id_asignacion_seq OWNED BY soporte.asignacion.
 
 
 --
--- TOC entry 277 (class 1259 OID 20879)
+-- TOC entry 281 (class 1259 OID 20879)
 -- Name: categoria; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -1841,7 +1696,7 @@ CREATE TABLE soporte.categoria (
 ALTER TABLE soporte.categoria OWNER TO postgres;
 
 --
--- TOC entry 278 (class 1259 OID 20887)
+-- TOC entry 282 (class 1259 OID 20887)
 -- Name: categoria_id_categoria_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -1857,8 +1712,8 @@ CREATE SEQUENCE soporte.categoria_id_categoria_seq
 ALTER SEQUENCE soporte.categoria_id_categoria_seq OWNER TO postgres;
 
 --
--- TOC entry 5135 (class 0 OID 0)
--- Dependencies: 278
+-- TOC entry 5199 (class 0 OID 0)
+-- Dependencies: 282
 -- Name: categoria_id_categoria_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -1866,7 +1721,7 @@ ALTER SEQUENCE soporte.categoria_id_categoria_seq OWNED BY soporte.categoria.id_
 
 
 --
--- TOC entry 279 (class 1259 OID 20888)
+-- TOC entry 283 (class 1259 OID 20888)
 -- Name: comentario_ticket; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -1888,7 +1743,7 @@ CREATE TABLE soporte.comentario_ticket (
 ALTER TABLE soporte.comentario_ticket OWNER TO postgres;
 
 --
--- TOC entry 280 (class 1259 OID 20902)
+-- TOC entry 284 (class 1259 OID 20902)
 -- Name: comentario_ticket_id_comentario_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -1904,8 +1759,8 @@ CREATE SEQUENCE soporte.comentario_ticket_id_comentario_seq
 ALTER SEQUENCE soporte.comentario_ticket_id_comentario_seq OWNER TO postgres;
 
 --
--- TOC entry 5136 (class 0 OID 0)
--- Dependencies: 280
+-- TOC entry 5202 (class 0 OID 0)
+-- Dependencies: 284
 -- Name: comentario_ticket_id_comentario_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -1913,7 +1768,7 @@ ALTER SEQUENCE soporte.comentario_ticket_id_comentario_seq OWNED BY soporte.come
 
 
 --
--- TOC entry 281 (class 1259 OID 20903)
+-- TOC entry 285 (class 1259 OID 20903)
 -- Name: documento_ticket; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -1933,7 +1788,7 @@ CREATE TABLE soporte.documento_ticket (
 ALTER TABLE soporte.documento_ticket OWNER TO postgres;
 
 --
--- TOC entry 282 (class 1259 OID 20916)
+-- TOC entry 286 (class 1259 OID 20916)
 -- Name: documento_ticket_id_documento_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -1949,8 +1804,8 @@ CREATE SEQUENCE soporte.documento_ticket_id_documento_seq
 ALTER SEQUENCE soporte.documento_ticket_id_documento_seq OWNER TO postgres;
 
 --
--- TOC entry 5137 (class 0 OID 0)
--- Dependencies: 282
+-- TOC entry 5205 (class 0 OID 0)
+-- Dependencies: 286
 -- Name: documento_ticket_id_documento_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -1958,7 +1813,7 @@ ALTER SEQUENCE soporte.documento_ticket_id_documento_seq OWNED BY soporte.docume
 
 
 --
--- TOC entry 283 (class 1259 OID 20917)
+-- TOC entry 287 (class 1259 OID 20917)
 -- Name: historial_estado; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -1978,7 +1833,7 @@ CREATE TABLE soporte.historial_estado (
 ALTER TABLE soporte.historial_estado OWNER TO postgres;
 
 --
--- TOC entry 284 (class 1259 OID 20928)
+-- TOC entry 288 (class 1259 OID 20928)
 -- Name: historial_estado_id_historial_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -1994,8 +1849,8 @@ CREATE SEQUENCE soporte.historial_estado_id_historial_seq
 ALTER SEQUENCE soporte.historial_estado_id_historial_seq OWNER TO postgres;
 
 --
--- TOC entry 5138 (class 0 OID 0)
--- Dependencies: 284
+-- TOC entry 5208 (class 0 OID 0)
+-- Dependencies: 288
 -- Name: historial_estado_id_historial_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -2003,7 +1858,7 @@ ALTER SEQUENCE soporte.historial_estado_id_historial_seq OWNED BY soporte.histor
 
 
 --
--- TOC entry 308 (class 1259 OID 21679)
+-- TOC entry 312 (class 1259 OID 21679)
 -- Name: network_probe_result; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -2023,7 +1878,7 @@ CREATE TABLE soporte.network_probe_result (
 ALTER TABLE soporte.network_probe_result OWNER TO postgres;
 
 --
--- TOC entry 307 (class 1259 OID 21678)
+-- TOC entry 311 (class 1259 OID 21678)
 -- Name: network_probe_result_id_result_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -2039,8 +1894,8 @@ CREATE SEQUENCE soporte.network_probe_result_id_result_seq
 ALTER SEQUENCE soporte.network_probe_result_id_result_seq OWNER TO postgres;
 
 --
--- TOC entry 5139 (class 0 OID 0)
--- Dependencies: 307
+-- TOC entry 5211 (class 0 OID 0)
+-- Dependencies: 311
 -- Name: network_probe_result_id_result_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -2048,7 +1903,7 @@ ALTER SEQUENCE soporte.network_probe_result_id_result_seq OWNED BY soporte.netwo
 
 
 --
--- TOC entry 306 (class 1259 OID 21668)
+-- TOC entry 310 (class 1259 OID 21668)
 -- Name: network_probe_run; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -2068,7 +1923,7 @@ CREATE TABLE soporte.network_probe_run (
 ALTER TABLE soporte.network_probe_run OWNER TO postgres;
 
 --
--- TOC entry 305 (class 1259 OID 21667)
+-- TOC entry 309 (class 1259 OID 21667)
 -- Name: network_probe_run_id_run_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -2084,8 +1939,8 @@ CREATE SEQUENCE soporte.network_probe_run_id_run_seq
 ALTER SEQUENCE soporte.network_probe_run_id_run_seq OWNER TO postgres;
 
 --
--- TOC entry 5140 (class 0 OID 0)
--- Dependencies: 305
+-- TOC entry 5214 (class 0 OID 0)
+-- Dependencies: 309
 -- Name: network_probe_run_id_run_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -2093,7 +1948,7 @@ ALTER SEQUENCE soporte.network_probe_run_id_run_seq OWNED BY soporte.network_pro
 
 
 --
--- TOC entry 285 (class 1259 OID 20929)
+-- TOC entry 289 (class 1259 OID 20929)
 -- Name: prioridad; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -2108,7 +1963,7 @@ CREATE TABLE soporte.prioridad (
 ALTER TABLE soporte.prioridad OWNER TO postgres;
 
 --
--- TOC entry 286 (class 1259 OID 20937)
+-- TOC entry 290 (class 1259 OID 20937)
 -- Name: prioridad_id_prioridad_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -2124,8 +1979,8 @@ CREATE SEQUENCE soporte.prioridad_id_prioridad_seq
 ALTER SEQUENCE soporte.prioridad_id_prioridad_seq OWNER TO postgres;
 
 --
--- TOC entry 5141 (class 0 OID 0)
--- Dependencies: 286
+-- TOC entry 5217 (class 0 OID 0)
+-- Dependencies: 290
 -- Name: prioridad_id_prioridad_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -2133,7 +1988,7 @@ ALTER SEQUENCE soporte.prioridad_id_prioridad_seq OWNED BY soporte.prioridad.id_
 
 
 --
--- TOC entry 287 (class 1259 OID 20938)
+-- TOC entry 291 (class 1259 OID 20938)
 -- Name: sla_ticket; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -2153,7 +2008,7 @@ CREATE TABLE soporte.sla_ticket (
 ALTER TABLE soporte.sla_ticket OWNER TO postgres;
 
 --
--- TOC entry 288 (class 1259 OID 20950)
+-- TOC entry 292 (class 1259 OID 20950)
 -- Name: sla_ticket_id_sla_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -2169,8 +2024,8 @@ CREATE SEQUENCE soporte.sla_ticket_id_sla_seq
 ALTER SEQUENCE soporte.sla_ticket_id_sla_seq OWNER TO postgres;
 
 --
--- TOC entry 5142 (class 0 OID 0)
--- Dependencies: 288
+-- TOC entry 5220 (class 0 OID 0)
+-- Dependencies: 292
 -- Name: sla_ticket_id_sla_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -2178,7 +2033,7 @@ ALTER SEQUENCE soporte.sla_ticket_id_sla_seq OWNED BY soporte.sla_ticket.id_sla;
 
 
 --
--- TOC entry 289 (class 1259 OID 20951)
+-- TOC entry 293 (class 1259 OID 20951)
 -- Name: solucion_ticket; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -2195,7 +2050,7 @@ CREATE TABLE soporte.solucion_ticket (
 ALTER TABLE soporte.solucion_ticket OWNER TO postgres;
 
 --
--- TOC entry 290 (class 1259 OID 20962)
+-- TOC entry 294 (class 1259 OID 20962)
 -- Name: solucion_ticket_id_solucion_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -2211,8 +2066,8 @@ CREATE SEQUENCE soporte.solucion_ticket_id_solucion_seq
 ALTER SEQUENCE soporte.solucion_ticket_id_solucion_seq OWNER TO postgres;
 
 --
--- TOC entry 5143 (class 0 OID 0)
--- Dependencies: 290
+-- TOC entry 5223 (class 0 OID 0)
+-- Dependencies: 294
 -- Name: solucion_ticket_id_solucion_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -2220,7 +2075,7 @@ ALTER SEQUENCE soporte.solucion_ticket_id_solucion_seq OWNED BY soporte.solucion
 
 
 --
--- TOC entry 291 (class 1259 OID 20963)
+-- TOC entry 295 (class 1259 OID 20963)
 -- Name: ticket; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -2251,8 +2106,8 @@ CREATE TABLE soporte.ticket (
 ALTER TABLE soporte.ticket OWNER TO postgres;
 
 --
--- TOC entry 5144 (class 0 OID 0)
--- Dependencies: 291
+-- TOC entry 5225 (class 0 OID 0)
+-- Dependencies: 295
 -- Name: COLUMN ticket.impacto; Type: COMMENT; Schema: soporte; Owner: postgres
 --
 
@@ -2260,8 +2115,8 @@ COMMENT ON COLUMN soporte.ticket.impacto IS 'Nivel de afectación al negocio (1:
 
 
 --
--- TOC entry 5145 (class 0 OID 0)
--- Dependencies: 291
+-- TOC entry 5226 (class 0 OID 0)
+-- Dependencies: 295
 -- Name: COLUMN ticket.urgencia; Type: COMMENT; Schema: soporte; Owner: postgres
 --
 
@@ -2269,8 +2124,8 @@ COMMENT ON COLUMN soporte.ticket.urgencia IS 'Qué tan rápido debe resolverse (
 
 
 --
--- TOC entry 5146 (class 0 OID 0)
--- Dependencies: 291
+-- TOC entry 5227 (class 0 OID 0)
+-- Dependencies: 295
 -- Name: COLUMN ticket.puntaje_prioridad; Type: COMMENT; Schema: soporte; Owner: postgres
 --
 
@@ -2278,8 +2133,8 @@ COMMENT ON COLUMN soporte.ticket.puntaje_prioridad IS 'Resultado de Impacto x Ur
 
 
 --
--- TOC entry 5147 (class 0 OID 0)
--- Dependencies: 291
+-- TOC entry 5228 (class 0 OID 0)
+-- Dependencies: 295
 -- Name: COLUMN ticket.calificacion_satisfaccion; Type: COMMENT; Schema: soporte; Owner: postgres
 --
 
@@ -2287,8 +2142,8 @@ COMMENT ON COLUMN soporte.ticket.calificacion_satisfaccion IS 'Ponderación de s
 
 
 --
--- TOC entry 5148 (class 0 OID 0)
--- Dependencies: 291
+-- TOC entry 5229 (class 0 OID 0)
+-- Dependencies: 295
 -- Name: COLUMN ticket.comentario_calificacion; Type: COMMENT; Schema: soporte; Owner: postgres
 --
 
@@ -2296,7 +2151,7 @@ COMMENT ON COLUMN soporte.ticket.comentario_calificacion IS 'Comentario opcional
 
 
 --
--- TOC entry 292 (class 1259 OID 20976)
+-- TOC entry 296 (class 1259 OID 20976)
 -- Name: ticket_id_ticket_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -2312,8 +2167,8 @@ CREATE SEQUENCE soporte.ticket_id_ticket_seq
 ALTER SEQUENCE soporte.ticket_id_ticket_seq OWNER TO postgres;
 
 --
--- TOC entry 5149 (class 0 OID 0)
--- Dependencies: 292
+-- TOC entry 5231 (class 0 OID 0)
+-- Dependencies: 296
 -- Name: ticket_id_ticket_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -2321,7 +2176,7 @@ ALTER SEQUENCE soporte.ticket_id_ticket_seq OWNED BY soporte.ticket.id_ticket;
 
 
 --
--- TOC entry 293 (class 1259 OID 20977)
+-- TOC entry 297 (class 1259 OID 20977)
 -- Name: visita_tecnica; Type: TABLE; Schema: soporte; Owner: postgres
 --
 
@@ -2343,8 +2198,8 @@ CREATE TABLE soporte.visita_tecnica (
 ALTER TABLE soporte.visita_tecnica OWNER TO postgres;
 
 --
--- TOC entry 5150 (class 0 OID 0)
--- Dependencies: 293
+-- TOC entry 5233 (class 0 OID 0)
+-- Dependencies: 297
 -- Name: TABLE visita_tecnica; Type: COMMENT; Schema: soporte; Owner: postgres
 --
 
@@ -2352,7 +2207,7 @@ COMMENT ON TABLE soporte.visita_tecnica IS 'Entidad que gestiona las citas prese
 
 
 --
--- TOC entry 294 (class 1259 OID 20990)
+-- TOC entry 298 (class 1259 OID 20990)
 -- Name: visita_tecnica_id_visita_seq; Type: SEQUENCE; Schema: soporte; Owner: postgres
 --
 
@@ -2368,8 +2223,8 @@ CREATE SEQUENCE soporte.visita_tecnica_id_visita_seq
 ALTER SEQUENCE soporte.visita_tecnica_id_visita_seq OWNER TO postgres;
 
 --
--- TOC entry 5151 (class 0 OID 0)
--- Dependencies: 294
+-- TOC entry 5235 (class 0 OID 0)
+-- Dependencies: 298
 -- Name: visita_tecnica_id_visita_seq; Type: SEQUENCE OWNED BY; Schema: soporte; Owner: postgres
 --
 
@@ -2377,7 +2232,7 @@ ALTER SEQUENCE soporte.visita_tecnica_id_visita_seq OWNED BY soporte.visita_tecn
 
 
 --
--- TOC entry 295 (class 1259 OID 20991)
+-- TOC entry 299 (class 1259 OID 20991)
 -- Name: persona; Type: TABLE; Schema: usuarios; Owner: postgres
 --
 
@@ -2401,7 +2256,7 @@ CREATE TABLE usuarios.persona (
 ALTER TABLE usuarios.persona OWNER TO postgres;
 
 --
--- TOC entry 296 (class 1259 OID 21001)
+-- TOC entry 300 (class 1259 OID 21001)
 -- Name: persona_id_persona_seq; Type: SEQUENCE; Schema: usuarios; Owner: postgres
 --
 
@@ -2417,8 +2272,8 @@ CREATE SEQUENCE usuarios.persona_id_persona_seq
 ALTER SEQUENCE usuarios.persona_id_persona_seq OWNER TO postgres;
 
 --
--- TOC entry 5152 (class 0 OID 0)
--- Dependencies: 296
+-- TOC entry 5238 (class 0 OID 0)
+-- Dependencies: 300
 -- Name: persona_id_persona_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
 
@@ -2426,7 +2281,7 @@ ALTER SEQUENCE usuarios.persona_id_persona_seq OWNED BY usuarios.persona.id_pers
 
 
 --
--- TOC entry 297 (class 1259 OID 21002)
+-- TOC entry 301 (class 1259 OID 21002)
 -- Name: rol; Type: TABLE; Schema: usuarios; Owner: postgres
 --
 
@@ -2440,7 +2295,7 @@ CREATE TABLE usuarios.rol (
 ALTER TABLE usuarios.rol OWNER TO postgres;
 
 --
--- TOC entry 298 (class 1259 OID 21009)
+-- TOC entry 302 (class 1259 OID 21009)
 -- Name: rol_bd; Type: TABLE; Schema: usuarios; Owner: postgres
 --
 
@@ -2454,7 +2309,7 @@ CREATE TABLE usuarios.rol_bd (
 ALTER TABLE usuarios.rol_bd OWNER TO postgres;
 
 --
--- TOC entry 299 (class 1259 OID 21016)
+-- TOC entry 303 (class 1259 OID 21016)
 -- Name: rol_bd_id_rol_bd_seq; Type: SEQUENCE; Schema: usuarios; Owner: postgres
 --
 
@@ -2470,8 +2325,8 @@ CREATE SEQUENCE usuarios.rol_bd_id_rol_bd_seq
 ALTER SEQUENCE usuarios.rol_bd_id_rol_bd_seq OWNER TO postgres;
 
 --
--- TOC entry 5153 (class 0 OID 0)
--- Dependencies: 299
+-- TOC entry 5242 (class 0 OID 0)
+-- Dependencies: 303
 -- Name: rol_bd_id_rol_bd_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
 
@@ -2479,7 +2334,7 @@ ALTER SEQUENCE usuarios.rol_bd_id_rol_bd_seq OWNED BY usuarios.rol_bd.id_rol_bd;
 
 
 --
--- TOC entry 300 (class 1259 OID 21017)
+-- TOC entry 304 (class 1259 OID 21017)
 -- Name: rol_id_rol_seq; Type: SEQUENCE; Schema: usuarios; Owner: postgres
 --
 
@@ -2495,8 +2350,8 @@ CREATE SEQUENCE usuarios.rol_id_rol_seq
 ALTER SEQUENCE usuarios.rol_id_rol_seq OWNER TO postgres;
 
 --
--- TOC entry 5154 (class 0 OID 0)
--- Dependencies: 300
+-- TOC entry 5244 (class 0 OID 0)
+-- Dependencies: 304
 -- Name: rol_id_rol_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
 
@@ -2504,7 +2359,7 @@ ALTER SEQUENCE usuarios.rol_id_rol_seq OWNED BY usuarios.rol.id_rol;
 
 
 --
--- TOC entry 301 (class 1259 OID 21018)
+-- TOC entry 305 (class 1259 OID 21018)
 -- Name: usuario; Type: TABLE; Schema: usuarios; Owner: postgres
 --
 
@@ -2524,7 +2379,7 @@ CREATE TABLE usuarios.usuario (
 ALTER TABLE usuarios.usuario OWNER TO postgres;
 
 --
--- TOC entry 302 (class 1259 OID 21030)
+-- TOC entry 306 (class 1259 OID 21030)
 -- Name: usuario_bd; Type: TABLE; Schema: usuarios; Owner: postgres
 --
 
@@ -2540,7 +2395,7 @@ CREATE TABLE usuarios.usuario_bd (
 ALTER TABLE usuarios.usuario_bd OWNER TO postgres;
 
 --
--- TOC entry 303 (class 1259 OID 21038)
+-- TOC entry 307 (class 1259 OID 21038)
 -- Name: usuario_bd_id_usuario_bd_seq; Type: SEQUENCE; Schema: usuarios; Owner: postgres
 --
 
@@ -2556,8 +2411,8 @@ CREATE SEQUENCE usuarios.usuario_bd_id_usuario_bd_seq
 ALTER SEQUENCE usuarios.usuario_bd_id_usuario_bd_seq OWNER TO postgres;
 
 --
--- TOC entry 5155 (class 0 OID 0)
--- Dependencies: 303
+-- TOC entry 5248 (class 0 OID 0)
+-- Dependencies: 307
 -- Name: usuario_bd_id_usuario_bd_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
 
@@ -2565,7 +2420,7 @@ ALTER SEQUENCE usuarios.usuario_bd_id_usuario_bd_seq OWNED BY usuarios.usuario_b
 
 
 --
--- TOC entry 304 (class 1259 OID 21039)
+-- TOC entry 308 (class 1259 OID 21039)
 -- Name: usuario_id_usuario_seq; Type: SEQUENCE; Schema: usuarios; Owner: postgres
 --
 
@@ -2581,8 +2436,8 @@ CREATE SEQUENCE usuarios.usuario_id_usuario_seq
 ALTER SEQUENCE usuarios.usuario_id_usuario_seq OWNER TO postgres;
 
 --
--- TOC entry 5156 (class 0 OID 0)
--- Dependencies: 304
+-- TOC entry 5250 (class 0 OID 0)
+-- Dependencies: 308
 -- Name: usuario_id_usuario_seq; Type: SEQUENCE OWNED BY; Schema: usuarios; Owner: postgres
 --
 
@@ -2590,7 +2445,7 @@ ALTER SEQUENCE usuarios.usuario_id_usuario_seq OWNED BY usuarios.usuario.id_usua
 
 
 --
--- TOC entry 4579 (class 2604 OID 21040)
+-- TOC entry 4582 (class 2604 OID 21040)
 -- Name: auditoria_estado_ticket id_auditoria; Type: DEFAULT; Schema: auditoria; Owner: postgres
 --
 
@@ -2598,7 +2453,7 @@ ALTER TABLE ONLY auditoria.auditoria_estado_ticket ALTER COLUMN id_auditoria SET
 
 
 --
--- TOC entry 4581 (class 2604 OID 21041)
+-- TOC entry 4584 (class 2604 OID 21041)
 -- Name: auditoria_evento id_evento; Type: DEFAULT; Schema: auditoria; Owner: postgres
 --
 
@@ -2606,7 +2461,7 @@ ALTER TABLE ONLY auditoria.auditoria_evento ALTER COLUMN id_evento SET DEFAULT n
 
 
 --
--- TOC entry 4583 (class 2604 OID 21042)
+-- TOC entry 4586 (class 2604 OID 21042)
 -- Name: auditoria_login id_login; Type: DEFAULT; Schema: auditoria; Owner: postgres
 --
 
@@ -2614,7 +2469,7 @@ ALTER TABLE ONLY auditoria.auditoria_login ALTER COLUMN id_login SET DEFAULT nex
 
 
 --
--- TOC entry 4585 (class 2604 OID 21043)
+-- TOC entry 4588 (class 2604 OID 21043)
 -- Name: auditoria_login_bd id_auditoria_login_bd; Type: DEFAULT; Schema: auditoria; Owner: postgres
 --
 
@@ -2622,7 +2477,7 @@ ALTER TABLE ONLY auditoria.auditoria_login_bd ALTER COLUMN id_auditoria_login_bd
 
 
 --
--- TOC entry 4587 (class 2604 OID 21044)
+-- TOC entry 4590 (class 2604 OID 21044)
 -- Name: catalogo id_catalogo; Type: DEFAULT; Schema: catalogos; Owner: postgres
 --
 
@@ -2630,7 +2485,7 @@ ALTER TABLE ONLY catalogos.catalogo ALTER COLUMN id_catalogo SET DEFAULT nextval
 
 
 --
--- TOC entry 4589 (class 2604 OID 21045)
+-- TOC entry 4592 (class 2604 OID 21045)
 -- Name: catalogo_item id_item; Type: DEFAULT; Schema: catalogos; Owner: postgres
 --
 
@@ -2638,7 +2493,7 @@ ALTER TABLE ONLY catalogos.catalogo_item ALTER COLUMN id_item SET DEFAULT nextva
 
 
 --
--- TOC entry 4591 (class 2604 OID 21046)
+-- TOC entry 4594 (class 2604 OID 21046)
 -- Name: canton id_canton; Type: DEFAULT; Schema: clientes; Owner: postgres
 --
 
@@ -2646,7 +2501,7 @@ ALTER TABLE ONLY clientes.canton ALTER COLUMN id_canton SET DEFAULT nextval('cli
 
 
 --
--- TOC entry 4592 (class 2604 OID 21047)
+-- TOC entry 4595 (class 2604 OID 21047)
 -- Name: ciudad id_ciudad; Type: DEFAULT; Schema: clientes; Owner: postgres
 --
 
@@ -2654,7 +2509,7 @@ ALTER TABLE ONLY clientes.ciudad ALTER COLUMN id_ciudad SET DEFAULT nextval('cli
 
 
 --
--- TOC entry 4593 (class 2604 OID 21048)
+-- TOC entry 4596 (class 2604 OID 21048)
 -- Name: cliente id_cliente; Type: DEFAULT; Schema: clientes; Owner: postgres
 --
 
@@ -2662,7 +2517,7 @@ ALTER TABLE ONLY clientes.cliente ALTER COLUMN id_cliente SET DEFAULT nextval('c
 
 
 --
--- TOC entry 4597 (class 2604 OID 21049)
+-- TOC entry 4600 (class 2604 OID 21049)
 -- Name: documento_cliente id_documento; Type: DEFAULT; Schema: clientes; Owner: postgres
 --
 
@@ -2670,7 +2525,7 @@ ALTER TABLE ONLY clientes.documento_cliente ALTER COLUMN id_documento SET DEFAUL
 
 
 --
--- TOC entry 4599 (class 2604 OID 21050)
+-- TOC entry 4602 (class 2604 OID 21050)
 -- Name: pais id_pais; Type: DEFAULT; Schema: clientes; Owner: postgres
 --
 
@@ -2678,7 +2533,7 @@ ALTER TABLE ONLY clientes.pais ALTER COLUMN id_pais SET DEFAULT nextval('cliente
 
 
 --
--- TOC entry 4600 (class 2604 OID 21051)
+-- TOC entry 4603 (class 2604 OID 21051)
 -- Name: tipo_documento id_tipo_documento; Type: DEFAULT; Schema: clientes; Owner: postgres
 --
 
@@ -2686,7 +2541,7 @@ ALTER TABLE ONLY clientes.tipo_documento ALTER COLUMN id_tipo_documento SET DEFA
 
 
 --
--- TOC entry 4601 (class 2604 OID 21052)
+-- TOC entry 4604 (class 2604 OID 21052)
 -- Name: area id_area; Type: DEFAULT; Schema: empleados; Owner: postgres
 --
 
@@ -2694,7 +2549,7 @@ ALTER TABLE ONLY empleados.area ALTER COLUMN id_area SET DEFAULT nextval('emplea
 
 
 --
--- TOC entry 4602 (class 2604 OID 21053)
+-- TOC entry 4605 (class 2604 OID 21053)
 -- Name: cargo id_cargo; Type: DEFAULT; Schema: empleados; Owner: postgres
 --
 
@@ -2702,7 +2557,7 @@ ALTER TABLE ONLY empleados.cargo ALTER COLUMN id_cargo SET DEFAULT nextval('empl
 
 
 --
--- TOC entry 4603 (class 2604 OID 21054)
+-- TOC entry 4606 (class 2604 OID 21054)
 -- Name: documento_empleado id_documento; Type: DEFAULT; Schema: empleados; Owner: postgres
 --
 
@@ -2710,7 +2565,7 @@ ALTER TABLE ONLY empleados.documento_empleado ALTER COLUMN id_documento SET DEFA
 
 
 --
--- TOC entry 4606 (class 2604 OID 21055)
+-- TOC entry 4609 (class 2604 OID 21055)
 -- Name: tipo_contrato id_tipo_contrato; Type: DEFAULT; Schema: empleados; Owner: postgres
 --
 
@@ -2718,7 +2573,7 @@ ALTER TABLE ONLY empleados.tipo_contrato ALTER COLUMN id_tipo_contrato SET DEFAU
 
 
 --
--- TOC entry 4607 (class 2604 OID 21056)
+-- TOC entry 4610 (class 2604 OID 21056)
 -- Name: documento_empresa id_documento; Type: DEFAULT; Schema: empresa; Owner: postgres
 --
 
@@ -2726,7 +2581,7 @@ ALTER TABLE ONLY empresa.documento_empresa ALTER COLUMN id_documento SET DEFAULT
 
 
 --
--- TOC entry 4609 (class 2604 OID 21057)
+-- TOC entry 4612 (class 2604 OID 21057)
 -- Name: empresa id_empresa; Type: DEFAULT; Schema: empresa; Owner: postgres
 --
 
@@ -2734,7 +2589,7 @@ ALTER TABLE ONLY empresa.empresa ALTER COLUMN id_empresa SET DEFAULT nextval('em
 
 
 --
--- TOC entry 4611 (class 2604 OID 21058)
+-- TOC entry 4614 (class 2604 OID 21058)
 -- Name: servicio id_servicio; Type: DEFAULT; Schema: empresa; Owner: postgres
 --
 
@@ -2742,7 +2597,7 @@ ALTER TABLE ONLY empresa.servicio ALTER COLUMN id_servicio SET DEFAULT nextval('
 
 
 --
--- TOC entry 4612 (class 2604 OID 21059)
+-- TOC entry 4615 (class 2604 OID 21059)
 -- Name: sucursal id_sucursal; Type: DEFAULT; Schema: empresa; Owner: postgres
 --
 
@@ -2750,7 +2605,7 @@ ALTER TABLE ONLY empresa.sucursal ALTER COLUMN id_sucursal SET DEFAULT nextval('
 
 
 --
--- TOC entry 4613 (class 2604 OID 21060)
+-- TOC entry 4616 (class 2604 OID 21060)
 -- Name: canal_notificacion id_canal; Type: DEFAULT; Schema: notificaciones; Owner: postgres
 --
 
@@ -2758,7 +2613,7 @@ ALTER TABLE ONLY notificaciones.canal_notificacion ALTER COLUMN id_canal SET DEF
 
 
 --
--- TOC entry 4615 (class 2604 OID 21061)
+-- TOC entry 4618 (class 2604 OID 21061)
 -- Name: notificacion id_notificacion; Type: DEFAULT; Schema: notificaciones; Owner: postgres
 --
 
@@ -2766,7 +2621,7 @@ ALTER TABLE ONLY notificaciones.notificacion ALTER COLUMN id_notificacion SET DE
 
 
 --
--- TOC entry 4618 (class 2604 OID 21062)
+-- TOC entry 4621 (class 2604 OID 21062)
 -- Name: asignacion id_asignacion; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2774,7 +2629,7 @@ ALTER TABLE ONLY soporte.asignacion ALTER COLUMN id_asignacion SET DEFAULT nextv
 
 
 --
--- TOC entry 4621 (class 2604 OID 21063)
+-- TOC entry 4624 (class 2604 OID 21063)
 -- Name: categoria id_categoria; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2782,7 +2637,7 @@ ALTER TABLE ONLY soporte.categoria ALTER COLUMN id_categoria SET DEFAULT nextval
 
 
 --
--- TOC entry 4622 (class 2604 OID 21064)
+-- TOC entry 4625 (class 2604 OID 21064)
 -- Name: comentario_ticket id_comentario; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2790,7 +2645,7 @@ ALTER TABLE ONLY soporte.comentario_ticket ALTER COLUMN id_comentario SET DEFAUL
 
 
 --
--- TOC entry 4625 (class 2604 OID 21065)
+-- TOC entry 4628 (class 2604 OID 21065)
 -- Name: documento_ticket id_documento; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2798,7 +2653,7 @@ ALTER TABLE ONLY soporte.documento_ticket ALTER COLUMN id_documento SET DEFAULT 
 
 
 --
--- TOC entry 4627 (class 2604 OID 21066)
+-- TOC entry 4630 (class 2604 OID 21066)
 -- Name: historial_estado id_historial; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2806,7 +2661,7 @@ ALTER TABLE ONLY soporte.historial_estado ALTER COLUMN id_historial SET DEFAULT 
 
 
 --
--- TOC entry 4650 (class 2604 OID 21682)
+-- TOC entry 4653 (class 2604 OID 21682)
 -- Name: network_probe_result id_result; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2814,7 +2669,7 @@ ALTER TABLE ONLY soporte.network_probe_result ALTER COLUMN id_result SET DEFAULT
 
 
 --
--- TOC entry 4648 (class 2604 OID 21671)
+-- TOC entry 4651 (class 2604 OID 21671)
 -- Name: network_probe_run id_run; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2822,7 +2677,7 @@ ALTER TABLE ONLY soporte.network_probe_run ALTER COLUMN id_run SET DEFAULT nextv
 
 
 --
--- TOC entry 4629 (class 2604 OID 21067)
+-- TOC entry 4632 (class 2604 OID 21067)
 -- Name: prioridad id_prioridad; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2830,7 +2685,7 @@ ALTER TABLE ONLY soporte.prioridad ALTER COLUMN id_prioridad SET DEFAULT nextval
 
 
 --
--- TOC entry 4630 (class 2604 OID 21068)
+-- TOC entry 4633 (class 2604 OID 21068)
 -- Name: sla_ticket id_sla; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2838,7 +2693,7 @@ ALTER TABLE ONLY soporte.sla_ticket ALTER COLUMN id_sla SET DEFAULT nextval('sop
 
 
 --
--- TOC entry 4633 (class 2604 OID 21069)
+-- TOC entry 4636 (class 2604 OID 21069)
 -- Name: solucion_ticket id_solucion; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2846,7 +2701,7 @@ ALTER TABLE ONLY soporte.solucion_ticket ALTER COLUMN id_solucion SET DEFAULT ne
 
 
 --
--- TOC entry 4635 (class 2604 OID 21070)
+-- TOC entry 4638 (class 2604 OID 21070)
 -- Name: ticket id_ticket; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2854,7 +2709,7 @@ ALTER TABLE ONLY soporte.ticket ALTER COLUMN id_ticket SET DEFAULT nextval('sopo
 
 
 --
--- TOC entry 4637 (class 2604 OID 21071)
+-- TOC entry 4640 (class 2604 OID 21071)
 -- Name: visita_tecnica id_visita; Type: DEFAULT; Schema: soporte; Owner: postgres
 --
 
@@ -2862,7 +2717,7 @@ ALTER TABLE ONLY soporte.visita_tecnica ALTER COLUMN id_visita SET DEFAULT nextv
 
 
 --
--- TOC entry 4639 (class 2604 OID 21072)
+-- TOC entry 4642 (class 2604 OID 21072)
 -- Name: persona id_persona; Type: DEFAULT; Schema: usuarios; Owner: postgres
 --
 
@@ -2870,7 +2725,7 @@ ALTER TABLE ONLY usuarios.persona ALTER COLUMN id_persona SET DEFAULT nextval('u
 
 
 --
--- TOC entry 4641 (class 2604 OID 21073)
+-- TOC entry 4644 (class 2604 OID 21073)
 -- Name: rol id_rol; Type: DEFAULT; Schema: usuarios; Owner: postgres
 --
 
@@ -2878,7 +2733,7 @@ ALTER TABLE ONLY usuarios.rol ALTER COLUMN id_rol SET DEFAULT nextval('usuarios.
 
 
 --
--- TOC entry 4642 (class 2604 OID 21074)
+-- TOC entry 4645 (class 2604 OID 21074)
 -- Name: rol_bd id_rol_bd; Type: DEFAULT; Schema: usuarios; Owner: postgres
 --
 
@@ -2886,7 +2741,7 @@ ALTER TABLE ONLY usuarios.rol_bd ALTER COLUMN id_rol_bd SET DEFAULT nextval('usu
 
 
 --
--- TOC entry 4643 (class 2604 OID 21075)
+-- TOC entry 4646 (class 2604 OID 21075)
 -- Name: usuario id_usuario; Type: DEFAULT; Schema: usuarios; Owner: postgres
 --
 
@@ -2894,7 +2749,7 @@ ALTER TABLE ONLY usuarios.usuario ALTER COLUMN id_usuario SET DEFAULT nextval('u
 
 
 --
--- TOC entry 4646 (class 2604 OID 21076)
+-- TOC entry 4649 (class 2604 OID 21076)
 -- Name: usuario_bd id_usuario_bd; Type: DEFAULT; Schema: usuarios; Owner: postgres
 --
 
@@ -2902,8 +2757,8 @@ ALTER TABLE ONLY usuarios.usuario_bd ALTER COLUMN id_usuario_bd SET DEFAULT next
 
 
 --
--- TOC entry 5024 (class 0 OID 20657)
--- Dependencies: 228
+-- TOC entry 5027 (class 0 OID 20657)
+-- Dependencies: 232
 -- Data for Name: auditoria_estado_ticket; Type: TABLE DATA; Schema: auditoria; Owner: postgres
 --
 
@@ -2912,8 +2767,8 @@ COPY auditoria.auditoria_estado_ticket (id_auditoria, id_ticket, usuario_bd, fec
 
 
 --
--- TOC entry 5026 (class 0 OID 20666)
--- Dependencies: 230
+-- TOC entry 5029 (class 0 OID 20666)
+-- Dependencies: 234
 -- Data for Name: auditoria_evento; Type: TABLE DATA; Schema: auditoria; Owner: postgres
 --
 
@@ -2922,8 +2777,8 @@ COPY auditoria.auditoria_evento (id_evento, esquema_afectado, tabla_afectada, id
 
 
 --
--- TOC entry 5028 (class 0 OID 20681)
--- Dependencies: 232
+-- TOC entry 5031 (class 0 OID 20681)
+-- Dependencies: 236
 -- Data for Name: auditoria_login; Type: TABLE DATA; Schema: auditoria; Owner: postgres
 --
 
@@ -2932,8 +2787,8 @@ COPY auditoria.auditoria_login (id_login, usuario_app, usuario_bd, exito, ip_ori
 
 
 --
--- TOC entry 5029 (class 0 OID 20688)
--- Dependencies: 233
+-- TOC entry 5032 (class 0 OID 20688)
+-- Dependencies: 237
 -- Data for Name: auditoria_login_bd; Type: TABLE DATA; Schema: auditoria; Owner: postgres
 --
 
@@ -2942,8 +2797,8 @@ COPY auditoria.auditoria_login_bd (id_auditoria_login_bd, id_usuario_bd, id_item
 
 
 --
--- TOC entry 5032 (class 0 OID 20700)
--- Dependencies: 236
+-- TOC entry 5035 (class 0 OID 20700)
+-- Dependencies: 240
 -- Data for Name: catalogo; Type: TABLE DATA; Schema: catalogos; Owner: postgres
 --
 
@@ -2964,8 +2819,8 @@ COPY catalogos.catalogo (id_catalogo, nombre, descripcion, activo) FROM stdin;
 
 
 --
--- TOC entry 5034 (class 0 OID 20709)
--- Dependencies: 238
+-- TOC entry 5037 (class 0 OID 20709)
+-- Dependencies: 242
 -- Data for Name: catalogo_item; Type: TABLE DATA; Schema: catalogos; Owner: postgres
 --
 
@@ -3002,7 +2857,6 @@ COPY catalogos.catalogo_item (id_item, id_catalogo, codigo, nombre, orden, activ
 10	3	BAJA	Baja	1	t
 3	1	BLOQUEADO	Bloqueado	3	t
 1	1	ACTIVO	Activo	1	t
-2	1	INACTIVO	Inactivo	2	f
 5	2	ASIGNADO	Asignado	2	t
 6	2	EN_PROCESO	En proceso	3	t
 7	2	RESUELTO	Resuelto	4	t
@@ -3018,12 +2872,13 @@ COPY catalogos.catalogo_item (id_item, id_catalogo, codigo, nombre, orden, activ
 46	12	ACTIVO	Activo	1	t
 47	12	INACTIVO	Inactivo	2	t
 48	12	PENDIENTE	Pendiente / En Espera	3	t
+2	1	INACTIVO	Inactivo	2	t
 \.
 
 
 --
--- TOC entry 5036 (class 0 OID 20717)
--- Dependencies: 240
+-- TOC entry 5039 (class 0 OID 20717)
+-- Dependencies: 244
 -- Data for Name: canton; Type: TABLE DATA; Schema: clientes; Owner: postgres
 --
 
@@ -3045,8 +2900,8 @@ COPY clientes.canton (id_canton, nombre, id_ciudad) FROM stdin;
 
 
 --
--- TOC entry 5038 (class 0 OID 20724)
--- Dependencies: 242
+-- TOC entry 5041 (class 0 OID 20724)
+-- Dependencies: 246
 -- Data for Name: ciudad; Type: TABLE DATA; Schema: clientes; Owner: postgres
 --
 
@@ -3080,8 +2935,8 @@ COPY clientes.ciudad (id_ciudad, nombre, id_pais) FROM stdin;
 
 
 --
--- TOC entry 5040 (class 0 OID 20731)
--- Dependencies: 244
+-- TOC entry 5043 (class 0 OID 20731)
+-- Dependencies: 248
 -- Data for Name: cliente; Type: TABLE DATA; Schema: clientes; Owner: postgres
 --
 
@@ -3095,8 +2950,8 @@ COPY clientes.cliente (id_cliente, id_sucursal, id_persona, fecha_inicio_contrat
 
 
 --
--- TOC entry 5042 (class 0 OID 20739)
--- Dependencies: 246
+-- TOC entry 5045 (class 0 OID 20739)
+-- Dependencies: 250
 -- Data for Name: documento_cliente; Type: TABLE DATA; Schema: clientes; Owner: postgres
 --
 
@@ -3107,8 +2962,8 @@ COPY clientes.documento_cliente (id_documento, numero_documento, ruta_archivo, d
 
 
 --
--- TOC entry 5044 (class 0 OID 20751)
--- Dependencies: 248
+-- TOC entry 5047 (class 0 OID 20751)
+-- Dependencies: 252
 -- Data for Name: pais; Type: TABLE DATA; Schema: clientes; Owner: postgres
 --
 
@@ -3118,19 +2973,24 @@ COPY clientes.pais (id_pais, nombre) FROM stdin;
 
 
 --
--- TOC entry 5046 (class 0 OID 20757)
--- Dependencies: 250
+-- TOC entry 5049 (class 0 OID 20757)
+-- Dependencies: 254
 -- Data for Name: tipo_documento; Type: TABLE DATA; Schema: clientes; Owner: postgres
 --
 
 COPY clientes.tipo_documento (id_tipo_documento, codigo) FROM stdin;
 1	FOTO
+3	CONSTANCIA
+4	CONTRATO
+5	CERTIFICADO
+6	ACUERDO
+7	ANEXO
 \.
 
 
 --
--- TOC entry 5048 (class 0 OID 20763)
--- Dependencies: 252
+-- TOC entry 5051 (class 0 OID 20763)
+-- Dependencies: 256
 -- Data for Name: area; Type: TABLE DATA; Schema: empleados; Owner: postgres
 --
 
@@ -3146,8 +3006,8 @@ COPY empleados.area (id_area, nombre) FROM stdin;
 
 
 --
--- TOC entry 5050 (class 0 OID 20769)
--- Dependencies: 254
+-- TOC entry 5053 (class 0 OID 20769)
+-- Dependencies: 258
 -- Data for Name: cargo; Type: TABLE DATA; Schema: empleados; Owner: postgres
 --
 
@@ -3164,28 +3024,30 @@ COPY empleados.cargo (id_cargo, nombre) FROM stdin;
 
 
 --
--- TOC entry 5052 (class 0 OID 20775)
--- Dependencies: 256
+-- TOC entry 5055 (class 0 OID 20775)
+-- Dependencies: 260
 -- Data for Name: documento_empleado; Type: TABLE DATA; Schema: empleados; Owner: postgres
 --
 
 COPY empleados.documento_empleado (id_documento, numero_documento, ruta_archivo, descripcion, fecha_subida, id_empleado, id_tipo_documento, id_catalogo_item_estado, cedula_empleado) FROM stdin;
+6		emp_doc_10_896c0769-62e5-426f-bc74-321328570cce.pdf		2026-03-07 19:47:29.851698	10	3	27	1203587489
 \.
 
 
 --
--- TOC entry 5055 (class 0 OID 20788)
--- Dependencies: 259
+-- TOC entry 5058 (class 0 OID 20788)
+-- Dependencies: 263
 -- Data for Name: empleado; Type: TABLE DATA; Schema: empleados; Owner: postgres
 --
 
 COPY empleados.empleado (fecha_ingreso, id_cargo, id_area, id_tipo_contrato, id_empleado, id_sucursal, id_persona) FROM stdin;
+2026-03-14	4	2	2	10	\N	15
 \.
 
 
 --
--- TOC entry 5056 (class 0 OID 20797)
--- Dependencies: 260
+-- TOC entry 5059 (class 0 OID 20797)
+-- Dependencies: 264
 -- Data for Name: tipo_contrato; Type: TABLE DATA; Schema: empleados; Owner: postgres
 --
 
@@ -3199,8 +3061,8 @@ COPY empleados.tipo_contrato (id_tipo_contrato, nombre) FROM stdin;
 
 
 --
--- TOC entry 5058 (class 0 OID 20803)
--- Dependencies: 262
+-- TOC entry 5061 (class 0 OID 20803)
+-- Dependencies: 266
 -- Data for Name: documento_empresa; Type: TABLE DATA; Schema: empresa; Owner: postgres
 --
 
@@ -3210,8 +3072,8 @@ COPY empresa.documento_empresa (id_documento, id_empresa, numero_documento, ruta
 
 
 --
--- TOC entry 5060 (class 0 OID 20815)
--- Dependencies: 264
+-- TOC entry 5063 (class 0 OID 20815)
+-- Dependencies: 268
 -- Data for Name: empresa; Type: TABLE DATA; Schema: empresa; Owner: postgres
 --
 
@@ -3224,8 +3086,8 @@ COPY empresa.empresa (id_empresa, nombre_comercial, razon_social, ruc, tipo_empr
 
 
 --
--- TOC entry 5062 (class 0 OID 20827)
--- Dependencies: 266
+-- TOC entry 5065 (class 0 OID 20827)
+-- Dependencies: 270
 -- Data for Name: empresa_servicio; Type: TABLE DATA; Schema: empresa; Owner: postgres
 --
 
@@ -3240,8 +3102,8 @@ COPY empresa.empresa_servicio (id_empresa, id_servicio) FROM stdin;
 
 
 --
--- TOC entry 5063 (class 0 OID 20832)
--- Dependencies: 267
+-- TOC entry 5066 (class 0 OID 20832)
+-- Dependencies: 271
 -- Data for Name: servicio; Type: TABLE DATA; Schema: empresa; Owner: postgres
 --
 
@@ -3255,8 +3117,8 @@ COPY empresa.servicio (id_servicio, activo, descripcion, nombre) FROM stdin;
 
 
 --
--- TOC entry 5065 (class 0 OID 20840)
--- Dependencies: 269
+-- TOC entry 5068 (class 0 OID 20840)
+-- Dependencies: 273
 -- Data for Name: sucursal; Type: TABLE DATA; Schema: empresa; Owner: postgres
 --
 
@@ -3268,8 +3130,8 @@ COPY empresa.sucursal (id_sucursal, id_empresa, nombre, direccion, telefono, id_
 
 
 --
--- TOC entry 5067 (class 0 OID 20850)
--- Dependencies: 271
+-- TOC entry 5070 (class 0 OID 20850)
+-- Dependencies: 275
 -- Data for Name: canal_notificacion; Type: TABLE DATA; Schema: notificaciones; Owner: postgres
 --
 
@@ -3278,8 +3140,8 @@ COPY notificaciones.canal_notificacion (id_canal, nombre, activo) FROM stdin;
 
 
 --
--- TOC entry 5069 (class 0 OID 20857)
--- Dependencies: 273
+-- TOC entry 5072 (class 0 OID 20857)
+-- Dependencies: 277
 -- Data for Name: notificacion; Type: TABLE DATA; Schema: notificaciones; Owner: postgres
 --
 
@@ -3288,8 +3150,8 @@ COPY notificaciones.notificacion (id_notificacion, id_canal, destinatario, asunt
 
 
 --
--- TOC entry 5071 (class 0 OID 20870)
--- Dependencies: 275
+-- TOC entry 5074 (class 0 OID 20870)
+-- Dependencies: 279
 -- Data for Name: asignacion; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3313,8 +3175,8 @@ COPY soporte.asignacion (id_asignacion, id_ticket, fecha_asignacion, activo, id_
 
 
 --
--- TOC entry 5073 (class 0 OID 20879)
--- Dependencies: 277
+-- TOC entry 5076 (class 0 OID 20879)
+-- Dependencies: 281
 -- Data for Name: categoria; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3327,8 +3189,8 @@ COPY soporte.categoria (id_categoria, descripcion, nombre, id_item) FROM stdin;
 
 
 --
--- TOC entry 5075 (class 0 OID 20888)
--- Dependencies: 279
+-- TOC entry 5078 (class 0 OID 20888)
+-- Dependencies: 283
 -- Data for Name: comentario_ticket; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3363,8 +3225,8 @@ COPY soporte.comentario_ticket (id_comentario, id_ticket, id_usuario, contenido,
 
 
 --
--- TOC entry 5077 (class 0 OID 20903)
--- Dependencies: 281
+-- TOC entry 5080 (class 0 OID 20903)
+-- Dependencies: 285
 -- Data for Name: documento_ticket; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3373,8 +3235,8 @@ COPY soporte.documento_ticket (id_documento, id_ticket, id_tipo_documento_item, 
 
 
 --
--- TOC entry 5079 (class 0 OID 20917)
--- Dependencies: 283
+-- TOC entry 5082 (class 0 OID 20917)
+-- Dependencies: 287
 -- Data for Name: historial_estado; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3431,8 +3293,8 @@ COPY soporte.historial_estado (id_historial, id_ticket, usuario_bd, fecha_cambio
 
 
 --
--- TOC entry 5104 (class 0 OID 21679)
--- Dependencies: 308
+-- TOC entry 5107 (class 0 OID 21679)
+-- Dependencies: 312
 -- Data for Name: network_probe_result; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3631,12 +3493,60 @@ COPY soporte.network_probe_result (id_result, id_run, zone_type, zone_id, latenc
 192	193	COUNTRY	1	24.184	0	\N	100	GOOD
 193	194	COUNTRY	1	24.219	0	\N	100	GOOD
 194	195	COUNTRY	1	24.204	0	\N	100	GOOD
+195	196	COUNTRY	1	24.083	0	\N	100	GOOD
+196	197	COUNTRY	1	24.011	0	\N	100	GOOD
+197	198	COUNTRY	1	24.011	0	\N	100	GOOD
+198	199	COUNTRY	1	23.798	0	\N	100	GOOD
+199	200	COUNTRY	1	24.675	0	\N	100	GOOD
+200	201	COUNTRY	1	24.061	0	\N	100	GOOD
+201	202	COUNTRY	1	24.017	0	\N	100	GOOD
+202	203	COUNTRY	1	24.057	0	\N	100	GOOD
+203	204	COUNTRY	1	24.055	0	\N	100	GOOD
+204	205	COUNTRY	1	24.121	0	\N	100	GOOD
+205	206	COUNTRY	1	23.959	0	\N	100	GOOD
+206	207	COUNTRY	1	24.051	0	\N	100	GOOD
+207	208	COUNTRY	1	24.062	0	\N	100	GOOD
+208	209	COUNTRY	1	23.873	0	\N	100	GOOD
+209	210	COUNTRY	1	24.029	0	\N	100	GOOD
+210	211	COUNTRY	1	24.017	0	\N	100	GOOD
+211	212	COUNTRY	1	24.076	0	\N	100	GOOD
+212	213	COUNTRY	1	23.937	0	\N	100	GOOD
+213	214	COUNTRY	1	24.263	0	\N	100	GOOD
+214	215	COUNTRY	1	23.998	0	\N	100	GOOD
+215	216	COUNTRY	1	25.143	0	\N	100	GOOD
+216	217	COUNTRY	1	24.266	0	\N	100	GOOD
+217	218	COUNTRY	1	24.532	0	\N	100	GOOD
+218	219	COUNTRY	1	24.418	0	\N	100	GOOD
+219	220	COUNTRY	1	24.288	0	\N	100	GOOD
+220	221	COUNTRY	1	24.342	0	\N	100	GOOD
+221	222	COUNTRY	1	24.235	0	\N	100	GOOD
+222	223	COUNTRY	1	24.32	0	\N	100	GOOD
+223	224	COUNTRY	1	24.298	0	\N	100	GOOD
+224	225	COUNTRY	1	24.38	0	\N	100	GOOD
+225	226	COUNTRY	1	24.385	0	\N	100	GOOD
+226	227	COUNTRY	1	24.522	0	\N	100	GOOD
+227	228	COUNTRY	1	24.255	0	\N	100	GOOD
+228	229	COUNTRY	1	24.436	0	\N	100	GOOD
+229	230	COUNTRY	1	22.938	0	\N	100	GOOD
+230	231	COUNTRY	1	23.108	0	\N	100	GOOD
+231	232	COUNTRY	1	24.764	0	\N	100	GOOD
+232	233	COUNTRY	1	24.34	0	\N	100	GOOD
+233	234	COUNTRY	1	24.807	0	\N	100	GOOD
+234	235	COUNTRY	1	24.55	0	\N	100	GOOD
+235	236	COUNTRY	1	24.414	0	\N	100	GOOD
+236	237	COUNTRY	1	24.632	0	\N	100	GOOD
+237	238	COUNTRY	1	24.545	0	\N	100	GOOD
+238	239	COUNTRY	1	24.562	0	\N	100	GOOD
+239	240	COUNTRY	1	24.523	0	\N	100	GOOD
+240	241	COUNTRY	1	24.353	0	\N	100	GOOD
+241	242	COUNTRY	1	24.632	0	\N	100	GOOD
+242	243	COUNTRY	1	24.635	0	\N	100	GOOD
 \.
 
 
 --
--- TOC entry 5102 (class 0 OID 21668)
--- Dependencies: 306
+-- TOC entry 5105 (class 0 OID 21668)
+-- Dependencies: 310
 -- Data for Name: network_probe_run; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3836,12 +3746,60 @@ COPY soporte.network_probe_run (id_run, target, data_source, created_at, duratio
 193	2001:4860:4860::8888	REAL	2026-03-04 17:49:26.306795	3017	ping	1	t	\N
 194	2001:4860:4860::8888	REAL	2026-03-04 18:04:28.990543	5701	ping	1	t	\N
 195	2001:4860:4860::8888	REAL	2026-03-04 18:19:27.040911	3026	ping	1	t	\N
+196	2001:4860:4860::8888	REAL	2026-03-07 07:03:55.504894	4531	ping	1	t	\N
+197	2001:4860:4860::8888	REAL	2026-03-07 07:18:54.371212	3401	ping	1	t	\N
+198	2001:4860:4860::8888	REAL	2026-03-07 07:33:55.089867	4134	ping	1	t	\N
+199	2001:4860:4860::8888	REAL	2026-03-07 07:48:54.570902	3600	ping	1	t	\N
+200	2001:4860:4860::8888	REAL	2026-03-07 08:03:54.565497	3609	ping	1	t	\N
+201	2001:4860:4860::8888	REAL	2026-03-07 08:18:55.487377	4532	ping	1	t	\N
+202	2001:4860:4860::8888	REAL	2026-03-07 08:33:54.461448	3506	ping	1	t	\N
+203	2001:4860:4860::8888	REAL	2026-03-07 08:48:55.075594	4120	ping	1	t	\N
+204	2001:4860:4860::8888	REAL	2026-03-07 09:06:49.989013	3602	ping	1	t	\N
+205	2001:4860:4860::8888	REAL	2026-03-07 09:08:22.792137	3840	ping	1	t	\N
+206	2001:4860:4860::8888	REAL	2026-03-07 09:23:23.159296	4279	ping	1	t	\N
+207	2001:4860:4860::8888	REAL	2026-03-07 11:26:41.745835	3226	ping	1	t	\N
+208	2001:4860:4860::8888	REAL	2026-03-07 11:41:41.738855	3236	ping	1	t	\N
+209	2001:4860:4860::8888	REAL	2026-03-07 11:56:41.506895	3004	ping	1	t	\N
+210	2001:4860:4860::8888	REAL	2026-03-07 12:11:41.513212	3010	ping	1	t	\N
+211	2001:4860:4860::8888	REAL	2026-03-07 12:26:41.545388	3043	ping	1	t	\N
+212	2001:4860:4860::8888	REAL	2026-03-07 12:41:41.53882	3036	ping	1	t	\N
+213	2001:4860:4860::8888	REAL	2026-03-07 12:45:04.120048	3165	ping	1	t	\N
+214	2001:4860:4860::8888	REAL	2026-03-07 13:00:04.314836	3382	ping	1	t	\N
+215	2001:4860:4860::8888	REAL	2026-03-07 13:15:03.971786	3038	ping	1	t	\N
+216	2001:4860:4860::8888	REAL	2026-03-07 13:30:03.965943	3033	ping	1	t	\N
+217	2001:4860:4860::8888	REAL	2026-03-07 13:45:03.97005	3037	ping	1	t	\N
+218	2001:4860:4860::8888	REAL	2026-03-07 15:03:14.16887	3280	ping	1	t	\N
+219	2001:4860:4860::8888	REAL	2026-03-07 15:18:13.871031	3007	ping	1	t	\N
+220	2001:4860:4860::8888	REAL	2026-03-07 15:28:05.09938	3752	ping	1	t	\N
+221	2001:4860:4860::8888	REAL	2026-03-07 15:43:04.979759	3684	ping	1	t	\N
+222	2001:4860:4860::8888	REAL	2026-03-07 15:55:47.948516	3304	ping	1	t	\N
+223	2001:4860:4860::8888	REAL	2026-03-07 16:10:48.242321	3614	ping	1	t	\N
+224	2001:4860:4860::8888	REAL	2026-03-07 16:25:47.65824	3030	ping	1	t	\N
+225	2001:4860:4860::8888	REAL	2026-03-07 16:40:47.629528	3001	ping	1	t	\N
+226	2001:4860:4860::8888	REAL	2026-03-07 16:55:47.629123	3001	ping	1	t	\N
+227	2001:4860:4860::8888	REAL	2026-03-07 17:10:47.633751	3005	ping	1	t	\N
+228	2001:4860:4860::8888	REAL	2026-03-07 17:11:13.432264	3188	ping	1	t	\N
+229	2001:4860:4860::8888	REAL	2026-03-07 17:23:13.598964	3170	ping	1	t	\N
+230	2001:4860:4860::8888	REAL	2026-03-07 17:33:30.522556	3162	ping	1	t	\N
+231	2001:4860:4860::8888	REAL	2026-03-07 17:34:32.543099	3154	ping	1	t	\N
+232	2001:4860:4860::8888	REAL	2026-03-07 17:49:32.383469	3015	ping	1	t	\N
+233	2001:4860:4860::8888	REAL	2026-03-07 17:50:38.903673	3194	ping	1	t	\N
+234	2001:4860:4860::8888	REAL	2026-03-07 18:05:39.139704	3450	ping	1	t	\N
+235	2001:4860:4860::8888	REAL	2026-03-07 18:20:39.33446	3646	ping	1	t	\N
+236	2001:4860:4860::8888	REAL	2026-03-07 18:22:55.023248	3166	ping	1	t	\N
+237	2001:4860:4860::8888	REAL	2026-03-07 18:37:55.276088	3436	ping	1	t	\N
+238	2001:4860:4860::8888	REAL	2026-03-07 18:52:54.878574	3038	ping	1	t	\N
+239	2001:4860:4860::8888	REAL	2026-03-07 19:07:54.855034	3015	ping	1	t	\N
+240	2001:4860:4860::8888	REAL	2026-03-07 19:22:54.913716	3073	ping	1	t	\N
+241	2001:4860:4860::8888	REAL	2026-03-07 19:37:55.015194	3174	ping	1	t	\N
+242	2001:4860:4860::8888	REAL	2026-03-07 19:46:25.209726	3176	ping	1	t	\N
+243	2001:4860:4860::8888	REAL	2026-03-07 20:01:25.070144	3046	ping	1	t	\N
 \.
 
 
 --
--- TOC entry 5081 (class 0 OID 20929)
--- Dependencies: 285
+-- TOC entry 5084 (class 0 OID 20929)
+-- Dependencies: 289
 -- Data for Name: prioridad; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3855,8 +3813,8 @@ COPY soporte.prioridad (id_prioridad, descripcion, nombre, id_item) FROM stdin;
 
 
 --
--- TOC entry 5083 (class 0 OID 20938)
--- Dependencies: 287
+-- TOC entry 5086 (class 0 OID 20938)
+-- Dependencies: 291
 -- Data for Name: sla_ticket; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3866,8 +3824,8 @@ COPY soporte.sla_ticket (id_sla, nombre, descripcion, tiempo_respuesta_min, tiem
 
 
 --
--- TOC entry 5085 (class 0 OID 20951)
--- Dependencies: 289
+-- TOC entry 5088 (class 0 OID 20951)
+-- Dependencies: 293
 -- Data for Name: solucion_ticket; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3876,8 +3834,8 @@ COPY soporte.solucion_ticket (id_solucion, id_ticket, descripcion_solucion, fue_
 
 
 --
--- TOC entry 5087 (class 0 OID 20963)
--- Dependencies: 291
+-- TOC entry 5090 (class 0 OID 20963)
+-- Dependencies: 295
 -- Data for Name: ticket; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3901,8 +3859,8 @@ COPY soporte.ticket (id_ticket, asunto, descripcion, fecha_creacion, fecha_actua
 
 
 --
--- TOC entry 5089 (class 0 OID 20977)
--- Dependencies: 293
+-- TOC entry 5092 (class 0 OID 20977)
+-- Dependencies: 297
 -- Data for Name: visita_tecnica; Type: TABLE DATA; Schema: soporte; Owner: postgres
 --
 
@@ -3915,8 +3873,8 @@ COPY soporte.visita_tecnica (id_visita, id_ticket, id_usuario_tecnico, id_empres
 
 
 --
--- TOC entry 5091 (class 0 OID 20991)
--- Dependencies: 295
+-- TOC entry 5094 (class 0 OID 20991)
+-- Dependencies: 299
 -- Data for Name: persona; Type: TABLE DATA; Schema: usuarios; Owner: postgres
 --
 
@@ -3927,12 +3885,13 @@ COPY usuarios.persona (id_persona, cedula, nombre, apellido, celular, correo, fe
 6	1250062336	Angel Daniel	Zambrano Yong	0995220227	azambranoy@uteq.edu.ec	\N	\N	\N	2026-02-25 12:08:45.194564	2026-02-25 12:13:04.427962	8	\N
 8	1250062310	Manuel Manolo	Cruz Medrano	\N	zambranoyong1010@gmail.com	\N	\N	\N	2026-02-26 08:38:09.487756	2026-02-26 08:39:07.864473	12	\N
 3	1207910165	Justyn Keith	Cruz Perez	\N	justyncruzperez@gmail.com	\N	\N	\N	2026-02-22 10:54:48.394042	2026-03-01 22:23:49.445955	13	\N
+15	1203587489	Angel Agosti	Mendoza Bermello	0958745126	angelagosti1999@gmail.com	\N	\N	\N	2026-03-07 19:47:07.962033	\N	21	\N
 \.
 
 
 --
--- TOC entry 5093 (class 0 OID 21002)
--- Dependencies: 297
+-- TOC entry 5096 (class 0 OID 21002)
+-- Dependencies: 301
 -- Data for Name: rol; Type: TABLE DATA; Schema: usuarios; Owner: postgres
 --
 
@@ -3946,8 +3905,8 @@ COPY usuarios.rol (id_rol, codigo, descripcion) FROM stdin;
 
 
 --
--- TOC entry 5094 (class 0 OID 21009)
--- Dependencies: 298
+-- TOC entry 5097 (class 0 OID 21009)
+-- Dependencies: 302
 -- Data for Name: rol_bd; Type: TABLE DATA; Schema: usuarios; Owner: postgres
 --
 
@@ -3961,8 +3920,8 @@ COPY usuarios.rol_bd (id_rol_bd, nombre, descripcion) FROM stdin;
 
 
 --
--- TOC entry 5097 (class 0 OID 21018)
--- Dependencies: 301
+-- TOC entry 5100 (class 0 OID 21018)
+-- Dependencies: 305
 -- Data for Name: usuario; Type: TABLE DATA; Schema: usuarios; Owner: postgres
 --
 
@@ -3976,22 +3935,24 @@ COPY usuarios.usuario (id_usuario, username, password_hash, primer_login, id_rol
 8	azambranoy	$2a$10$3dXvEbYOQNDOneJwRArYyejwrXbMn5Lp0FzqKpm.hqbHsiWQY5QvC	f	1	2026-02-25 12:11:27.164129	2026-02-26 07:54:53.857384	3	27
 12	mcruzm	$2a$06$QFU4YWd6R9Wri0rhSNvV9OXlOKsKvkm1qDSquuD0mLw2CfXEG9Tjq	t	1	2026-02-26 08:39:07.853471	\N	3	27
 13	jcruzp	$2a$06$9HeyG2ua.oPLUGLnStIEP.uGkLyPVLhgWfvDSNhRDsjXlJmsTKStq	t	1	2026-03-01 22:23:49.419828	\N	3	27
+21	amendozab1	$2a$06$LmYMR144xx21tRHYoAyR5uoCuqz0/v.hIEPRcLUu9CFIT9X4ljXua	t	2	2026-03-07 19:56:34.756305	\N	1	27
 \.
 
 
 --
--- TOC entry 5098 (class 0 OID 21030)
--- Dependencies: 302
+-- TOC entry 5101 (class 0 OID 21030)
+-- Dependencies: 306
 -- Data for Name: usuario_bd; Type: TABLE DATA; Schema: usuarios; Owner: postgres
 --
 
 COPY usuarios.usuario_bd (id_usuario_bd, nombre, id_rol_bd, fecha_creacion, id_usuario) FROM stdin;
+7	emp_1203587489_21	2	2026-03-07 19:56:34.756305	21
 \.
 
 
 --
--- TOC entry 5157 (class 0 OID 0)
--- Dependencies: 229
+-- TOC entry 5252 (class 0 OID 0)
+-- Dependencies: 233
 -- Name: auditoria_estado_ticket_id_auditoria_seq; Type: SEQUENCE SET; Schema: auditoria; Owner: postgres
 --
 
@@ -3999,8 +3960,8 @@ SELECT pg_catalog.setval('auditoria.auditoria_estado_ticket_id_auditoria_seq', 1
 
 
 --
--- TOC entry 5158 (class 0 OID 0)
--- Dependencies: 231
+-- TOC entry 5253 (class 0 OID 0)
+-- Dependencies: 235
 -- Name: auditoria_evento_id_evento_seq; Type: SEQUENCE SET; Schema: auditoria; Owner: postgres
 --
 
@@ -4008,8 +3969,8 @@ SELECT pg_catalog.setval('auditoria.auditoria_evento_id_evento_seq', 1, false);
 
 
 --
--- TOC entry 5159 (class 0 OID 0)
--- Dependencies: 234
+-- TOC entry 5254 (class 0 OID 0)
+-- Dependencies: 238
 -- Name: auditoria_login_bd_id_auditoria_login_bd_seq; Type: SEQUENCE SET; Schema: auditoria; Owner: postgres
 --
 
@@ -4017,8 +3978,8 @@ SELECT pg_catalog.setval('auditoria.auditoria_login_bd_id_auditoria_login_bd_seq
 
 
 --
--- TOC entry 5160 (class 0 OID 0)
--- Dependencies: 235
+-- TOC entry 5255 (class 0 OID 0)
+-- Dependencies: 239
 -- Name: auditoria_login_id_login_seq; Type: SEQUENCE SET; Schema: auditoria; Owner: postgres
 --
 
@@ -4026,8 +3987,8 @@ SELECT pg_catalog.setval('auditoria.auditoria_login_id_login_seq', 1, false);
 
 
 --
--- TOC entry 5161 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5256 (class 0 OID 0)
+-- Dependencies: 241
 -- Name: catalogo_id_catalogo_seq; Type: SEQUENCE SET; Schema: catalogos; Owner: postgres
 --
 
@@ -4035,8 +3996,8 @@ SELECT pg_catalog.setval('catalogos.catalogo_id_catalogo_seq', 12, true);
 
 
 --
--- TOC entry 5162 (class 0 OID 0)
--- Dependencies: 239
+-- TOC entry 5257 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: catalogo_item_id_item_seq; Type: SEQUENCE SET; Schema: catalogos; Owner: postgres
 --
 
@@ -4044,8 +4005,8 @@ SELECT pg_catalog.setval('catalogos.catalogo_item_id_item_seq', 48, true);
 
 
 --
--- TOC entry 5163 (class 0 OID 0)
--- Dependencies: 241
+-- TOC entry 5258 (class 0 OID 0)
+-- Dependencies: 245
 -- Name: canton_id_canton_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
 
@@ -4053,8 +4014,8 @@ SELECT pg_catalog.setval('clientes.canton_id_canton_seq', 1, false);
 
 
 --
--- TOC entry 5164 (class 0 OID 0)
--- Dependencies: 243
+-- TOC entry 5259 (class 0 OID 0)
+-- Dependencies: 247
 -- Name: ciudad_id_ciudad_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
 
@@ -4062,8 +4023,8 @@ SELECT pg_catalog.setval('clientes.ciudad_id_ciudad_seq', 25, true);
 
 
 --
--- TOC entry 5165 (class 0 OID 0)
--- Dependencies: 245
+-- TOC entry 5260 (class 0 OID 0)
+-- Dependencies: 249
 -- Name: cliente_id_cliente_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
 
@@ -4071,8 +4032,8 @@ SELECT pg_catalog.setval('clientes.cliente_id_cliente_seq', 5, true);
 
 
 --
--- TOC entry 5166 (class 0 OID 0)
--- Dependencies: 247
+-- TOC entry 5261 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: documento_cliente_id_documento_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
 
@@ -4080,8 +4041,8 @@ SELECT pg_catalog.setval('clientes.documento_cliente_id_documento_seq', 2, true)
 
 
 --
--- TOC entry 5167 (class 0 OID 0)
--- Dependencies: 249
+-- TOC entry 5262 (class 0 OID 0)
+-- Dependencies: 253
 -- Name: pais_id_pais_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
 
@@ -4089,17 +4050,17 @@ SELECT pg_catalog.setval('clientes.pais_id_pais_seq', 1, false);
 
 
 --
--- TOC entry 5168 (class 0 OID 0)
--- Dependencies: 251
+-- TOC entry 5263 (class 0 OID 0)
+-- Dependencies: 255
 -- Name: tipo_documento_id_tipo_documento_seq; Type: SEQUENCE SET; Schema: clientes; Owner: postgres
 --
 
-SELECT pg_catalog.setval('clientes.tipo_documento_id_tipo_documento_seq', 2, true);
+SELECT pg_catalog.setval('clientes.tipo_documento_id_tipo_documento_seq', 7, true);
 
 
 --
--- TOC entry 5169 (class 0 OID 0)
--- Dependencies: 253
+-- TOC entry 5264 (class 0 OID 0)
+-- Dependencies: 257
 -- Name: area_id_area_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
 
@@ -4107,8 +4068,8 @@ SELECT pg_catalog.setval('empleados.area_id_area_seq', 7, true);
 
 
 --
--- TOC entry 5170 (class 0 OID 0)
--- Dependencies: 255
+-- TOC entry 5265 (class 0 OID 0)
+-- Dependencies: 259
 -- Name: cargo_id_cargo_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
 
@@ -4116,26 +4077,26 @@ SELECT pg_catalog.setval('empleados.cargo_id_cargo_seq', 8, true);
 
 
 --
--- TOC entry 5171 (class 0 OID 0)
--- Dependencies: 257
+-- TOC entry 5266 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: documento_empleado_id_documento_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
 
-SELECT pg_catalog.setval('empleados.documento_empleado_id_documento_seq', 1, false);
+SELECT pg_catalog.setval('empleados.documento_empleado_id_documento_seq', 6, true);
 
 
 --
--- TOC entry 5172 (class 0 OID 0)
--- Dependencies: 258
+-- TOC entry 5267 (class 0 OID 0)
+-- Dependencies: 262
 -- Name: empleado_id_empleado_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
 
-SELECT pg_catalog.setval('empleados.empleado_id_empleado_seq', 4, true);
+SELECT pg_catalog.setval('empleados.empleado_id_empleado_seq', 10, true);
 
 
 --
--- TOC entry 5173 (class 0 OID 0)
--- Dependencies: 261
+-- TOC entry 5268 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: tipo_contrato_id_tipo_contrato_seq; Type: SEQUENCE SET; Schema: empleados; Owner: postgres
 --
 
@@ -4143,8 +4104,8 @@ SELECT pg_catalog.setval('empleados.tipo_contrato_id_tipo_contrato_seq', 5, true
 
 
 --
--- TOC entry 5174 (class 0 OID 0)
--- Dependencies: 263
+-- TOC entry 5269 (class 0 OID 0)
+-- Dependencies: 267
 -- Name: documento_empresa_id_documento_seq; Type: SEQUENCE SET; Schema: empresa; Owner: postgres
 --
 
@@ -4152,8 +4113,8 @@ SELECT pg_catalog.setval('empresa.documento_empresa_id_documento_seq', 1, true);
 
 
 --
--- TOC entry 5175 (class 0 OID 0)
--- Dependencies: 265
+-- TOC entry 5270 (class 0 OID 0)
+-- Dependencies: 269
 -- Name: empresa_id_empresa_seq; Type: SEQUENCE SET; Schema: empresa; Owner: postgres
 --
 
@@ -4161,8 +4122,8 @@ SELECT pg_catalog.setval('empresa.empresa_id_empresa_seq', 5, true);
 
 
 --
--- TOC entry 5176 (class 0 OID 0)
--- Dependencies: 268
+-- TOC entry 5271 (class 0 OID 0)
+-- Dependencies: 272
 -- Name: servicio_id_servicio_seq; Type: SEQUENCE SET; Schema: empresa; Owner: postgres
 --
 
@@ -4170,8 +4131,8 @@ SELECT pg_catalog.setval('empresa.servicio_id_servicio_seq', 5, true);
 
 
 --
--- TOC entry 5177 (class 0 OID 0)
--- Dependencies: 270
+-- TOC entry 5272 (class 0 OID 0)
+-- Dependencies: 274
 -- Name: sucursal_id_sucursal_seq; Type: SEQUENCE SET; Schema: empresa; Owner: postgres
 --
 
@@ -4179,8 +4140,8 @@ SELECT pg_catalog.setval('empresa.sucursal_id_sucursal_seq', 3, true);
 
 
 --
--- TOC entry 5178 (class 0 OID 0)
--- Dependencies: 272
+-- TOC entry 5273 (class 0 OID 0)
+-- Dependencies: 276
 -- Name: canal_notificacion_id_canal_seq; Type: SEQUENCE SET; Schema: notificaciones; Owner: postgres
 --
 
@@ -4188,8 +4149,8 @@ SELECT pg_catalog.setval('notificaciones.canal_notificacion_id_canal_seq', 1, fa
 
 
 --
--- TOC entry 5179 (class 0 OID 0)
--- Dependencies: 274
+-- TOC entry 5274 (class 0 OID 0)
+-- Dependencies: 278
 -- Name: notificacion_id_notificacion_seq; Type: SEQUENCE SET; Schema: notificaciones; Owner: postgres
 --
 
@@ -4197,8 +4158,8 @@ SELECT pg_catalog.setval('notificaciones.notificacion_id_notificacion_seq', 4, t
 
 
 --
--- TOC entry 5180 (class 0 OID 0)
--- Dependencies: 276
+-- TOC entry 5275 (class 0 OID 0)
+-- Dependencies: 280
 -- Name: asignacion_id_asignacion_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4206,8 +4167,8 @@ SELECT pg_catalog.setval('soporte.asignacion_id_asignacion_seq', 20, true);
 
 
 --
--- TOC entry 5181 (class 0 OID 0)
--- Dependencies: 278
+-- TOC entry 5276 (class 0 OID 0)
+-- Dependencies: 282
 -- Name: categoria_id_categoria_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4215,8 +4176,8 @@ SELECT pg_catalog.setval('soporte.categoria_id_categoria_seq', 4, true);
 
 
 --
--- TOC entry 5182 (class 0 OID 0)
--- Dependencies: 280
+-- TOC entry 5277 (class 0 OID 0)
+-- Dependencies: 284
 -- Name: comentario_ticket_id_comentario_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4224,8 +4185,8 @@ SELECT pg_catalog.setval('soporte.comentario_ticket_id_comentario_seq', 30, true
 
 
 --
--- TOC entry 5183 (class 0 OID 0)
--- Dependencies: 282
+-- TOC entry 5278 (class 0 OID 0)
+-- Dependencies: 286
 -- Name: documento_ticket_id_documento_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4233,8 +4194,8 @@ SELECT pg_catalog.setval('soporte.documento_ticket_id_documento_seq', 1, false);
 
 
 --
--- TOC entry 5184 (class 0 OID 0)
--- Dependencies: 284
+-- TOC entry 5279 (class 0 OID 0)
+-- Dependencies: 288
 -- Name: historial_estado_id_historial_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4242,26 +4203,26 @@ SELECT pg_catalog.setval('soporte.historial_estado_id_historial_seq', 48, true);
 
 
 --
--- TOC entry 5185 (class 0 OID 0)
--- Dependencies: 307
+-- TOC entry 5280 (class 0 OID 0)
+-- Dependencies: 311
 -- Name: network_probe_result_id_result_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
-SELECT pg_catalog.setval('soporte.network_probe_result_id_result_seq', 194, true);
+SELECT pg_catalog.setval('soporte.network_probe_result_id_result_seq', 242, true);
 
 
 --
--- TOC entry 5186 (class 0 OID 0)
--- Dependencies: 305
+-- TOC entry 5281 (class 0 OID 0)
+-- Dependencies: 309
 -- Name: network_probe_run_id_run_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
-SELECT pg_catalog.setval('soporte.network_probe_run_id_run_seq', 195, true);
+SELECT pg_catalog.setval('soporte.network_probe_run_id_run_seq', 243, true);
 
 
 --
--- TOC entry 5187 (class 0 OID 0)
--- Dependencies: 286
+-- TOC entry 5282 (class 0 OID 0)
+-- Dependencies: 290
 -- Name: prioridad_id_prioridad_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4269,8 +4230,8 @@ SELECT pg_catalog.setval('soporte.prioridad_id_prioridad_seq', 5, true);
 
 
 --
--- TOC entry 5188 (class 0 OID 0)
--- Dependencies: 288
+-- TOC entry 5283 (class 0 OID 0)
+-- Dependencies: 292
 -- Name: sla_ticket_id_sla_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4278,8 +4239,8 @@ SELECT pg_catalog.setval('soporte.sla_ticket_id_sla_seq', 1, true);
 
 
 --
--- TOC entry 5189 (class 0 OID 0)
--- Dependencies: 290
+-- TOC entry 5284 (class 0 OID 0)
+-- Dependencies: 294
 -- Name: solucion_ticket_id_solucion_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4287,8 +4248,8 @@ SELECT pg_catalog.setval('soporte.solucion_ticket_id_solucion_seq', 1, false);
 
 
 --
--- TOC entry 5190 (class 0 OID 0)
--- Dependencies: 292
+-- TOC entry 5285 (class 0 OID 0)
+-- Dependencies: 296
 -- Name: ticket_id_ticket_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4296,8 +4257,8 @@ SELECT pg_catalog.setval('soporte.ticket_id_ticket_seq', 15, true);
 
 
 --
--- TOC entry 5191 (class 0 OID 0)
--- Dependencies: 294
+-- TOC entry 5286 (class 0 OID 0)
+-- Dependencies: 298
 -- Name: visita_tecnica_id_visita_seq; Type: SEQUENCE SET; Schema: soporte; Owner: postgres
 --
 
@@ -4305,17 +4266,17 @@ SELECT pg_catalog.setval('soporte.visita_tecnica_id_visita_seq', 5, true);
 
 
 --
--- TOC entry 5192 (class 0 OID 0)
--- Dependencies: 296
+-- TOC entry 5287 (class 0 OID 0)
+-- Dependencies: 300
 -- Name: persona_id_persona_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
 
-SELECT pg_catalog.setval('usuarios.persona_id_persona_seq', 9, true);
+SELECT pg_catalog.setval('usuarios.persona_id_persona_seq', 15, true);
 
 
 --
--- TOC entry 5193 (class 0 OID 0)
--- Dependencies: 299
+-- TOC entry 5288 (class 0 OID 0)
+-- Dependencies: 303
 -- Name: rol_bd_id_rol_bd_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
 
@@ -4323,8 +4284,8 @@ SELECT pg_catalog.setval('usuarios.rol_bd_id_rol_bd_seq', 5, true);
 
 
 --
--- TOC entry 5194 (class 0 OID 0)
--- Dependencies: 300
+-- TOC entry 5289 (class 0 OID 0)
+-- Dependencies: 304
 -- Name: rol_id_rol_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
 
@@ -4332,25 +4293,25 @@ SELECT pg_catalog.setval('usuarios.rol_id_rol_seq', 5, true);
 
 
 --
--- TOC entry 5195 (class 0 OID 0)
--- Dependencies: 303
+-- TOC entry 5290 (class 0 OID 0)
+-- Dependencies: 307
 -- Name: usuario_bd_id_usuario_bd_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
 
-SELECT pg_catalog.setval('usuarios.usuario_bd_id_usuario_bd_seq', 1, false);
+SELECT pg_catalog.setval('usuarios.usuario_bd_id_usuario_bd_seq', 7, true);
 
 
 --
--- TOC entry 5196 (class 0 OID 0)
--- Dependencies: 304
+-- TOC entry 5291 (class 0 OID 0)
+-- Dependencies: 308
 -- Name: usuario_id_usuario_seq; Type: SEQUENCE SET; Schema: usuarios; Owner: postgres
 --
 
-SELECT pg_catalog.setval('usuarios.usuario_id_usuario_seq', 13, true);
+SELECT pg_catalog.setval('usuarios.usuario_id_usuario_seq', 21, true);
 
 
 --
--- TOC entry 4652 (class 2606 OID 21078)
+-- TOC entry 4655 (class 2606 OID 21078)
 -- Name: auditoria_estado_ticket auditoria_estado_ticket_pkey; Type: CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4359,7 +4320,7 @@ ALTER TABLE ONLY auditoria.auditoria_estado_ticket
 
 
 --
--- TOC entry 4654 (class 2606 OID 21080)
+-- TOC entry 4657 (class 2606 OID 21080)
 -- Name: auditoria_evento auditoria_evento_pkey; Type: CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4368,7 +4329,7 @@ ALTER TABLE ONLY auditoria.auditoria_evento
 
 
 --
--- TOC entry 4658 (class 2606 OID 21082)
+-- TOC entry 4661 (class 2606 OID 21082)
 -- Name: auditoria_login_bd auditoria_login_bd_pkey; Type: CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4377,7 +4338,7 @@ ALTER TABLE ONLY auditoria.auditoria_login_bd
 
 
 --
--- TOC entry 4656 (class 2606 OID 21084)
+-- TOC entry 4659 (class 2606 OID 21084)
 -- Name: auditoria_login auditoria_login_pkey; Type: CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4386,7 +4347,7 @@ ALTER TABLE ONLY auditoria.auditoria_login
 
 
 --
--- TOC entry 4664 (class 2606 OID 21086)
+-- TOC entry 4667 (class 2606 OID 21086)
 -- Name: catalogo_item catalogo_item_pkey; Type: CONSTRAINT; Schema: catalogos; Owner: postgres
 --
 
@@ -4395,7 +4356,7 @@ ALTER TABLE ONLY catalogos.catalogo_item
 
 
 --
--- TOC entry 4660 (class 2606 OID 21088)
+-- TOC entry 4663 (class 2606 OID 21088)
 -- Name: catalogo catalogo_nombre_key; Type: CONSTRAINT; Schema: catalogos; Owner: postgres
 --
 
@@ -4404,7 +4365,7 @@ ALTER TABLE ONLY catalogos.catalogo
 
 
 --
--- TOC entry 4662 (class 2606 OID 21090)
+-- TOC entry 4665 (class 2606 OID 21090)
 -- Name: catalogo catalogo_pkey; Type: CONSTRAINT; Schema: catalogos; Owner: postgres
 --
 
@@ -4413,7 +4374,7 @@ ALTER TABLE ONLY catalogos.catalogo
 
 
 --
--- TOC entry 4666 (class 2606 OID 21092)
+-- TOC entry 4669 (class 2606 OID 21092)
 -- Name: canton canton_pkey; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4422,7 +4383,7 @@ ALTER TABLE ONLY clientes.canton
 
 
 --
--- TOC entry 4668 (class 2606 OID 21094)
+-- TOC entry 4671 (class 2606 OID 21094)
 -- Name: ciudad ciudad_pkey; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4431,7 +4392,7 @@ ALTER TABLE ONLY clientes.ciudad
 
 
 --
--- TOC entry 4676 (class 2606 OID 21096)
+-- TOC entry 4679 (class 2606 OID 21096)
 -- Name: documento_cliente documento_cliente_pkey; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4440,7 +4401,7 @@ ALTER TABLE ONLY clientes.documento_cliente
 
 
 --
--- TOC entry 4680 (class 2606 OID 21098)
+-- TOC entry 4683 (class 2606 OID 21098)
 -- Name: pais pais_nombre_key; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4449,7 +4410,7 @@ ALTER TABLE ONLY clientes.pais
 
 
 --
--- TOC entry 4682 (class 2606 OID 21100)
+-- TOC entry 4685 (class 2606 OID 21100)
 -- Name: pais pais_pkey; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4458,7 +4419,7 @@ ALTER TABLE ONLY clientes.pais
 
 
 --
--- TOC entry 4670 (class 2606 OID 21102)
+-- TOC entry 4673 (class 2606 OID 21102)
 -- Name: cliente pk_cliente; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4467,7 +4428,7 @@ ALTER TABLE ONLY clientes.cliente
 
 
 --
--- TOC entry 4684 (class 2606 OID 21104)
+-- TOC entry 4687 (class 2606 OID 21104)
 -- Name: tipo_documento tipo_documento_codigo_key; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4476,7 +4437,7 @@ ALTER TABLE ONLY clientes.tipo_documento
 
 
 --
--- TOC entry 4686 (class 2606 OID 21106)
+-- TOC entry 4689 (class 2606 OID 21106)
 -- Name: tipo_documento tipo_documento_pkey; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4485,7 +4446,7 @@ ALTER TABLE ONLY clientes.tipo_documento
 
 
 --
--- TOC entry 4672 (class 2606 OID 21108)
+-- TOC entry 4675 (class 2606 OID 21108)
 -- Name: cliente uq_cliente_id_cliente; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4494,7 +4455,7 @@ ALTER TABLE ONLY clientes.cliente
 
 
 --
--- TOC entry 4674 (class 2606 OID 21110)
+-- TOC entry 4677 (class 2606 OID 21110)
 -- Name: cliente uq_cliente_persona; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4503,7 +4464,7 @@ ALTER TABLE ONLY clientes.cliente
 
 
 --
--- TOC entry 4678 (class 2606 OID 21112)
+-- TOC entry 4681 (class 2606 OID 21112)
 -- Name: documento_cliente uq_documento_cliente; Type: CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -4512,7 +4473,7 @@ ALTER TABLE ONLY clientes.documento_cliente
 
 
 --
--- TOC entry 4688 (class 2606 OID 21114)
+-- TOC entry 4691 (class 2606 OID 21114)
 -- Name: area area_nombre_key; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4521,7 +4482,7 @@ ALTER TABLE ONLY empleados.area
 
 
 --
--- TOC entry 4690 (class 2606 OID 21116)
+-- TOC entry 4693 (class 2606 OID 21116)
 -- Name: area area_pkey; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4530,7 +4491,7 @@ ALTER TABLE ONLY empleados.area
 
 
 --
--- TOC entry 4692 (class 2606 OID 21118)
+-- TOC entry 4695 (class 2606 OID 21118)
 -- Name: cargo cargo_nombre_key; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4539,7 +4500,7 @@ ALTER TABLE ONLY empleados.cargo
 
 
 --
--- TOC entry 4694 (class 2606 OID 21120)
+-- TOC entry 4697 (class 2606 OID 21120)
 -- Name: cargo cargo_pkey; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4548,7 +4509,7 @@ ALTER TABLE ONLY empleados.cargo
 
 
 --
--- TOC entry 4696 (class 2606 OID 21122)
+-- TOC entry 4699 (class 2606 OID 21122)
 -- Name: documento_empleado documento_empleado_pkey; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4557,7 +4518,7 @@ ALTER TABLE ONLY empleados.documento_empleado
 
 
 --
--- TOC entry 4698 (class 2606 OID 21124)
+-- TOC entry 4701 (class 2606 OID 21124)
 -- Name: empleado pk_empleado; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4566,7 +4527,7 @@ ALTER TABLE ONLY empleados.empleado
 
 
 --
--- TOC entry 4704 (class 2606 OID 21126)
+-- TOC entry 4707 (class 2606 OID 21126)
 -- Name: tipo_contrato tipo_contrato_nombre_key; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4575,7 +4536,7 @@ ALTER TABLE ONLY empleados.tipo_contrato
 
 
 --
--- TOC entry 4706 (class 2606 OID 21128)
+-- TOC entry 4709 (class 2606 OID 21128)
 -- Name: tipo_contrato tipo_contrato_pkey; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4584,7 +4545,7 @@ ALTER TABLE ONLY empleados.tipo_contrato
 
 
 --
--- TOC entry 4700 (class 2606 OID 21130)
+-- TOC entry 4703 (class 2606 OID 21130)
 -- Name: empleado uq_empleado_id_empleado; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4593,7 +4554,7 @@ ALTER TABLE ONLY empleados.empleado
 
 
 --
--- TOC entry 4702 (class 2606 OID 21132)
+-- TOC entry 4705 (class 2606 OID 21132)
 -- Name: empleado uq_empleado_persona; Type: CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -4602,7 +4563,7 @@ ALTER TABLE ONLY empleados.empleado
 
 
 --
--- TOC entry 4708 (class 2606 OID 21134)
+-- TOC entry 4711 (class 2606 OID 21134)
 -- Name: documento_empresa documento_empresa_pkey; Type: CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -4611,7 +4572,7 @@ ALTER TABLE ONLY empresa.documento_empresa
 
 
 --
--- TOC entry 4712 (class 2606 OID 21136)
+-- TOC entry 4715 (class 2606 OID 21136)
 -- Name: empresa empresa_pkey; Type: CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -4620,7 +4581,7 @@ ALTER TABLE ONLY empresa.empresa
 
 
 --
--- TOC entry 4714 (class 2606 OID 21138)
+-- TOC entry 4717 (class 2606 OID 21138)
 -- Name: empresa empresa_ruc_key; Type: CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -4629,7 +4590,7 @@ ALTER TABLE ONLY empresa.empresa
 
 
 --
--- TOC entry 4716 (class 2606 OID 21140)
+-- TOC entry 4719 (class 2606 OID 21140)
 -- Name: empresa_servicio empresa_servicio_pkey; Type: CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -4638,7 +4599,7 @@ ALTER TABLE ONLY empresa.empresa_servicio
 
 
 --
--- TOC entry 4718 (class 2606 OID 21142)
+-- TOC entry 4721 (class 2606 OID 21142)
 -- Name: servicio servicio_pkey; Type: CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -4647,7 +4608,7 @@ ALTER TABLE ONLY empresa.servicio
 
 
 --
--- TOC entry 4722 (class 2606 OID 21144)
+-- TOC entry 4725 (class 2606 OID 21144)
 -- Name: sucursal sucursal_pkey; Type: CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -4656,7 +4617,7 @@ ALTER TABLE ONLY empresa.sucursal
 
 
 --
--- TOC entry 4720 (class 2606 OID 21146)
+-- TOC entry 4723 (class 2606 OID 21146)
 -- Name: servicio uk_5sp1r1csf8w09psuq7p8fatbs; Type: CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -4665,7 +4626,7 @@ ALTER TABLE ONLY empresa.servicio
 
 
 --
--- TOC entry 4710 (class 2606 OID 21148)
+-- TOC entry 4713 (class 2606 OID 21148)
 -- Name: documento_empresa uq_documento_empresa; Type: CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -4674,7 +4635,7 @@ ALTER TABLE ONLY empresa.documento_empresa
 
 
 --
--- TOC entry 4724 (class 2606 OID 21150)
+-- TOC entry 4727 (class 2606 OID 21150)
 -- Name: canal_notificacion canal_notificacion_pkey; Type: CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -4683,7 +4644,7 @@ ALTER TABLE ONLY notificaciones.canal_notificacion
 
 
 --
--- TOC entry 4728 (class 2606 OID 21152)
+-- TOC entry 4731 (class 2606 OID 21152)
 -- Name: notificacion notificacion_pkey; Type: CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -4692,7 +4653,7 @@ ALTER TABLE ONLY notificaciones.notificacion
 
 
 --
--- TOC entry 4726 (class 2606 OID 21154)
+-- TOC entry 4729 (class 2606 OID 21154)
 -- Name: canal_notificacion uq_canal_nombre; Type: CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -4701,7 +4662,7 @@ ALTER TABLE ONLY notificaciones.canal_notificacion
 
 
 --
--- TOC entry 4730 (class 2606 OID 21156)
+-- TOC entry 4733 (class 2606 OID 21156)
 -- Name: asignacion asignacion_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4710,7 +4671,7 @@ ALTER TABLE ONLY soporte.asignacion
 
 
 --
--- TOC entry 4733 (class 2606 OID 21158)
+-- TOC entry 4736 (class 2606 OID 21158)
 -- Name: categoria categoria_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4719,7 +4680,7 @@ ALTER TABLE ONLY soporte.categoria
 
 
 --
--- TOC entry 4737 (class 2606 OID 21160)
+-- TOC entry 4740 (class 2606 OID 21160)
 -- Name: comentario_ticket comentario_ticket_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4728,7 +4689,7 @@ ALTER TABLE ONLY soporte.comentario_ticket
 
 
 --
--- TOC entry 4739 (class 2606 OID 21162)
+-- TOC entry 4742 (class 2606 OID 21162)
 -- Name: documento_ticket documento_ticket_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4737,7 +4698,7 @@ ALTER TABLE ONLY soporte.documento_ticket
 
 
 --
--- TOC entry 4741 (class 2606 OID 21164)
+-- TOC entry 4744 (class 2606 OID 21164)
 -- Name: historial_estado historial_estado_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4746,7 +4707,7 @@ ALTER TABLE ONLY soporte.historial_estado
 
 
 --
--- TOC entry 4783 (class 2606 OID 21688)
+-- TOC entry 4786 (class 2606 OID 21688)
 -- Name: network_probe_result network_probe_result_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4755,7 +4716,7 @@ ALTER TABLE ONLY soporte.network_probe_result
 
 
 --
--- TOC entry 4781 (class 2606 OID 21677)
+-- TOC entry 4784 (class 2606 OID 21677)
 -- Name: network_probe_run network_probe_run_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4764,7 +4725,7 @@ ALTER TABLE ONLY soporte.network_probe_run
 
 
 --
--- TOC entry 4743 (class 2606 OID 21166)
+-- TOC entry 4746 (class 2606 OID 21166)
 -- Name: prioridad prioridad_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4773,7 +4734,7 @@ ALTER TABLE ONLY soporte.prioridad
 
 
 --
--- TOC entry 4747 (class 2606 OID 21168)
+-- TOC entry 4750 (class 2606 OID 21168)
 -- Name: sla_ticket sla_ticket_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4782,7 +4743,7 @@ ALTER TABLE ONLY soporte.sla_ticket
 
 
 --
--- TOC entry 4749 (class 2606 OID 21170)
+-- TOC entry 4752 (class 2606 OID 21170)
 -- Name: solucion_ticket solucion_ticket_id_ticket_key; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4791,7 +4752,7 @@ ALTER TABLE ONLY soporte.solucion_ticket
 
 
 --
--- TOC entry 4751 (class 2606 OID 21172)
+-- TOC entry 4754 (class 2606 OID 21172)
 -- Name: solucion_ticket solucion_ticket_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4800,7 +4761,7 @@ ALTER TABLE ONLY soporte.solucion_ticket
 
 
 --
--- TOC entry 4753 (class 2606 OID 21174)
+-- TOC entry 4756 (class 2606 OID 21174)
 -- Name: ticket ticket_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4809,7 +4770,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4735 (class 2606 OID 21176)
+-- TOC entry 4738 (class 2606 OID 21176)
 -- Name: categoria uk_35t4wyxqrevf09uwx9e9p6o75; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4818,7 +4779,7 @@ ALTER TABLE ONLY soporte.categoria
 
 
 --
--- TOC entry 4745 (class 2606 OID 21178)
+-- TOC entry 4748 (class 2606 OID 21178)
 -- Name: prioridad uk_a578rljygcxqa65srjnxib9le; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4827,7 +4788,7 @@ ALTER TABLE ONLY soporte.prioridad
 
 
 --
--- TOC entry 4755 (class 2606 OID 21180)
+-- TOC entry 4758 (class 2606 OID 21180)
 -- Name: visita_tecnica visita_tecnica_pkey; Type: CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -4836,7 +4797,7 @@ ALTER TABLE ONLY soporte.visita_tecnica
 
 
 --
--- TOC entry 4757 (class 2606 OID 21182)
+-- TOC entry 4760 (class 2606 OID 21182)
 -- Name: persona persona_cedula_key; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4845,7 +4806,7 @@ ALTER TABLE ONLY usuarios.persona
 
 
 --
--- TOC entry 4759 (class 2606 OID 21184)
+-- TOC entry 4762 (class 2606 OID 21184)
 -- Name: persona persona_id_usuario_key; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4854,7 +4815,7 @@ ALTER TABLE ONLY usuarios.persona
 
 
 --
--- TOC entry 4761 (class 2606 OID 21186)
+-- TOC entry 4764 (class 2606 OID 21186)
 -- Name: persona persona_pkey; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4863,7 +4824,7 @@ ALTER TABLE ONLY usuarios.persona
 
 
 --
--- TOC entry 4767 (class 2606 OID 21188)
+-- TOC entry 4770 (class 2606 OID 21188)
 -- Name: rol_bd rol_bd_nombre_key; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4872,7 +4833,7 @@ ALTER TABLE ONLY usuarios.rol_bd
 
 
 --
--- TOC entry 4769 (class 2606 OID 21190)
+-- TOC entry 4772 (class 2606 OID 21190)
 -- Name: rol_bd rol_bd_pkey; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4881,7 +4842,7 @@ ALTER TABLE ONLY usuarios.rol_bd
 
 
 --
--- TOC entry 4763 (class 2606 OID 21192)
+-- TOC entry 4766 (class 2606 OID 21192)
 -- Name: rol rol_codigo_key; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4890,7 +4851,7 @@ ALTER TABLE ONLY usuarios.rol
 
 
 --
--- TOC entry 4765 (class 2606 OID 21194)
+-- TOC entry 4768 (class 2606 OID 21194)
 -- Name: rol rol_pkey; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4899,7 +4860,7 @@ ALTER TABLE ONLY usuarios.rol
 
 
 --
--- TOC entry 4771 (class 2606 OID 21196)
+-- TOC entry 4774 (class 2606 OID 21196)
 -- Name: usuario uk863n1y3x0jalatoir4325ehal; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4908,7 +4869,7 @@ ALTER TABLE ONLY usuarios.usuario
 
 
 --
--- TOC entry 4777 (class 2606 OID 21198)
+-- TOC entry 4780 (class 2606 OID 21198)
 -- Name: usuario_bd usuario_bd_nombre_key; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4917,7 +4878,7 @@ ALTER TABLE ONLY usuarios.usuario_bd
 
 
 --
--- TOC entry 4779 (class 2606 OID 21200)
+-- TOC entry 4782 (class 2606 OID 21200)
 -- Name: usuario_bd usuario_bd_pkey; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4926,7 +4887,7 @@ ALTER TABLE ONLY usuarios.usuario_bd
 
 
 --
--- TOC entry 4773 (class 2606 OID 21202)
+-- TOC entry 4776 (class 2606 OID 21202)
 -- Name: usuario usuario_pkey; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4935,7 +4896,7 @@ ALTER TABLE ONLY usuarios.usuario
 
 
 --
--- TOC entry 4775 (class 2606 OID 21204)
+-- TOC entry 4778 (class 2606 OID 21204)
 -- Name: usuario usuario_username_key; Type: CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -4944,7 +4905,7 @@ ALTER TABLE ONLY usuarios.usuario
 
 
 --
--- TOC entry 4731 (class 1259 OID 21205)
+-- TOC entry 4734 (class 1259 OID 21205)
 -- Name: uq_asignacion_activa; Type: INDEX; Schema: soporte; Owner: postgres
 --
 
@@ -4952,7 +4913,7 @@ CREATE UNIQUE INDEX uq_asignacion_activa ON soporte.asignacion USING btree (id_t
 
 
 --
--- TOC entry 4784 (class 2606 OID 21206)
+-- TOC entry 4787 (class 2606 OID 21206)
 -- Name: auditoria_estado_ticket fk_aud_estado_ant; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4961,7 +4922,7 @@ ALTER TABLE ONLY auditoria.auditoria_estado_ticket
 
 
 --
--- TOC entry 4792 (class 2606 OID 21211)
+-- TOC entry 4795 (class 2606 OID 21211)
 -- Name: auditoria_login fk_aud_login_usuario; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4970,7 +4931,7 @@ ALTER TABLE ONLY auditoria.auditoria_login
 
 
 --
--- TOC entry 4790 (class 2606 OID 21216)
+-- TOC entry 4793 (class 2606 OID 21216)
 -- Name: auditoria_evento fk_auditoria_accion; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4979,7 +4940,7 @@ ALTER TABLE ONLY auditoria.auditoria_evento
 
 
 --
--- TOC entry 4785 (class 2606 OID 21221)
+-- TOC entry 4788 (class 2606 OID 21221)
 -- Name: auditoria_estado_ticket fk_auditoria_estado_ticket; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4988,7 +4949,7 @@ ALTER TABLE ONLY auditoria.auditoria_estado_ticket
 
 
 --
--- TOC entry 4786 (class 2606 OID 21226)
+-- TOC entry 4789 (class 2606 OID 21226)
 -- Name: auditoria_estado_ticket fk_auditoria_estado_ticket_estado; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -4997,7 +4958,7 @@ ALTER TABLE ONLY auditoria.auditoria_estado_ticket
 
 
 --
--- TOC entry 4787 (class 2606 OID 21231)
+-- TOC entry 4790 (class 2606 OID 21231)
 -- Name: auditoria_estado_ticket fk_auditoria_estado_ticket_evento; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5006,7 +4967,7 @@ ALTER TABLE ONLY auditoria.auditoria_estado_ticket
 
 
 --
--- TOC entry 4788 (class 2606 OID 21236)
+-- TOC entry 4791 (class 2606 OID 21236)
 -- Name: auditoria_estado_ticket fk_auditoria_estado_ticket_ticket; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5015,7 +4976,7 @@ ALTER TABLE ONLY auditoria.auditoria_estado_ticket
 
 
 --
--- TOC entry 4789 (class 2606 OID 21241)
+-- TOC entry 4792 (class 2606 OID 21241)
 -- Name: auditoria_estado_ticket fk_auditoria_estado_ticket_usuario; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5024,7 +4985,7 @@ ALTER TABLE ONLY auditoria.auditoria_estado_ticket
 
 
 --
--- TOC entry 4795 (class 2606 OID 21246)
+-- TOC entry 4798 (class 2606 OID 21246)
 -- Name: auditoria_login_bd fk_auditoria_login_bd_evento; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5033,7 +4994,7 @@ ALTER TABLE ONLY auditoria.auditoria_login_bd
 
 
 --
--- TOC entry 4796 (class 2606 OID 21251)
+-- TOC entry 4799 (class 2606 OID 21251)
 -- Name: auditoria_login_bd fk_auditoria_login_bd_usuario; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5042,7 +5003,7 @@ ALTER TABLE ONLY auditoria.auditoria_login_bd
 
 
 --
--- TOC entry 4797 (class 2606 OID 21256)
+-- TOC entry 4800 (class 2606 OID 21256)
 -- Name: auditoria_login_bd fk_auditoria_login_bd_usuario_bd; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5051,7 +5012,7 @@ ALTER TABLE ONLY auditoria.auditoria_login_bd
 
 
 --
--- TOC entry 4793 (class 2606 OID 21261)
+-- TOC entry 4796 (class 2606 OID 21261)
 -- Name: auditoria_login fk_auditoria_login_evento; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5060,7 +5021,7 @@ ALTER TABLE ONLY auditoria.auditoria_login
 
 
 --
--- TOC entry 4794 (class 2606 OID 21266)
+-- TOC entry 4797 (class 2606 OID 21266)
 -- Name: auditoria_login fk_auditoria_login_usuario; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5069,7 +5030,7 @@ ALTER TABLE ONLY auditoria.auditoria_login
 
 
 --
--- TOC entry 4791 (class 2606 OID 21271)
+-- TOC entry 4794 (class 2606 OID 21271)
 -- Name: auditoria_evento fk_auditoria_usuario; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5078,7 +5039,7 @@ ALTER TABLE ONLY auditoria.auditoria_evento
 
 
 --
--- TOC entry 4798 (class 2606 OID 21276)
+-- TOC entry 4801 (class 2606 OID 21276)
 -- Name: auditoria_login_bd fk_login_bd_evento; Type: FK CONSTRAINT; Schema: auditoria; Owner: postgres
 --
 
@@ -5087,7 +5048,7 @@ ALTER TABLE ONLY auditoria.auditoria_login_bd
 
 
 --
--- TOC entry 4799 (class 2606 OID 21281)
+-- TOC entry 4802 (class 2606 OID 21281)
 -- Name: catalogo_item catalogo_item_id_catalogo_fkey; Type: FK CONSTRAINT; Schema: catalogos; Owner: postgres
 --
 
@@ -5096,7 +5057,7 @@ ALTER TABLE ONLY catalogos.catalogo_item
 
 
 --
--- TOC entry 4800 (class 2606 OID 21286)
+-- TOC entry 4803 (class 2606 OID 21286)
 -- Name: canton fk_canton_ciudad; Type: FK CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -5105,7 +5066,7 @@ ALTER TABLE ONLY clientes.canton
 
 
 --
--- TOC entry 4801 (class 2606 OID 21291)
+-- TOC entry 4804 (class 2606 OID 21291)
 -- Name: ciudad fk_ciudad_pais; Type: FK CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -5114,7 +5075,7 @@ ALTER TABLE ONLY clientes.ciudad
 
 
 --
--- TOC entry 4802 (class 2606 OID 21296)
+-- TOC entry 4805 (class 2606 OID 21296)
 -- Name: cliente fk_cliente_persona; Type: FK CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -5123,7 +5084,7 @@ ALTER TABLE ONLY clientes.cliente
 
 
 --
--- TOC entry 4803 (class 2606 OID 21301)
+-- TOC entry 4806 (class 2606 OID 21301)
 -- Name: cliente fk_cliente_sucursal; Type: FK CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -5132,7 +5093,7 @@ ALTER TABLE ONLY clientes.cliente
 
 
 --
--- TOC entry 4804 (class 2606 OID 21306)
+-- TOC entry 4807 (class 2606 OID 21306)
 -- Name: documento_cliente fk_doc_cli_estado; Type: FK CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -5141,7 +5102,7 @@ ALTER TABLE ONLY clientes.documento_cliente
 
 
 --
--- TOC entry 4805 (class 2606 OID 21311)
+-- TOC entry 4808 (class 2606 OID 21311)
 -- Name: documento_cliente fk_documento_cliente_cliente; Type: FK CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -5150,7 +5111,7 @@ ALTER TABLE ONLY clientes.documento_cliente
 
 
 --
--- TOC entry 4806 (class 2606 OID 21316)
+-- TOC entry 4809 (class 2606 OID 21316)
 -- Name: documento_cliente fk_documento_tipo; Type: FK CONSTRAINT; Schema: clientes; Owner: postgres
 --
 
@@ -5159,7 +5120,7 @@ ALTER TABLE ONLY clientes.documento_cliente
 
 
 --
--- TOC entry 4807 (class 2606 OID 21321)
+-- TOC entry 4810 (class 2606 OID 21321)
 -- Name: documento_empleado fk_doc_emp_estado; Type: FK CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -5168,7 +5129,7 @@ ALTER TABLE ONLY empleados.documento_empleado
 
 
 --
--- TOC entry 4808 (class 2606 OID 21326)
+-- TOC entry 4811 (class 2606 OID 21326)
 -- Name: documento_empleado fk_doc_emp_tipo_documento; Type: FK CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -5177,7 +5138,7 @@ ALTER TABLE ONLY empleados.documento_empleado
 
 
 --
--- TOC entry 4809 (class 2606 OID 21331)
+-- TOC entry 4812 (class 2606 OID 21331)
 -- Name: documento_empleado fk_documento_empleado_empleado; Type: FK CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -5186,7 +5147,7 @@ ALTER TABLE ONLY empleados.documento_empleado
 
 
 --
--- TOC entry 4810 (class 2606 OID 21336)
+-- TOC entry 4813 (class 2606 OID 21336)
 -- Name: empleado fk_empleado_area; Type: FK CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -5195,7 +5156,7 @@ ALTER TABLE ONLY empleados.empleado
 
 
 --
--- TOC entry 4811 (class 2606 OID 21341)
+-- TOC entry 4814 (class 2606 OID 21341)
 -- Name: empleado fk_empleado_cargo; Type: FK CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -5204,7 +5165,7 @@ ALTER TABLE ONLY empleados.empleado
 
 
 --
--- TOC entry 4812 (class 2606 OID 21346)
+-- TOC entry 4815 (class 2606 OID 21346)
 -- Name: empleado fk_empleado_persona; Type: FK CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -5213,7 +5174,7 @@ ALTER TABLE ONLY empleados.empleado
 
 
 --
--- TOC entry 4813 (class 2606 OID 21351)
+-- TOC entry 4816 (class 2606 OID 21351)
 -- Name: empleado fk_empleado_sucursal; Type: FK CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -5222,7 +5183,7 @@ ALTER TABLE ONLY empleados.empleado
 
 
 --
--- TOC entry 4814 (class 2606 OID 21356)
+-- TOC entry 4817 (class 2606 OID 21356)
 -- Name: empleado fk_empleado_tipo_contrato_catalogo; Type: FK CONSTRAINT; Schema: empleados; Owner: postgres
 --
 
@@ -5231,7 +5192,7 @@ ALTER TABLE ONLY empleados.empleado
 
 
 --
--- TOC entry 4815 (class 2606 OID 21361)
+-- TOC entry 4818 (class 2606 OID 21361)
 -- Name: documento_empresa documento_empresa_id_empresa_fkey; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5240,7 +5201,7 @@ ALTER TABLE ONLY empresa.documento_empresa
 
 
 --
--- TOC entry 4820 (class 2606 OID 21366)
+-- TOC entry 4823 (class 2606 OID 21366)
 -- Name: empresa_servicio fk4v8ptw3ao3v85rsfvpm19cjpx; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5249,7 +5210,7 @@ ALTER TABLE ONLY empresa.empresa_servicio
 
 
 --
--- TOC entry 4816 (class 2606 OID 21371)
+-- TOC entry 4819 (class 2606 OID 21371)
 -- Name: documento_empresa fk_doc_empresa_estado; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5258,7 +5219,7 @@ ALTER TABLE ONLY empresa.documento_empresa
 
 
 --
--- TOC entry 4817 (class 2606 OID 21376)
+-- TOC entry 4820 (class 2606 OID 21376)
 -- Name: documento_empresa fk_documento_empresa_tipo_documento; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5267,7 +5228,7 @@ ALTER TABLE ONLY empresa.documento_empresa
 
 
 --
--- TOC entry 4818 (class 2606 OID 21381)
+-- TOC entry 4821 (class 2606 OID 21381)
 -- Name: empresa fk_empresa_estado; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5276,7 +5237,7 @@ ALTER TABLE ONLY empresa.empresa
 
 
 --
--- TOC entry 4819 (class 2606 OID 21386)
+-- TOC entry 4822 (class 2606 OID 21386)
 -- Name: empresa fk_empresa_tipo; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5285,7 +5246,7 @@ ALTER TABLE ONLY empresa.empresa
 
 
 --
--- TOC entry 4821 (class 2606 OID 21391)
+-- TOC entry 4824 (class 2606 OID 21391)
 -- Name: empresa_servicio fk_es_empresa; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5294,7 +5255,7 @@ ALTER TABLE ONLY empresa.empresa_servicio
 
 
 --
--- TOC entry 4822 (class 2606 OID 21396)
+-- TOC entry 4825 (class 2606 OID 21396)
 -- Name: sucursal fk_sucursal_canton; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5303,7 +5264,7 @@ ALTER TABLE ONLY empresa.sucursal
 
 
 --
--- TOC entry 4823 (class 2606 OID 21401)
+-- TOC entry 4826 (class 2606 OID 21401)
 -- Name: sucursal fk_sucursal_ciudad; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5312,7 +5273,7 @@ ALTER TABLE ONLY empresa.sucursal
 
 
 --
--- TOC entry 4824 (class 2606 OID 21406)
+-- TOC entry 4827 (class 2606 OID 21406)
 -- Name: sucursal fk_sucursal_empresa; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5321,7 +5282,7 @@ ALTER TABLE ONLY empresa.sucursal
 
 
 --
--- TOC entry 4825 (class 2606 OID 21411)
+-- TOC entry 4828 (class 2606 OID 21411)
 -- Name: sucursal fk_sucursal_estado; Type: FK CONSTRAINT; Schema: empresa; Owner: postgres
 --
 
@@ -5330,7 +5291,7 @@ ALTER TABLE ONLY empresa.sucursal
 
 
 --
--- TOC entry 4826 (class 2606 OID 21416)
+-- TOC entry 4829 (class 2606 OID 21416)
 -- Name: notificacion fk_notificacion_empresa; Type: FK CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -5339,7 +5300,7 @@ ALTER TABLE ONLY notificaciones.notificacion
 
 
 --
--- TOC entry 4827 (class 2606 OID 21421)
+-- TOC entry 4830 (class 2606 OID 21421)
 -- Name: notificacion fk_notificacion_ticket; Type: FK CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -5348,7 +5309,7 @@ ALTER TABLE ONLY notificaciones.notificacion
 
 
 --
--- TOC entry 4828 (class 2606 OID 21426)
+-- TOC entry 4831 (class 2606 OID 21426)
 -- Name: notificacion fk_notificacion_tipo; Type: FK CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -5357,7 +5318,7 @@ ALTER TABLE ONLY notificaciones.notificacion
 
 
 --
--- TOC entry 4829 (class 2606 OID 21431)
+-- TOC entry 4832 (class 2606 OID 21431)
 -- Name: notificacion fk_notificacion_usuario; Type: FK CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -5366,7 +5327,7 @@ ALTER TABLE ONLY notificaciones.notificacion
 
 
 --
--- TOC entry 4830 (class 2606 OID 21436)
+-- TOC entry 4833 (class 2606 OID 21436)
 -- Name: notificacion fk_notificacion_usuario_origen; Type: FK CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -5375,7 +5336,7 @@ ALTER TABLE ONLY notificaciones.notificacion
 
 
 --
--- TOC entry 4831 (class 2606 OID 21441)
+-- TOC entry 4834 (class 2606 OID 21441)
 -- Name: notificacion notificacion_id_canal_fkey; Type: FK CONSTRAINT; Schema: notificaciones; Owner: postgres
 --
 
@@ -5384,7 +5345,7 @@ ALTER TABLE ONLY notificaciones.notificacion
 
 
 --
--- TOC entry 4855 (class 2606 OID 21446)
+-- TOC entry 4858 (class 2606 OID 21446)
 -- Name: ticket fk81l25qsiooc520ve4sm69chsy; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5393,7 +5354,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4843 (class 2606 OID 21451)
+-- TOC entry 4846 (class 2606 OID 21451)
 -- Name: historial_estado fk86k65nur98avxs6ac5ue2sgj; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5402,7 +5363,7 @@ ALTER TABLE ONLY soporte.historial_estado
 
 
 --
--- TOC entry 4832 (class 2606 OID 21456)
+-- TOC entry 4835 (class 2606 OID 21456)
 -- Name: asignacion fk_asignacion_ticket; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5411,7 +5372,7 @@ ALTER TABLE ONLY soporte.asignacion
 
 
 --
--- TOC entry 4833 (class 2606 OID 21461)
+-- TOC entry 4836 (class 2606 OID 21461)
 -- Name: asignacion fk_asignacion_usuario; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5420,7 +5381,7 @@ ALTER TABLE ONLY soporte.asignacion
 
 
 --
--- TOC entry 4835 (class 2606 OID 21466)
+-- TOC entry 4838 (class 2606 OID 21466)
 -- Name: comentario_ticket fk_com_estado; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5429,7 +5390,7 @@ ALTER TABLE ONLY soporte.comentario_ticket
 
 
 --
--- TOC entry 4836 (class 2606 OID 21471)
+-- TOC entry 4839 (class 2606 OID 21471)
 -- Name: comentario_ticket fk_com_ticket; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5438,7 +5399,7 @@ ALTER TABLE ONLY soporte.comentario_ticket
 
 
 --
--- TOC entry 4837 (class 2606 OID 21476)
+-- TOC entry 4840 (class 2606 OID 21476)
 -- Name: comentario_ticket fk_com_usuario; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5447,7 +5408,7 @@ ALTER TABLE ONLY soporte.comentario_ticket
 
 
 --
--- TOC entry 4839 (class 2606 OID 21481)
+-- TOC entry 4842 (class 2606 OID 21481)
 -- Name: documento_ticket fk_doc_estado; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5456,7 +5417,7 @@ ALTER TABLE ONLY soporte.documento_ticket
 
 
 --
--- TOC entry 4840 (class 2606 OID 21486)
+-- TOC entry 4843 (class 2606 OID 21486)
 -- Name: documento_ticket fk_doc_ticket; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5465,7 +5426,7 @@ ALTER TABLE ONLY soporte.documento_ticket
 
 
 --
--- TOC entry 4841 (class 2606 OID 21491)
+-- TOC entry 4844 (class 2606 OID 21491)
 -- Name: documento_ticket fk_doc_tipo; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5474,7 +5435,7 @@ ALTER TABLE ONLY soporte.documento_ticket
 
 
 --
--- TOC entry 4842 (class 2606 OID 21496)
+-- TOC entry 4845 (class 2606 OID 21496)
 -- Name: documento_ticket fk_doc_usuario; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5483,7 +5444,7 @@ ALTER TABLE ONLY soporte.documento_ticket
 
 
 --
--- TOC entry 4844 (class 2606 OID 21501)
+-- TOC entry 4847 (class 2606 OID 21501)
 -- Name: historial_estado fk_hist_estado_anterior; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5492,7 +5453,7 @@ ALTER TABLE ONLY soporte.historial_estado
 
 
 --
--- TOC entry 4845 (class 2606 OID 21506)
+-- TOC entry 4848 (class 2606 OID 21506)
 -- Name: historial_estado fk_hist_estado_nuevo; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5501,7 +5462,7 @@ ALTER TABLE ONLY soporte.historial_estado
 
 
 --
--- TOC entry 4846 (class 2606 OID 21511)
+-- TOC entry 4849 (class 2606 OID 21511)
 -- Name: historial_estado fk_historial_estado_anterior; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5510,7 +5471,7 @@ ALTER TABLE ONLY soporte.historial_estado
 
 
 --
--- TOC entry 4847 (class 2606 OID 21516)
+-- TOC entry 4850 (class 2606 OID 21516)
 -- Name: historial_estado fk_historial_estado_nuevo; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5519,7 +5480,7 @@ ALTER TABLE ONLY soporte.historial_estado
 
 
 --
--- TOC entry 4848 (class 2606 OID 21521)
+-- TOC entry 4851 (class 2606 OID 21521)
 -- Name: historial_estado fk_historial_ticket; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5528,7 +5489,7 @@ ALTER TABLE ONLY soporte.historial_estado
 
 
 --
--- TOC entry 4849 (class 2606 OID 21526)
+-- TOC entry 4852 (class 2606 OID 21526)
 -- Name: historial_estado fk_historial_usuario; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5537,7 +5498,7 @@ ALTER TABLE ONLY soporte.historial_estado
 
 
 --
--- TOC entry 4851 (class 2606 OID 21531)
+-- TOC entry 4854 (class 2606 OID 21531)
 -- Name: sla_ticket fk_sla_prioridad; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5546,7 +5507,7 @@ ALTER TABLE ONLY soporte.sla_ticket
 
 
 --
--- TOC entry 4856 (class 2606 OID 21536)
+-- TOC entry 4859 (class 2606 OID 21536)
 -- Name: ticket fk_ticket_categoria_item; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5555,7 +5516,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4857 (class 2606 OID 21541)
+-- TOC entry 4860 (class 2606 OID 21541)
 -- Name: ticket fk_ticket_cliente; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5564,7 +5525,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4858 (class 2606 OID 21546)
+-- TOC entry 4861 (class 2606 OID 21546)
 -- Name: ticket fk_ticket_estado_item; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5573,7 +5534,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4859 (class 2606 OID 21551)
+-- TOC entry 4862 (class 2606 OID 21551)
 -- Name: ticket fk_ticket_prioridad_item; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5582,7 +5543,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4860 (class 2606 OID 21556)
+-- TOC entry 4863 (class 2606 OID 21556)
 -- Name: ticket fk_ticket_sla; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5591,7 +5552,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4861 (class 2606 OID 21561)
+-- TOC entry 4864 (class 2606 OID 21561)
 -- Name: ticket fk_ticket_sucursal; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5600,7 +5561,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4862 (class 2606 OID 21566)
+-- TOC entry 4865 (class 2606 OID 21566)
 -- Name: ticket fk_ticket_usuario_asignado; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5609,7 +5570,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4863 (class 2606 OID 21571)
+-- TOC entry 4866 (class 2606 OID 21571)
 -- Name: ticket fk_ticket_usuario_creador; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5618,7 +5579,7 @@ ALTER TABLE ONLY soporte.ticket
 
 
 --
--- TOC entry 4864 (class 2606 OID 21576)
+-- TOC entry 4867 (class 2606 OID 21576)
 -- Name: visita_tecnica fk_visita_empresa; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5627,7 +5588,7 @@ ALTER TABLE ONLY soporte.visita_tecnica
 
 
 --
--- TOC entry 4865 (class 2606 OID 21581)
+-- TOC entry 4868 (class 2606 OID 21581)
 -- Name: visita_tecnica fk_visita_estado; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5636,7 +5597,7 @@ ALTER TABLE ONLY soporte.visita_tecnica
 
 
 --
--- TOC entry 4866 (class 2606 OID 21586)
+-- TOC entry 4869 (class 2606 OID 21586)
 -- Name: visita_tecnica fk_visita_tecnico; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5645,7 +5606,7 @@ ALTER TABLE ONLY soporte.visita_tecnica
 
 
 --
--- TOC entry 4867 (class 2606 OID 21591)
+-- TOC entry 4870 (class 2606 OID 21591)
 -- Name: visita_tecnica fk_visita_ticket; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5654,7 +5615,7 @@ ALTER TABLE ONLY soporte.visita_tecnica
 
 
 --
--- TOC entry 4838 (class 2606 OID 21596)
+-- TOC entry 4841 (class 2606 OID 21596)
 -- Name: comentario_ticket fkbv5gyaxos7jsns8fsucflndds; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5663,7 +5624,7 @@ ALTER TABLE ONLY soporte.comentario_ticket
 
 
 --
--- TOC entry 4850 (class 2606 OID 21601)
+-- TOC entry 4853 (class 2606 OID 21601)
 -- Name: prioridad fkcnj24dfocilmvv1yyfjxf89gd; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5672,7 +5633,7 @@ ALTER TABLE ONLY soporte.prioridad
 
 
 --
--- TOC entry 4834 (class 2606 OID 21606)
+-- TOC entry 4837 (class 2606 OID 21606)
 -- Name: categoria fke27el05povf1kt0jl2811tm7r; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5681,7 +5642,7 @@ ALTER TABLE ONLY soporte.categoria
 
 
 --
--- TOC entry 4852 (class 2606 OID 21611)
+-- TOC entry 4855 (class 2606 OID 21611)
 -- Name: sla_ticket fkm9bsgtiqm9fcxfjnewil1mgdw; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5690,7 +5651,7 @@ ALTER TABLE ONLY soporte.sla_ticket
 
 
 --
--- TOC entry 4876 (class 2606 OID 21689)
+-- TOC entry 4879 (class 2606 OID 21689)
 -- Name: network_probe_result network_probe_result_id_run_fkey; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5699,7 +5660,7 @@ ALTER TABLE ONLY soporte.network_probe_result
 
 
 --
--- TOC entry 4853 (class 2606 OID 21616)
+-- TOC entry 4856 (class 2606 OID 21616)
 -- Name: solucion_ticket solucion_ticket_id_ticket_fkey; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5708,7 +5669,7 @@ ALTER TABLE ONLY soporte.solucion_ticket
 
 
 --
--- TOC entry 4854 (class 2606 OID 21621)
+-- TOC entry 4857 (class 2606 OID 21621)
 -- Name: solucion_ticket solucion_ticket_id_usuario_tecnico_fkey; Type: FK CONSTRAINT; Schema: soporte; Owner: postgres
 --
 
@@ -5717,7 +5678,7 @@ ALTER TABLE ONLY soporte.solucion_ticket
 
 
 --
--- TOC entry 4868 (class 2606 OID 21626)
+-- TOC entry 4871 (class 2606 OID 21626)
 -- Name: persona fk_persona_canton; Type: FK CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -5726,7 +5687,7 @@ ALTER TABLE ONLY usuarios.persona
 
 
 --
--- TOC entry 4869 (class 2606 OID 21631)
+-- TOC entry 4872 (class 2606 OID 21631)
 -- Name: persona fk_persona_usuario; Type: FK CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -5735,7 +5696,7 @@ ALTER TABLE ONLY usuarios.persona
 
 
 --
--- TOC entry 4873 (class 2606 OID 21636)
+-- TOC entry 4876 (class 2606 OID 21636)
 -- Name: usuario_bd fk_usuario_bd_rol; Type: FK CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -5744,7 +5705,7 @@ ALTER TABLE ONLY usuarios.usuario_bd
 
 
 --
--- TOC entry 4874 (class 2606 OID 21641)
+-- TOC entry 4877 (class 2606 OID 21641)
 -- Name: usuario_bd fk_usuario_bd_rol_bd; Type: FK CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -5753,7 +5714,7 @@ ALTER TABLE ONLY usuarios.usuario_bd
 
 
 --
--- TOC entry 4875 (class 2606 OID 21646)
+-- TOC entry 4878 (class 2606 OID 21646)
 -- Name: usuario_bd fk_usuario_bd_usuario; Type: FK CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -5762,7 +5723,7 @@ ALTER TABLE ONLY usuarios.usuario_bd
 
 
 --
--- TOC entry 4870 (class 2606 OID 21651)
+-- TOC entry 4873 (class 2606 OID 21651)
 -- Name: usuario fk_usuario_empresa; Type: FK CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -5771,7 +5732,7 @@ ALTER TABLE ONLY usuarios.usuario
 
 
 --
--- TOC entry 4871 (class 2606 OID 21656)
+-- TOC entry 4874 (class 2606 OID 21656)
 -- Name: usuario fk_usuario_estado; Type: FK CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -5780,7 +5741,7 @@ ALTER TABLE ONLY usuarios.usuario
 
 
 --
--- TOC entry 4872 (class 2606 OID 21661)
+-- TOC entry 4875 (class 2606 OID 21661)
 -- Name: usuario fk_usuario_rol; Type: FK CONSTRAINT; Schema: usuarios; Owner: postgres
 --
 
@@ -5788,11 +5749,1024 @@ ALTER TABLE ONLY usuarios.usuario
     ADD CONSTRAINT fk_usuario_rol FOREIGN KEY (id_rol) REFERENCES usuarios.rol(id_rol);
 
 
--- Completed on 2026-03-07 06:44:22 -05
+--
+-- TOC entry 5114 (class 0 OID 0)
+-- Dependencies: 15
+-- Name: SCHEMA auditoria; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT USAGE ON SCHEMA auditoria TO sgiri_app;
+GRANT USAGE ON SCHEMA auditoria TO rol_admin_tecnicos;
+GRANT USAGE ON SCHEMA auditoria TO rol_admin_master;
+GRANT USAGE ON SCHEMA auditoria TO rol_admin_visual;
+
+
+--
+-- TOC entry 5115 (class 0 OID 0)
+-- Dependencies: 17
+-- Name: SCHEMA catalogos; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT USAGE ON SCHEMA catalogos TO sgiri_app;
+GRANT USAGE ON SCHEMA catalogos TO rol_cliente;
+GRANT USAGE ON SCHEMA catalogos TO rol_tecnico;
+GRANT USAGE ON SCHEMA catalogos TO rol_admin_tecnicos;
+GRANT USAGE ON SCHEMA catalogos TO rol_admin_master;
+GRANT USAGE ON SCHEMA catalogos TO rol_admin_visual;
+
+
+--
+-- TOC entry 5116 (class 0 OID 0)
+-- Dependencies: 14
+-- Name: SCHEMA clientes; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT USAGE ON SCHEMA clientes TO sgiri_app;
+GRANT USAGE ON SCHEMA clientes TO rol_tecnico;
+GRANT USAGE ON SCHEMA clientes TO rol_admin_master;
+GRANT USAGE ON SCHEMA clientes TO rol_admin_visual;
+
+
+--
+-- TOC entry 5117 (class 0 OID 0)
+-- Dependencies: 18
+-- Name: SCHEMA empleados; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT USAGE ON SCHEMA empleados TO sgiri_app;
+
+
+--
+-- TOC entry 5118 (class 0 OID 0)
+-- Dependencies: 13
+-- Name: SCHEMA empresa; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT USAGE ON SCHEMA empresa TO sgiri_app;
+GRANT USAGE ON SCHEMA empresa TO rol_cliente;
+GRANT USAGE ON SCHEMA empresa TO rol_tecnico;
+GRANT USAGE ON SCHEMA empresa TO rol_admin_master;
+GRANT USAGE ON SCHEMA empresa TO rol_admin_visual;
+
+
+--
+-- TOC entry 5119 (class 0 OID 0)
+-- Dependencies: 11
+-- Name: SCHEMA notificaciones; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT USAGE ON SCHEMA notificaciones TO sgiri_app;
+GRANT USAGE ON SCHEMA notificaciones TO rol_cliente;
+GRANT USAGE ON SCHEMA notificaciones TO rol_tecnico;
+GRANT USAGE ON SCHEMA notificaciones TO rol_admin_master;
+
+
+--
+-- TOC entry 5120 (class 0 OID 0)
+-- Dependencies: 16
+-- Name: SCHEMA soporte; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT ALL ON SCHEMA soporte TO sgiri_app;
+GRANT USAGE ON SCHEMA soporte TO rol_cliente;
+GRANT USAGE ON SCHEMA soporte TO rol_tecnico;
+GRANT USAGE ON SCHEMA soporte TO rol_admin_master;
+GRANT USAGE ON SCHEMA soporte TO rol_admin_visual;
+
+
+--
+-- TOC entry 5121 (class 0 OID 0)
+-- Dependencies: 12
+-- Name: SCHEMA usuarios; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT USAGE ON SCHEMA usuarios TO sgiri_app;
+GRANT USAGE ON SCHEMA usuarios TO rol_cliente;
+GRANT USAGE ON SCHEMA usuarios TO rol_tecnico;
+GRANT USAGE ON SCHEMA usuarios TO rol_admin_master;
+GRANT USAGE ON SCHEMA usuarios TO rol_admin_visual;
+
+
+--
+-- TOC entry 5123 (class 0 OID 0)
+-- Dependencies: 364
+-- Name: FUNCTION fn_cambiar_credenciales(p_id_usuario integer, p_nuevo_username character varying, p_nueva_password text); Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION usuarios.fn_cambiar_credenciales(p_id_usuario integer, p_nuevo_username character varying, p_nueva_password text) TO sgiri_app;
+GRANT ALL ON FUNCTION usuarios.fn_cambiar_credenciales(p_id_usuario integer, p_nuevo_username character varying, p_nueva_password text) TO rol_admin_master;
+
+
+--
+-- TOC entry 5124 (class 0 OID 0)
+-- Dependencies: 365
+-- Name: FUNCTION fn_crear_usuario_cliente(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_empresa integer, p_id_estado_item integer); Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION usuarios.fn_crear_usuario_cliente(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_empresa integer, p_id_estado_item integer) TO sgiri_app;
+GRANT ALL ON FUNCTION usuarios.fn_crear_usuario_cliente(p_cedula character varying, p_anio_nacimiento integer, p_id_rol integer, p_id_empresa integer, p_id_estado_item integer) TO rol_admin_master;
+
+
+--
+-- TOC entry 5125 (class 0 OID 0)
+-- Dependencies: 366
+-- Name: FUNCTION fn_generar_credenciales(p_cedula character varying, p_anio_nacimiento integer); Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION usuarios.fn_generar_credenciales(p_cedula character varying, p_anio_nacimiento integer) TO sgiri_app;
+GRANT ALL ON FUNCTION usuarios.fn_generar_credenciales(p_cedula character varying, p_anio_nacimiento integer) TO rol_admin_master;
+
+
+--
+-- TOC entry 5126 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: TABLE auditoria_estado_ticket; Type: ACL; Schema: auditoria; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auditoria.auditoria_estado_ticket TO sgiri_app;
+GRANT SELECT ON TABLE auditoria.auditoria_estado_ticket TO rol_admin_tecnicos;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auditoria.auditoria_estado_ticket TO rol_admin_master;
+GRANT SELECT ON TABLE auditoria.auditoria_estado_ticket TO rol_admin_visual;
+
+
+--
+-- TOC entry 5128 (class 0 OID 0)
+-- Dependencies: 233
+-- Name: SEQUENCE auditoria_estado_ticket_id_auditoria_seq; Type: ACL; Schema: auditoria; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE auditoria.auditoria_estado_ticket_id_auditoria_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5129 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: TABLE auditoria_evento; Type: ACL; Schema: auditoria; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auditoria.auditoria_evento TO sgiri_app;
+GRANT SELECT ON TABLE auditoria.auditoria_evento TO rol_admin_tecnicos;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auditoria.auditoria_evento TO rol_admin_master;
+GRANT SELECT ON TABLE auditoria.auditoria_evento TO rol_admin_visual;
+
+
+--
+-- TOC entry 5131 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: SEQUENCE auditoria_evento_id_evento_seq; Type: ACL; Schema: auditoria; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE auditoria.auditoria_evento_id_evento_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5132 (class 0 OID 0)
+-- Dependencies: 236
+-- Name: TABLE auditoria_login; Type: ACL; Schema: auditoria; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auditoria.auditoria_login TO sgiri_app;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auditoria.auditoria_login TO rol_admin_master;
+GRANT SELECT ON TABLE auditoria.auditoria_login TO rol_admin_visual;
+
+
+--
+-- TOC entry 5133 (class 0 OID 0)
+-- Dependencies: 237
+-- Name: TABLE auditoria_login_bd; Type: ACL; Schema: auditoria; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auditoria.auditoria_login_bd TO sgiri_app;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE auditoria.auditoria_login_bd TO rol_admin_master;
+GRANT SELECT ON TABLE auditoria.auditoria_login_bd TO rol_admin_visual;
+
+
+--
+-- TOC entry 5135 (class 0 OID 0)
+-- Dependencies: 238
+-- Name: SEQUENCE auditoria_login_bd_id_auditoria_login_bd_seq; Type: ACL; Schema: auditoria; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE auditoria.auditoria_login_bd_id_auditoria_login_bd_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5137 (class 0 OID 0)
+-- Dependencies: 239
+-- Name: SEQUENCE auditoria_login_id_login_seq; Type: ACL; Schema: auditoria; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE auditoria.auditoria_login_id_login_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5138 (class 0 OID 0)
+-- Dependencies: 240
+-- Name: TABLE catalogo; Type: ACL; Schema: catalogos; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE catalogos.catalogo TO sgiri_app;
+GRANT SELECT ON TABLE catalogos.catalogo TO rol_cliente;
+GRANT SELECT ON TABLE catalogos.catalogo TO rol_tecnico;
+GRANT SELECT ON TABLE catalogos.catalogo TO rol_admin_tecnicos;
+GRANT SELECT ON TABLE catalogos.catalogo TO rol_admin_master;
+GRANT SELECT ON TABLE catalogos.catalogo TO rol_admin_visual;
+
+
+--
+-- TOC entry 5140 (class 0 OID 0)
+-- Dependencies: 241
+-- Name: SEQUENCE catalogo_id_catalogo_seq; Type: ACL; Schema: catalogos; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE catalogos.catalogo_id_catalogo_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5141 (class 0 OID 0)
+-- Dependencies: 242
+-- Name: TABLE catalogo_item; Type: ACL; Schema: catalogos; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE catalogos.catalogo_item TO sgiri_app;
+GRANT SELECT ON TABLE catalogos.catalogo_item TO rol_cliente;
+GRANT SELECT ON TABLE catalogos.catalogo_item TO rol_tecnico;
+GRANT SELECT ON TABLE catalogos.catalogo_item TO rol_admin_tecnicos;
+GRANT SELECT ON TABLE catalogos.catalogo_item TO rol_admin_master;
+GRANT SELECT ON TABLE catalogos.catalogo_item TO rol_admin_visual;
+
+
+--
+-- TOC entry 5143 (class 0 OID 0)
+-- Dependencies: 243
+-- Name: SEQUENCE catalogo_item_id_item_seq; Type: ACL; Schema: catalogos; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE catalogos.catalogo_item_id_item_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5144 (class 0 OID 0)
+-- Dependencies: 244
+-- Name: TABLE canton; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.canton TO sgiri_app;
+GRANT SELECT ON TABLE clientes.canton TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.canton TO rol_admin_master;
+GRANT SELECT ON TABLE clientes.canton TO rol_admin_visual;
+
+
+--
+-- TOC entry 5146 (class 0 OID 0)
+-- Dependencies: 245
+-- Name: SEQUENCE canton_id_canton_seq; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE clientes.canton_id_canton_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5147 (class 0 OID 0)
+-- Dependencies: 246
+-- Name: TABLE ciudad; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.ciudad TO sgiri_app;
+GRANT SELECT ON TABLE clientes.ciudad TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.ciudad TO rol_admin_master;
+GRANT SELECT ON TABLE clientes.ciudad TO rol_admin_visual;
+
+
+--
+-- TOC entry 5149 (class 0 OID 0)
+-- Dependencies: 247
+-- Name: SEQUENCE ciudad_id_ciudad_seq; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE clientes.ciudad_id_ciudad_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5150 (class 0 OID 0)
+-- Dependencies: 248
+-- Name: TABLE cliente; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.cliente TO sgiri_app;
+GRANT SELECT ON TABLE clientes.cliente TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.cliente TO rol_admin_master;
+GRANT SELECT ON TABLE clientes.cliente TO rol_admin_visual;
+
+
+--
+-- TOC entry 5152 (class 0 OID 0)
+-- Dependencies: 249
+-- Name: SEQUENCE cliente_id_cliente_seq; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE clientes.cliente_id_cliente_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5153 (class 0 OID 0)
+-- Dependencies: 250
+-- Name: TABLE documento_cliente; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.documento_cliente TO sgiri_app;
+GRANT SELECT ON TABLE clientes.documento_cliente TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.documento_cliente TO rol_admin_master;
+GRANT SELECT ON TABLE clientes.documento_cliente TO rol_admin_visual;
+
+
+--
+-- TOC entry 5155 (class 0 OID 0)
+-- Dependencies: 251
+-- Name: SEQUENCE documento_cliente_id_documento_seq; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE clientes.documento_cliente_id_documento_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5156 (class 0 OID 0)
+-- Dependencies: 252
+-- Name: TABLE pais; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.pais TO sgiri_app;
+GRANT SELECT ON TABLE clientes.pais TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.pais TO rol_admin_master;
+GRANT SELECT ON TABLE clientes.pais TO rol_admin_visual;
+
+
+--
+-- TOC entry 5158 (class 0 OID 0)
+-- Dependencies: 253
+-- Name: SEQUENCE pais_id_pais_seq; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE clientes.pais_id_pais_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5159 (class 0 OID 0)
+-- Dependencies: 254
+-- Name: TABLE tipo_documento; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.tipo_documento TO sgiri_app;
+GRANT SELECT ON TABLE clientes.tipo_documento TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE clientes.tipo_documento TO rol_admin_master;
+GRANT SELECT ON TABLE clientes.tipo_documento TO rol_admin_visual;
+
+
+--
+-- TOC entry 5161 (class 0 OID 0)
+-- Dependencies: 255
+-- Name: SEQUENCE tipo_documento_id_tipo_documento_seq; Type: ACL; Schema: clientes; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE clientes.tipo_documento_id_tipo_documento_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5162 (class 0 OID 0)
+-- Dependencies: 256
+-- Name: TABLE area; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT SELECT ON TABLE empleados.area TO sgiri_app;
+
+
+--
+-- TOC entry 5164 (class 0 OID 0)
+-- Dependencies: 257
+-- Name: SEQUENCE area_id_area_seq; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empleados.area_id_area_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5165 (class 0 OID 0)
+-- Dependencies: 258
+-- Name: TABLE cargo; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT SELECT ON TABLE empleados.cargo TO sgiri_app;
+
+
+--
+-- TOC entry 5167 (class 0 OID 0)
+-- Dependencies: 259
+-- Name: SEQUENCE cargo_id_cargo_seq; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empleados.cargo_id_cargo_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5168 (class 0 OID 0)
+-- Dependencies: 260
+-- Name: TABLE documento_empleado; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT SELECT,INSERT,UPDATE ON TABLE empleados.documento_empleado TO sgiri_app;
+
+
+--
+-- TOC entry 5170 (class 0 OID 0)
+-- Dependencies: 261
+-- Name: SEQUENCE documento_empleado_id_documento_seq; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empleados.documento_empleado_id_documento_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5171 (class 0 OID 0)
+-- Dependencies: 262
+-- Name: SEQUENCE empleado_id_empleado_seq; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empleados.empleado_id_empleado_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5172 (class 0 OID 0)
+-- Dependencies: 263
+-- Name: TABLE empleado; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT SELECT,INSERT,UPDATE ON TABLE empleados.empleado TO sgiri_app;
+
+
+--
+-- TOC entry 5173 (class 0 OID 0)
+-- Dependencies: 264
+-- Name: TABLE tipo_contrato; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT SELECT ON TABLE empleados.tipo_contrato TO sgiri_app;
+
+
+--
+-- TOC entry 5175 (class 0 OID 0)
+-- Dependencies: 265
+-- Name: SEQUENCE tipo_contrato_id_tipo_contrato_seq; Type: ACL; Schema: empleados; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empleados.tipo_contrato_id_tipo_contrato_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5176 (class 0 OID 0)
+-- Dependencies: 266
+-- Name: TABLE documento_empresa; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.documento_empresa TO sgiri_app;
+GRANT SELECT ON TABLE empresa.documento_empresa TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.documento_empresa TO rol_admin_master;
+GRANT SELECT ON TABLE empresa.documento_empresa TO rol_admin_visual;
+
+
+--
+-- TOC entry 5178 (class 0 OID 0)
+-- Dependencies: 267
+-- Name: SEQUENCE documento_empresa_id_documento_seq; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empresa.documento_empresa_id_documento_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5179 (class 0 OID 0)
+-- Dependencies: 268
+-- Name: TABLE empresa; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.empresa TO sgiri_app;
+GRANT SELECT ON TABLE empresa.empresa TO rol_cliente;
+GRANT SELECT ON TABLE empresa.empresa TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.empresa TO rol_admin_master;
+GRANT SELECT ON TABLE empresa.empresa TO rol_admin_visual;
+
+
+--
+-- TOC entry 5181 (class 0 OID 0)
+-- Dependencies: 269
+-- Name: SEQUENCE empresa_id_empresa_seq; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empresa.empresa_id_empresa_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5182 (class 0 OID 0)
+-- Dependencies: 270
+-- Name: TABLE empresa_servicio; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.empresa_servicio TO sgiri_app;
+GRANT SELECT ON TABLE empresa.empresa_servicio TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.empresa_servicio TO rol_admin_master;
+GRANT SELECT ON TABLE empresa.empresa_servicio TO rol_admin_visual;
+
+
+--
+-- TOC entry 5183 (class 0 OID 0)
+-- Dependencies: 271
+-- Name: TABLE servicio; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.servicio TO sgiri_app;
+GRANT SELECT ON TABLE empresa.servicio TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.servicio TO rol_admin_master;
+GRANT SELECT ON TABLE empresa.servicio TO rol_admin_visual;
+
+
+--
+-- TOC entry 5185 (class 0 OID 0)
+-- Dependencies: 272
+-- Name: SEQUENCE servicio_id_servicio_seq; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empresa.servicio_id_servicio_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5186 (class 0 OID 0)
+-- Dependencies: 273
+-- Name: TABLE sucursal; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.sucursal TO sgiri_app;
+GRANT SELECT ON TABLE empresa.sucursal TO rol_cliente;
+GRANT SELECT ON TABLE empresa.sucursal TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE empresa.sucursal TO rol_admin_master;
+GRANT SELECT ON TABLE empresa.sucursal TO rol_admin_visual;
+
+
+--
+-- TOC entry 5188 (class 0 OID 0)
+-- Dependencies: 274
+-- Name: SEQUENCE sucursal_id_sucursal_seq; Type: ACL; Schema: empresa; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE empresa.sucursal_id_sucursal_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5189 (class 0 OID 0)
+-- Dependencies: 275
+-- Name: TABLE canal_notificacion; Type: ACL; Schema: notificaciones; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE notificaciones.canal_notificacion TO sgiri_app;
+
+
+--
+-- TOC entry 5191 (class 0 OID 0)
+-- Dependencies: 276
+-- Name: SEQUENCE canal_notificacion_id_canal_seq; Type: ACL; Schema: notificaciones; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE notificaciones.canal_notificacion_id_canal_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5192 (class 0 OID 0)
+-- Dependencies: 277
+-- Name: TABLE notificacion; Type: ACL; Schema: notificaciones; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE notificaciones.notificacion TO sgiri_app;
+
+
+--
+-- TOC entry 5194 (class 0 OID 0)
+-- Dependencies: 278
+-- Name: SEQUENCE notificacion_id_notificacion_seq; Type: ACL; Schema: notificaciones; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE notificaciones.notificacion_id_notificacion_seq TO sgiri_app;
+
+
+--
+-- TOC entry 5195 (class 0 OID 0)
+-- Dependencies: 279
+-- Name: TABLE asignacion; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.asignacion TO sgiri_app;
+GRANT SELECT ON TABLE soporte.asignacion TO rol_cliente;
+GRANT SELECT,INSERT,UPDATE ON TABLE soporte.asignacion TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.asignacion TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.asignacion TO rol_admin_visual;
+
+
+--
+-- TOC entry 5197 (class 0 OID 0)
+-- Dependencies: 280
+-- Name: SEQUENCE asignacion_id_asignacion_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.asignacion_id_asignacion_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.asignacion_id_asignacion_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.asignacion_id_asignacion_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.asignacion_id_asignacion_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5198 (class 0 OID 0)
+-- Dependencies: 281
+-- Name: TABLE categoria; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.categoria TO sgiri_app;
+GRANT SELECT ON TABLE soporte.categoria TO rol_cliente;
+GRANT SELECT ON TABLE soporte.categoria TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.categoria TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.categoria TO rol_admin_visual;
+
+
+--
+-- TOC entry 5200 (class 0 OID 0)
+-- Dependencies: 282
+-- Name: SEQUENCE categoria_id_categoria_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.categoria_id_categoria_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.categoria_id_categoria_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.categoria_id_categoria_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.categoria_id_categoria_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5201 (class 0 OID 0)
+-- Dependencies: 283
+-- Name: TABLE comentario_ticket; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.comentario_ticket TO sgiri_app;
+GRANT SELECT,INSERT,UPDATE ON TABLE soporte.comentario_ticket TO rol_cliente;
+GRANT SELECT,INSERT,UPDATE ON TABLE soporte.comentario_ticket TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.comentario_ticket TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.comentario_ticket TO rol_admin_visual;
+
+
+--
+-- TOC entry 5203 (class 0 OID 0)
+-- Dependencies: 284
+-- Name: SEQUENCE comentario_ticket_id_comentario_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.comentario_ticket_id_comentario_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.comentario_ticket_id_comentario_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.comentario_ticket_id_comentario_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.comentario_ticket_id_comentario_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5204 (class 0 OID 0)
+-- Dependencies: 285
+-- Name: TABLE documento_ticket; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.documento_ticket TO sgiri_app;
+GRANT SELECT ON TABLE soporte.documento_ticket TO rol_cliente;
+GRANT SELECT ON TABLE soporte.documento_ticket TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.documento_ticket TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.documento_ticket TO rol_admin_visual;
+
+
+--
+-- TOC entry 5206 (class 0 OID 0)
+-- Dependencies: 286
+-- Name: SEQUENCE documento_ticket_id_documento_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.documento_ticket_id_documento_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.documento_ticket_id_documento_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.documento_ticket_id_documento_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.documento_ticket_id_documento_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5207 (class 0 OID 0)
+-- Dependencies: 287
+-- Name: TABLE historial_estado; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.historial_estado TO sgiri_app;
+GRANT SELECT,INSERT ON TABLE soporte.historial_estado TO rol_cliente;
+GRANT SELECT,INSERT,UPDATE ON TABLE soporte.historial_estado TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.historial_estado TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.historial_estado TO rol_admin_visual;
+
+
+--
+-- TOC entry 5209 (class 0 OID 0)
+-- Dependencies: 288
+-- Name: SEQUENCE historial_estado_id_historial_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.historial_estado_id_historial_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.historial_estado_id_historial_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.historial_estado_id_historial_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.historial_estado_id_historial_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5210 (class 0 OID 0)
+-- Dependencies: 312
+-- Name: TABLE network_probe_result; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.network_probe_result TO sgiri_app;
+GRANT SELECT ON TABLE soporte.network_probe_result TO rol_cliente;
+GRANT SELECT ON TABLE soporte.network_probe_result TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.network_probe_result TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.network_probe_result TO rol_admin_visual;
+
+
+--
+-- TOC entry 5212 (class 0 OID 0)
+-- Dependencies: 311
+-- Name: SEQUENCE network_probe_result_id_result_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.network_probe_result_id_result_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.network_probe_result_id_result_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.network_probe_result_id_result_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.network_probe_result_id_result_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5213 (class 0 OID 0)
+-- Dependencies: 310
+-- Name: TABLE network_probe_run; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.network_probe_run TO sgiri_app;
+GRANT SELECT ON TABLE soporte.network_probe_run TO rol_cliente;
+GRANT SELECT ON TABLE soporte.network_probe_run TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.network_probe_run TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.network_probe_run TO rol_admin_visual;
+
+
+--
+-- TOC entry 5215 (class 0 OID 0)
+-- Dependencies: 309
+-- Name: SEQUENCE network_probe_run_id_run_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.network_probe_run_id_run_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.network_probe_run_id_run_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.network_probe_run_id_run_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.network_probe_run_id_run_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5216 (class 0 OID 0)
+-- Dependencies: 289
+-- Name: TABLE prioridad; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.prioridad TO sgiri_app;
+GRANT SELECT ON TABLE soporte.prioridad TO rol_cliente;
+GRANT SELECT ON TABLE soporte.prioridad TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.prioridad TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.prioridad TO rol_admin_visual;
+
+
+--
+-- TOC entry 5218 (class 0 OID 0)
+-- Dependencies: 290
+-- Name: SEQUENCE prioridad_id_prioridad_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.prioridad_id_prioridad_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.prioridad_id_prioridad_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.prioridad_id_prioridad_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.prioridad_id_prioridad_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5219 (class 0 OID 0)
+-- Dependencies: 291
+-- Name: TABLE sla_ticket; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.sla_ticket TO sgiri_app;
+GRANT SELECT ON TABLE soporte.sla_ticket TO rol_cliente;
+GRANT SELECT ON TABLE soporte.sla_ticket TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.sla_ticket TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.sla_ticket TO rol_admin_visual;
+
+
+--
+-- TOC entry 5221 (class 0 OID 0)
+-- Dependencies: 292
+-- Name: SEQUENCE sla_ticket_id_sla_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.sla_ticket_id_sla_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.sla_ticket_id_sla_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.sla_ticket_id_sla_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.sla_ticket_id_sla_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5222 (class 0 OID 0)
+-- Dependencies: 293
+-- Name: TABLE solucion_ticket; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.solucion_ticket TO sgiri_app;
+GRANT SELECT ON TABLE soporte.solucion_ticket TO rol_cliente;
+GRANT SELECT ON TABLE soporte.solucion_ticket TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.solucion_ticket TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.solucion_ticket TO rol_admin_visual;
+
+
+--
+-- TOC entry 5224 (class 0 OID 0)
+-- Dependencies: 294
+-- Name: SEQUENCE solucion_ticket_id_solucion_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.solucion_ticket_id_solucion_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.solucion_ticket_id_solucion_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.solucion_ticket_id_solucion_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.solucion_ticket_id_solucion_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5230 (class 0 OID 0)
+-- Dependencies: 295
+-- Name: TABLE ticket; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.ticket TO sgiri_app;
+GRANT SELECT,INSERT,UPDATE ON TABLE soporte.ticket TO rol_cliente;
+GRANT SELECT,INSERT,UPDATE ON TABLE soporte.ticket TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.ticket TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.ticket TO rol_admin_visual;
+
+
+--
+-- TOC entry 5232 (class 0 OID 0)
+-- Dependencies: 296
+-- Name: SEQUENCE ticket_id_ticket_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.ticket_id_ticket_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.ticket_id_ticket_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.ticket_id_ticket_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.ticket_id_ticket_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5234 (class 0 OID 0)
+-- Dependencies: 297
+-- Name: TABLE visita_tecnica; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.visita_tecnica TO sgiri_app;
+GRANT SELECT ON TABLE soporte.visita_tecnica TO rol_cliente;
+GRANT SELECT ON TABLE soporte.visita_tecnica TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE soporte.visita_tecnica TO rol_admin_master;
+GRANT SELECT ON TABLE soporte.visita_tecnica TO rol_admin_visual;
+
+
+--
+-- TOC entry 5236 (class 0 OID 0)
+-- Dependencies: 298
+-- Name: SEQUENCE visita_tecnica_id_visita_seq; Type: ACL; Schema: soporte; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE soporte.visita_tecnica_id_visita_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE soporte.visita_tecnica_id_visita_seq TO rol_cliente;
+GRANT ALL ON SEQUENCE soporte.visita_tecnica_id_visita_seq TO rol_tecnico;
+GRANT ALL ON SEQUENCE soporte.visita_tecnica_id_visita_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5237 (class 0 OID 0)
+-- Dependencies: 299
+-- Name: TABLE persona; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.persona TO sgiri_app;
+GRANT SELECT ON TABLE usuarios.persona TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.persona TO rol_admin_master;
+GRANT SELECT ON TABLE usuarios.persona TO rol_admin_visual;
+
+
+--
+-- TOC entry 5239 (class 0 OID 0)
+-- Dependencies: 300
+-- Name: SEQUENCE persona_id_persona_seq; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE usuarios.persona_id_persona_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE usuarios.persona_id_persona_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5240 (class 0 OID 0)
+-- Dependencies: 301
+-- Name: TABLE rol; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.rol TO sgiri_app;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.rol TO rol_admin_master;
+GRANT SELECT ON TABLE usuarios.rol TO rol_admin_visual;
+
+
+--
+-- TOC entry 5241 (class 0 OID 0)
+-- Dependencies: 302
+-- Name: TABLE rol_bd; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.rol_bd TO sgiri_app;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.rol_bd TO rol_admin_master;
+GRANT SELECT ON TABLE usuarios.rol_bd TO rol_admin_visual;
+
+
+--
+-- TOC entry 5243 (class 0 OID 0)
+-- Dependencies: 303
+-- Name: SEQUENCE rol_bd_id_rol_bd_seq; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE usuarios.rol_bd_id_rol_bd_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE usuarios.rol_bd_id_rol_bd_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5245 (class 0 OID 0)
+-- Dependencies: 304
+-- Name: SEQUENCE rol_id_rol_seq; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE usuarios.rol_id_rol_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE usuarios.rol_id_rol_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5246 (class 0 OID 0)
+-- Dependencies: 305
+-- Name: TABLE usuario; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.usuario TO sgiri_app;
+GRANT SELECT ON TABLE usuarios.usuario TO rol_tecnico;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.usuario TO rol_admin_master;
+GRANT SELECT ON TABLE usuarios.usuario TO rol_admin_visual;
+
+
+--
+-- TOC entry 5247 (class 0 OID 0)
+-- Dependencies: 306
+-- Name: TABLE usuario_bd; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.usuario_bd TO sgiri_app;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE usuarios.usuario_bd TO rol_admin_master;
+GRANT SELECT ON TABLE usuarios.usuario_bd TO rol_admin_visual;
+
+
+--
+-- TOC entry 5249 (class 0 OID 0)
+-- Dependencies: 307
+-- Name: SEQUENCE usuario_bd_id_usuario_bd_seq; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE usuarios.usuario_bd_id_usuario_bd_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE usuarios.usuario_bd_id_usuario_bd_seq TO rol_admin_master;
+
+
+--
+-- TOC entry 5251 (class 0 OID 0)
+-- Dependencies: 308
+-- Name: SEQUENCE usuario_id_usuario_seq; Type: ACL; Schema: usuarios; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE usuarios.usuario_id_usuario_seq TO sgiri_app;
+GRANT ALL ON SEQUENCE usuarios.usuario_id_usuario_seq TO rol_admin_master;
+
+
+-- Completed on 2026-03-07 20:06:12 -05
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict PVvTK1xwPAvlMBtmay4TQvM0GPD6IqTcu1newNPCsJLHONGENfWJBbveosc79gZ
+\unrestrict UG1Uf8NtTY5ARlHIkaImch6dUBndujQ5sOLxurvFqGt1svvcOEdhZEOOtbvBGMW
 

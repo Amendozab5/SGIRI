@@ -8,9 +8,13 @@ import com.apweb.backend.payload.response.UserAdminView;
 import com.apweb.backend.repository.RoleRepository;
 import com.apweb.backend.repository.UserRepository;
 import com.apweb.backend.repository.PersonaRepository;
+import com.apweb.backend.repository.EmpleadoRepository;
+import com.apweb.backend.repository.ClienteRepository;
+import com.apweb.backend.repository.UsuarioBdRepository;
 import com.apweb.backend.repository.CatalogoItemRepository;
 import com.apweb.backend.model.CatalogoItem;
 import com.apweb.backend.model.Persona;
+import com.apweb.backend.model.UsuarioBd;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
@@ -57,6 +61,15 @@ public class AdminService {
 
     @Autowired
     private CatalogoItemRepository catalogoItemRepository;
+
+    @Autowired
+    private EmpleadoRepository empleadoRepository;
+
+    @Autowired
+    private ClienteRepository clienteRepository;
+
+    @Autowired
+    private UsuarioBdRepository usuarioBdRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -167,10 +180,10 @@ public class AdminService {
         log.info("[TRAZABILIDAD] Activando acceso empleado: cedula={}, rol={}, empresa={}",
                 cedula, normalizedRole, idEmpresa);
 
-        Integer idUsuarioCreado;
+        Object[] result;
         try {
-            idUsuarioCreado = (Integer) entityManager.createNativeQuery(
-                            "SELECT usuarios.fn_crear_usuario_empleado(:cedula, :anio, :idRol, :idEmpresa, :idEstado)")
+            result = (Object[]) entityManager.createNativeQuery(
+                            "SELECT r_id_usuario, r_username, r_password_plano FROM usuarios.fn_crear_usuario_empleado(:cedula, :anio, :idRol, :idEmpresa, :idEstado)")
                     .setParameter("cedula", cedula)
                     .setParameter("anio", anioNacimiento)
                     .setParameter("idRol", role.getId())
@@ -183,6 +196,9 @@ public class AdminService {
             throw new RuntimeException(translateEmployeeCreationError(msg, cedula, normalizedRole));
         }
 
+        Integer idUsuarioCreado = (Integer) result[0];
+        String tempPass = (String) result[2];
+
         User savedUser = userRepository.findById(idUsuarioCreado)
                 .orElseThrow(() -> new RuntimeException(
                         "Error interno: fn_crear_usuario_empleado devolvió id=" + idUsuarioCreado +
@@ -191,7 +207,9 @@ public class AdminService {
         log.info("[TRAZABILIDAD] Acceso activado — app_id={}, username={}, bd_user=emp_{}_{}",
                 savedUser.getId(), savedUser.getUsername(), cedula, idUsuarioCreado);
 
-        return mapToUserAdminView(savedUser);
+        UserAdminView response = mapToUserAdminView(savedUser);
+        response.setTemporaryPassword(tempPass);
+        return response;
     }
 
 
@@ -281,11 +299,59 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Error: User not found with id " + userId));
 
         Persona persona = user.getPersona();
-        if (persona != null) {
-            personaRepository.delete(persona);
-        }
+        boolean isLinkedToPersona = (persona != null);
+        boolean isEmployee = (persona != null) && empleadoRepository.existsByPersona_Cedula(persona.getCedula());
+        boolean isClient = (persona != null) && clienteRepository.existsByPersona_Cedula(persona.getCedula());
 
-        userRepository.delete(user);
+        if (isEmployee && persona != null) {
+            log.info("[ADMIN] Revocando acceso para el colaborador (cedula: {}) - userId: {}", persona.getCedula(), userId);
+            
+            // 1. Desvincular Persona de Usuario (borrar FK en persona)
+            persona.setUser(null);
+            personaRepository.save(persona);
+
+            // 2. Eliminar registros en usuarios.usuario_bd y roles físicos de DB
+            List<UsuarioBd> bdUsers = usuarioBdRepository.findByUser_Id(userId);
+            for (UsuarioBd bdu : bdUsers) {
+                String bdUserName = bdu.getNombre();
+                usuarioBdRepository.delete(bdu);
+                
+                try {
+                    // 3. Destruir rol físico en PostgreSQL si existe (evita basura en BD física)
+                    entityManager.createNativeQuery("DROP ROLE IF EXISTS " + bdUserName).executeUpdate();
+                    log.info("[ADMIN] Rol físico de DB destruido: {}", bdUserName);
+                } catch (Exception e) {
+                    log.error("[ADMIN] No se pudo borrar el rol físico de DB: {}", e.getMessage());
+                }
+            }
+            
+            // 4. Eliminar el usuario del aplicativo
+            userRepository.delete(user);
+            log.info("[ADMIN] Acceso de colaborador revocado exitosamente.");
+
+        } else {
+            // Caso Clientes u otros: Desvinculamos siempre para proteger integridad de la Persona
+            if (isLinkedToPersona && persona != null) {
+                log.info("[ADMIN] Desvinculando identidad de usuario {} (cedula: {})", userId, persona.getCedula());
+                persona.setUser(null);
+                personaRepository.save(persona);
+                
+                userRepository.delete(user);
+
+                // Si no es un cliente, intentamos borrar la persona (podría ser un manual)
+                // pero si falla por integridad la dejamos como registro histórico de identidad
+                if (!isClient) {
+                    try {
+                        personaRepository.delete(persona);
+                        log.info("[ADMIN] Persona eliminada por no tener otras referencias.");
+                    } catch (Exception e) {
+                        log.info("[ADMIN] Persona mantenida por restricciones de integridad.");
+                    }
+                }
+            } else {
+                userRepository.delete(user);
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
