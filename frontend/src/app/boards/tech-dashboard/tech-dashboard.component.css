@@ -357,6 +357,22 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.network-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.network-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.network-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
 }
 
 .net-item {
@@ -380,11 +396,14 @@
 }
 
 .health-bar {
+    display: block;
     height: 100%;
     border-radius: 3px;
+    transition: width 0.3s ease, background-color 0.3s ease;
 }
 
-.health-bar.online {
+.health-bar.online,
+.health-bar.success {
     background: var(--success);
 }
 

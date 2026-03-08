@@ -89,7 +89,7 @@ export class TechDashboardComponent implements OnInit {
       tickets: this.ticketService.getAssignedTickets().pipe(catchError(() => of([]))),
       companies: this.companyService.getISPs().pipe(catchError(() => of([]))),
       visitas: this.visitaService.getVisitas(startStr, endStr).pipe(catchError(() => of([]))),
-      network: this.networkService.getNetworkMap('REGION').pipe(catchError(() => of([])))
+      network: this.networkService.getNetworkMap('PROVINCIA').pipe(catchError(() => of([])))
     }).subscribe({
       next: (res) => {
         // Mapeo de empresas
@@ -146,7 +146,7 @@ export class TechDashboardComponent implements OnInit {
       region: n.zoneName,
       status: n.level === 'CRITICAL' ? 'danger' : n.level === 'WARNING' ? 'warning' : 'success',
       nodes: `${n.openTickets} Incidentes`,
-      percentage: 100 - (n.scoreFinal || 0)
+      percentage: n.scoreFinal || 0
     }));
   }
 
