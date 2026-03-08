@@ -95,10 +95,16 @@ export class TechDashboardComponent implements OnInit {
         // Mapeo de empresas
         res.companies.forEach(c => this.companyMap.set(c.id, c.nombreComercial));
 
-        this.processTickets(res.tickets);
+        const processedTickets = (res.tickets || []).map(t => ({
+          ...t,
+          idUsuarioAsignado: t.idUsuarioAsignado || t.usuarioAsignado?.id,
+          idEmpresa: t.idEmpresa || t.sucursal?.idEmpresa
+        }));
+
+        this.processTickets(processedTickets);
         this.processVisitas(res.visitas);
         this.processNetwork(res.network);
-        this.calculateKPIs(res.tickets, res.visitas);
+        this.calculateKPIs(processedTickets, res.visitas);
 
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -118,7 +124,7 @@ export class TechDashboardComponent implements OnInit {
         id: t.idTicket?.toString() || 'N/A',
         asunto: t.asunto || 'Sin asunto',
         sucursal: t.sucursal?.nombre || 'General',
-        empresa: this.companyMap.get(t.idEmpresa) || 'Empresa Interna',
+        empresa: this.companyMap.get(t.idEmpresa!) || 'Empresa Interna',
         prioridad: t.prioridadItem?.codigo || 'MEDIA',
         status: t.estadoItem?.codigo || 'ABIERTO',
         statusLabel: t.estadoItem?.nombre || 'Abierto',

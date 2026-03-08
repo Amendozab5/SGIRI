@@ -70,7 +70,8 @@ export class TicketAssignmentComponent implements OnInit {
 
                 this.allTickets = res.tickets.map(t => ({
                     ...t,
-                    idUsuarioAsignado: t.idUsuarioAsignado || t.usuarioAsignado?.id
+                    idUsuarioAsignado: t.idUsuarioAsignado || t.usuarioAsignado?.id,
+                    idEmpresa: t.idEmpresa || t.sucursal?.idEmpresa
                 }));
 
                 this.technicians = res.techs;
@@ -153,12 +154,13 @@ export class TicketAssignmentComponent implements OnInit {
         return 1;
     }
 
-    getCompanyName(id: number): string {
+    getCompanyName(id: number | undefined): string {
+        if (id === undefined) return 'Empresa Interna';
         return this.companiesMap.get(id) || 'Empresa Interna';
     }
 
     getTechLoad(techId: number): number {
-        return this.allTickets.filter(t => t.idUsuarioAsignado === techId && t.estadoItem?.codigo !== 'CERRADO').length;
+        return this.allTickets.filter(t => t.idUsuarioAsignado === techId && t.estadoItem?.codigo !== 'CERRADO' && t.estadoItem?.codigo !== 'RESUELTO').length;
     }
 
     assignTicket(ticket: Ticket): void {

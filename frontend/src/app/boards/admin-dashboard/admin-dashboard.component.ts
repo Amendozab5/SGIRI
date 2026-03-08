@@ -87,7 +87,6 @@ export class AdminDashboardComponent implements OnInit {
   loadDashboardData(): void {
     this.isLoading = true;
 
-    // Using catchError on each stream so if one fails, the others still load
     forkJoin({
       tickets: this.ticketService.getAllTickets().pipe(catchError(() => of([]))),
       technicians: this.userService.getAllUsers('TECNICO').pipe(catchError(() => of([]))),
@@ -101,9 +100,16 @@ export class AdminDashboardComponent implements OnInit {
           res.companies.forEach(c => this.companyMap.set(c.id, c.nombreComercial));
         }
 
-        this.processTickets(res.tickets || []);
-        this.processTechnicians(res.technicians || [], res.tickets || []);
-        this.processKPIs(res.tickets || [], res.technicians || []);
+        // Map tickets once to ensures transient IDs are available for filtering
+        const processedTickets = (res.tickets || []).map(t => ({
+          ...t,
+          idUsuarioAsignado: t.idUsuarioAsignado || t.usuarioAsignado?.id,
+          idEmpresa: t.idEmpresa || t.sucursal?.idEmpresa
+        }));
+
+        this.processTickets(processedTickets);
+        this.processTechnicians(res.technicians || [], processedTickets);
+        this.processKPIs(processedTickets, res.technicians || []);
 
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -120,12 +126,12 @@ export class AdminDashboardComponent implements OnInit {
     // 1. Pending/Priority Tickets
     this.pendingTickets = tickets
       .filter(t => t.estadoItem?.codigo !== 'CERRADO' && t.estadoItem?.codigo !== 'RESUELTO')
-      .sort((a, b) => b.idTicket! - a.idTicket!) // Recent first
+      .sort((a, b) => (b.idTicket || 0) - (a.idTicket || 0)) // Recent first
       .slice(0, 5)
       .map(t => ({
         id: t.idTicket?.toString() || '',
-        client: t.cliente?.persona?.nombre + ' ' + t.cliente?.persona?.apellido || 'Cédula: ' + t.cedulaCliente,
-        companyName: this.companyMap.get(t.idEmpresa) || 'Entidad Int.',
+        client: t.cliente?.persona ? `${t.cliente.persona.nombre} ${t.cliente.persona.apellido}` : 'Cédula: ' + t.cedulaCliente,
+        companyName: this.companyMap.get(t.idEmpresa!) || 'Entidad Int.',
         subject: t.asunto,
         status: t.estadoItem?.nombre || 'Abierto',
         priority: t.prioridadItem?.nombre || 'Media'
@@ -156,7 +162,7 @@ export class AdminDashboardComponent implements OnInit {
       const load = Math.min(Math.round((techTickets / 8) * 100), 100);
 
       return {
-        name: tech.fullName || tech.username,
+        name: (tech.fullName && tech.fullName !== 'N/A') ? tech.fullName : tech.username,
         load: load,
         color: load > 80 ? '#dc2626' : (load > 50 ? '#f59e0b' : '#2563eb')
       };
@@ -164,8 +170,11 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   private processKPIs(tickets: Ticket[], techs: UserAdminView[]): void {
-    const openCount = tickets.filter(t => t.estadoItem?.codigo === 'ABIERTO' || t.estadoItem?.codigo === 'ASIGNADO').length;
-    const criticalCount = tickets.filter(t => (t.prioridadItem?.codigo === 'ALTA' || t.prioridadItem?.codigo === 'URGENTE' || t.idPrioridadItem === 3) && t.estadoItem?.codigo !== 'CERRADO').length;
+    // Current "Active" tickets are those not resolved or closed
+    const activeTickets = tickets.filter(t => t.estadoItem?.codigo !== 'CERRADO' && t.estadoItem?.codigo !== 'RESUELTO');
+    
+    const openCount = activeTickets.length;
+    const criticalCount = activeTickets.filter(t => (t.prioridadItem?.codigo === 'ALTA' || t.prioridadItem?.codigo === 'URGENTE' || t.idPrioridadItem === 3)).length;
     const activeTechs = techs.filter(u => u.estado === 'ACTIVO').length;
 
     // SLA calculation: Resolved vs Total (simplified)

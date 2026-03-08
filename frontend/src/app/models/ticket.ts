@@ -30,9 +30,9 @@ export interface Ticket {
     usuarioCreador?: User;
     usuarioAsignado?: User;
     idUsuarioAsignado?: number;
-    idEmpresa: number;
-    idCliente: number;
-    idEmpleado: number;
+    idEmpresa?: number;
+    idCliente?: number;
+    idEmpleado?: number;
 
     cliente?: Cliente;
     comentarios?: Comentario[];
