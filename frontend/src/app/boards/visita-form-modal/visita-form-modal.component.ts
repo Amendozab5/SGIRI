@@ -29,6 +29,7 @@ export class VisitaFormModalComponent implements OnInit {
     isEditMode = false;
     currentVisitaId: number | null = null;
     isLocked = false;
+    isTechnicianAutoSelected = false;
 
     constructor(
         private fb: FormBuilder,
@@ -47,7 +48,39 @@ export class VisitaFormModalComponent implements OnInit {
         });
     }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+        this.visitaForm.get('idTicket')?.valueChanges.subscribe(id => {
+            const selectedTicket = this.tickets.find(t => t.idTicket == id);
+            if (selectedTicket && selectedTicket.usuarioAsignado) {
+                this.visitaForm.patchValue({ idTecnico: selectedTicket.usuarioAsignado.id }, { emitEvent: false });
+                this.isTechnicianAutoSelected = true;
+            } else {
+                this.visitaForm.patchValue({ idTecnico: null }, { emitEvent: false });
+                this.isTechnicianAutoSelected = false;
+            }
+            // Siempre deshabilitado: el técnico NO es seleccionable manualmente
+            this.visitaForm.get('idTecnico')?.disable();
+        });
+    }
+
+    getAutoSelectedTechnicianName(): string {
+        const idTicket = this.visitaForm.get('idTicket')?.value;
+        const ticket = this.tickets.find(t => t.idTicket == idTicket);
+
+        if (ticket && ticket.usuarioAsignado) {
+            const u = ticket.usuarioAsignado;
+            // Priorizamos nombre y apellido si están disponibles (gracias al FETCH en el backend)
+            if (u.persona && (u.persona.nombre || u.persona.apellido)) {
+                return `${u.persona.nombre || ''} ${u.persona.apellido || ''}`.trim();
+            }
+            if (u.nombre || u.apellidos) {
+                return `${u.nombre || ''} ${u.apellidos || ''}`.trim();
+            }
+            return u.fullName || u.username || 'Técnico asignado';
+        }
+
+        return 'Seleccione un ticket primero...';
+    }
 
     ngAfterViewInit(): void {
         this.modalInstance = new Modal(this.modalElement.nativeElement);
@@ -56,10 +89,15 @@ export class VisitaFormModalComponent implements OnInit {
     open(visita?: VisitaTecnica, initialDate?: string): void {
         this.visitaForm.reset({ codigoEstado: 'PROGRAMADA' });
         this.isLocked = false;
+        this.isTechnicianAutoSelected = false;
+        this.visitaForm.get('idTecnico')?.disable(); // Siempre deshabilitado para el usuario
         this.visitaForm.enable();
+        // Pero el técnico se mantiene deshabilitado incluso si el resto del form se habilita
+        this.visitaForm.get('idTecnico')?.disable();
 
         if (visita) {
             this.isEditMode = true;
+            this.isTechnicianAutoSelected = true;
             this.currentVisitaId = visita.idVisita || null;
             this.visitaForm.patchValue({
                 idTicket: visita.ticket.idTicket,

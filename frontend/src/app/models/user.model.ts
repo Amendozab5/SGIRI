@@ -11,6 +11,11 @@ export interface User {
   celular?: string;
   direccion?: string;
   rutaFoto?: string;
+  persona?: {
+    nombre: string;
+    apellido: string;
+    cedula: string;
+  };
 
   // Roles and status
   roles: string[];

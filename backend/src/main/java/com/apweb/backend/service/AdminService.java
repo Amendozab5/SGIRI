@@ -44,8 +44,7 @@ public class AdminService {
      * los clientes se auto-registran por otro flujo (/api/auth/register).
      */
     private static final Set<String> EMPLOYEE_ROLES = Set.of(
-            "TECNICO", "ADMIN_TECNICOS", "ADMIN_MASTER", "ADMIN_VISUAL"
-    );
+            "TECNICO", "ADMIN_TECNICOS", "ADMIN_MASTER", "ADMIN_VISUAL");
 
     @Autowired
     private UserRepository userRepository;
@@ -83,7 +82,7 @@ public class AdminService {
         List<User> users;
         if (roleName != null && !roleName.isEmpty() && !roleName.equalsIgnoreCase("all")) {
             String dbRoleName = roleName.startsWith("ROLE_") ? roleName.substring(5) : roleName;
-            Role role = roleRepository.findByCodigo(dbRoleName)
+            Role role = roleRepository.findByCodigoIgnoreCase(dbRoleName)
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             users = userRepository.findByRole(role);
         } else {
@@ -108,19 +107,21 @@ public class AdminService {
      * Crea un usuario del aplicativo.
      *
      * Ruta A — Roles de empleado (TECNICO, ADMIN_*):
-     *   Invoca usuarios.fn_crear_usuario_empleado(cedula, anio, idRol, idEmpresa, idEstado).
-     *   Esto crea automáticamente:
-     *     1. El usuario en usuarios.usuario
-     *     2. La relación en usuarios.usuario_empleado
-     *     3. El usuario físico PostgreSQL: emp_{cedula}_{id_usuario}
-     *     4. GRANT del rol BD (ej. rol_tecnico TO emp_{cedula}_{id})
-     *     5. El registro en usuarios.usuario_bd
-     *   Con esto el SET ROLE del ConnectionInvocationHandler tiene efecto real.
+     * Invoca usuarios.fn_crear_usuario_empleado(cedula, anio, idRol, idEmpresa,
+     * idEstado).
+     * Esto crea automáticamente:
+     * 1. El usuario en usuarios.usuario
+     * 2. La relación en usuarios.usuario_empleado
+     * 3. El usuario físico PostgreSQL: emp_{cedula}_{id_usuario}
+     * 4. GRANT del rol BD (ej. rol_tecnico TO emp_{cedula}_{id})
+     * 5. El registro en usuarios.usuario_bd
+     * Con esto el SET ROLE del ConnectionInvocationHandler tiene efecto real.
      *
      * Ruta B — Rol CLIENTE:
-     *   Crea el usuario por JPA (sin usuario físico BD).
-     *   Los clientes se auto-registran vía /api/auth/register; el administrador
-     *   raramente crea clientes manualmente. La trazabilidad se resuelve por id_usuario.
+     * Crea el usuario por JPA (sin usuario físico BD).
+     * Los clientes se auto-registran vía /api/auth/register; el administrador
+     * raramente crea clientes manualmente. La trazabilidad se resuelve por
+     * id_usuario.
      */
     /**
      * Crea un usuario del aplicativo.
@@ -143,30 +144,32 @@ public class AdminService {
      *
      * Invoca {@code usuarios.fn_crear_usuario_empleado(...)} que de forma atómica:
      * <ol>
-     *   <li>Valida que la persona+empleado exista y tenga documento ACTIVO</li>
-     *   <li>Genera username y contraseña temporal</li>
-     *   <li>Crea el registro en {@code usuarios.usuario}</li>
-     *   <li>Vincula en {@code usuarios.usuario_empleado}</li>
-     *   <li>Crea el usuario físico PostgreSQL {@code emp_{cedula}_{id}}</li>
-     *   <li>Le asigna el rol BD correspondiente y hace GRANT a sgiri_app</li>
-     *   <li>Registra en {@code usuarios.usuario_bd}</li>
+     * <li>Valida que la persona+empleado exista y tenga documento ACTIVO</li>
+     * <li>Genera username y contraseña temporal</li>
+     * <li>Crea el registro en {@code usuarios.usuario}</li>
+     * <li>Vincula en {@code usuarios.usuario_empleado}</li>
+     * <li>Crea el usuario físico PostgreSQL {@code emp_{cedula}_{id}}</li>
+     * <li>Le asigna el rol BD correspondiente y hace GRANT a sgiri_app</li>
+     * <li>Registra en {@code usuarios.usuario_bd}</li>
      * </ol>
      *
-     * @param cedula           Cédula del empleado (ya debe existir en empleados.empleado)
-     * @param anioNacimiento   Año de nacimiento para construcción de contraseña temporal
-     * @param roleCode         Código del rol aplicativo (TECNICO, ADMIN_MASTER, etc.)
-     * @param idEmpresa        ID de la empresa para usuarios.usuario.id_empresa
+     * @param cedula         Cédula del empleado (ya debe existir en
+     *                       empleados.empleado)
+     * @param anioNacimiento Año de nacimiento para construcción de contraseña
+     *                       temporal
+     * @param roleCode       Código del rol aplicativo (TECNICO, ADMIN_MASTER, etc.)
+     * @param idEmpresa      ID de la empresa para usuarios.usuario.id_empresa
      * @return Vista admin del usuario creado
      */
     @Transactional
     public UserAdminView crearUsuarioEmpleado(String cedula, Integer anioNacimiento,
-                                               String roleCode, Integer idEmpresa) {
+            String roleCode, Integer idEmpresa) {
         String normalizedRole = normalizeRoleCode(roleCode);
 
         if (!EMPLOYEE_ROLES.contains(normalizedRole)) {
             throw new IllegalArgumentException(
                     "El rol '" + roleCode + "' no corresponde a un rol de empleado. " +
-                    "Roles válidos: " + EMPLOYEE_ROLES);
+                            "Roles válidos: " + EMPLOYEE_ROLES);
         }
 
         Role role = roleRepository.findByCodigo(normalizedRole)
@@ -183,7 +186,7 @@ public class AdminService {
         Object[] result;
         try {
             result = (Object[]) entityManager.createNativeQuery(
-                            "SELECT r_id_usuario, r_username, r_password_plano FROM usuarios.fn_crear_usuario_empleado(:cedula, :anio, :idRol, :idEmpresa, :idEstado)")
+                    "SELECT r_id_usuario, r_username, r_password_plano FROM usuarios.fn_crear_usuario_empleado(:cedula, :anio, :idRol, :idEmpresa, :idEstado)")
                     .setParameter("cedula", cedula)
                     .setParameter("anio", anioNacimiento)
                     .setParameter("idRol", role.getId())
@@ -202,7 +205,7 @@ public class AdminService {
         User savedUser = userRepository.findById(idUsuarioCreado)
                 .orElseThrow(() -> new RuntimeException(
                         "Error interno: fn_crear_usuario_empleado devolvió id=" + idUsuarioCreado +
-                        " pero el usuario no se encontró en usuarios.usuario."));
+                                " pero el usuario no se encontró en usuarios.usuario."));
 
         log.info("[TRAZABILIDAD] Acceso activado — app_id={}, username={}, bd_user=emp_{}_{}",
                 savedUser.getId(), savedUser.getUsername(), cedula, idUsuarioCreado);
@@ -211,7 +214,6 @@ public class AdminService {
         response.setTemporaryPassword(tempPass);
         return response;
     }
-
 
     /**
      * Ruta B (cliente): Crea usuario cliente directamente por JPA.
@@ -240,7 +242,8 @@ public class AdminService {
         user.setRole(role);
 
         User savedUser = userRepository.save(user);
-        log.info("[TRAZABILIDAD] Usuario cliente creado — id={}, username={}", savedUser.getId(), savedUser.getUsername());
+        log.info("[TRAZABILIDAD] Usuario cliente creado — id={}, username={}", savedUser.getId(),
+                savedUser.getUsername());
         return mapToUserAdminView(savedUser);
     }
 
@@ -304,8 +307,9 @@ public class AdminService {
         boolean isClient = (persona != null) && clienteRepository.existsByPersona_Cedula(persona.getCedula());
 
         if (isEmployee && persona != null) {
-            log.info("[ADMIN] Revocando acceso para el colaborador (cedula: {}) - userId: {}", persona.getCedula(), userId);
-            
+            log.info("[ADMIN] Revocando acceso para el colaborador (cedula: {}) - userId: {}", persona.getCedula(),
+                    userId);
+
             // 1. Desvincular Persona de Usuario (borrar FK en persona)
             persona.setUser(null);
             personaRepository.save(persona);
@@ -315,7 +319,7 @@ public class AdminService {
             for (UsuarioBd bdu : bdUsers) {
                 String bdUserName = bdu.getNombre();
                 usuarioBdRepository.delete(bdu);
-                
+
                 try {
                     // 3. Destruir rol físico en PostgreSQL si existe (evita basura en BD física)
                     entityManager.createNativeQuery("DROP ROLE IF EXISTS " + bdUserName).executeUpdate();
@@ -324,18 +328,19 @@ public class AdminService {
                     log.error("[ADMIN] No se pudo borrar el rol físico de DB: {}", e.getMessage());
                 }
             }
-            
+
             // 4. Eliminar el usuario del aplicativo
             userRepository.delete(user);
             log.info("[ADMIN] Acceso de colaborador revocado exitosamente.");
 
         } else {
-            // Caso Clientes u otros: Desvinculamos siempre para proteger integridad de la Persona
+            // Caso Clientes u otros: Desvinculamos siempre para proteger integridad de la
+            // Persona
             if (isLinkedToPersona && persona != null) {
                 log.info("[ADMIN] Desvinculando identidad de usuario {} (cedula: {})", userId, persona.getCedula());
                 persona.setUser(null);
                 personaRepository.save(persona);
-                
+
                 userRepository.delete(user);
 
                 // Si no es un cliente, intentamos borrar la persona (podría ser un manual)
@@ -360,7 +365,8 @@ public class AdminService {
 
     /** Elimina el prefijo ROLE_ si viene del frontend */
     private String normalizeRoleCode(String role) {
-        if (role == null) return "";
+        if (role == null)
+            return "";
         return role.startsWith("ROLE_") ? role.substring(5) : role;
     }
 
@@ -371,15 +377,15 @@ public class AdminService {
     private String translateEmployeeCreationError(String pgMsg, String cedula, String roleCode) {
         if (pgMsg.contains("El empleado no existe")) {
             return "Error: No existe un empleado registrado con la cédula '" + cedula + "'. " +
-                   "Asegúrate de que el empleado fue creado primero en el sistema.";
+                    "Asegúrate de que el empleado fue creado primero en el sistema.";
         }
         if (pgMsg.contains("El empleado no tiene documento validado")) {
             return "Error: El empleado con cédula '" + cedula + "' no tiene documentos con estado ACTIVO. " +
-                   "Valida los documentos del empleado antes de crear su usuario.";
+                    "Valida los documentos del empleado antes de crear su usuario.";
         }
         if (pgMsg.contains("El rol BD asociado no existe")) {
             return "Error: El rol físico de PostgreSQL para '" + roleCode + "' no existe. " +
-                   "Ejecuta el script SQL '01_roles_fisicos_y_permisos.sql' en PostgreSQL primero.";
+                    "Ejecuta el script SQL '01_roles_fisicos_y_permisos.sql' en PostgreSQL primero.";
         }
         if (pgMsg.contains("El rol aplicativo no existe")) {
             return "Error: El rol '" + roleCode + "' no está registrado en usuarios.rol.";
