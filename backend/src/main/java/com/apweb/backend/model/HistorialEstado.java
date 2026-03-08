@@ -20,7 +20,7 @@ public class HistorialEstado {
     @Column(name = "id_historial")
     private Integer idHistorial;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_ticket", nullable = false)
     private Ticket ticket;

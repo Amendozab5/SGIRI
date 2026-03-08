@@ -141,3 +141,8 @@ body {
 .smallest {
   font-size: 0.75rem;
 }
+
+/* Ensure global navbar is above component-level sticky elements */
+.navbar {
+  z-index: 1050 !important;
+}

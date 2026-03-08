@@ -20,7 +20,7 @@ public class ComentarioTicket {
     @Column(name = "id_comentario")
     private Integer idComentario;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_ticket", nullable = false)
     private Ticket ticket;

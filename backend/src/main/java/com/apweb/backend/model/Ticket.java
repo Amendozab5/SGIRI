@@ -84,7 +84,7 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private java.util.List<Asignacion> asignaciones;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private java.util.List<ComentarioTicket> comentarios;
 
@@ -92,7 +92,7 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private java.util.List<DocumentoTicket> documentos;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private java.util.List<HistorialEstado> historialEstados;
 
