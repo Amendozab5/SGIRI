@@ -29,7 +29,8 @@ public class DocumentController {
 
     /**
      * Devuelve todos los tipos de documento disponibles (excluye FOTO).
-     * Usado por el módulo de Empleados para poblar el selector de tipo de documento.
+     * Usado por el módulo de Empleados para poblar el selector de tipo de
+     * documento.
      */
     @GetMapping("/tipos-documento")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
@@ -39,7 +40,7 @@ public class DocumentController {
 
     @PostMapping("/upload-photo")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, String>> uploadPhoto(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> uploadPhoto(@RequestParam(name = "file") MultipartFile file) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
@@ -61,7 +62,7 @@ public class DocumentController {
     @GetMapping("/empleado/{idEmpleado}")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<List<DocumentoEmpleadoDTO>> getDocumentosEmpleado(
-            @PathVariable Integer idEmpleado) {
+            @PathVariable(name = "idEmpleado") Integer idEmpleado) {
         return ResponseEntity.ok(documentService.getDocumentosEmpleado(idEmpleado));
     }
 
@@ -70,19 +71,19 @@ public class DocumentController {
      * El documento queda en estado PENDIENTE hasta que un admin lo valide.
      *
      * Parámetros multipart:
-     *   - file: archivo a subir
-     *   - idTipoDocumento: ID del tipo de documento
-     *   - numeroDocumento: número de referencia (ej. número de contrato)
-     *   - descripcion: descripción libre
+     * - file: archivo a subir
+     * - idTipoDocumento: ID del tipo de documento
+     * - numeroDocumento: número de referencia (ej. número de contrato)
+     * - descripcion: descripción libre
      */
     @PostMapping("/empleado/{idEmpleado}/upload")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<DocumentoEmpleadoDTO> subirDocumentoEmpleado(
-            @PathVariable Integer idEmpleado,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("idTipoDocumento") Integer idTipoDocumento,
-            @RequestParam(value = "numeroDocumento", required = false) String numeroDocumento,
-            @RequestParam(value = "descripcion", required = false) String descripcion) {
+            @PathVariable(name = "idEmpleado") Integer idEmpleado,
+            @RequestParam(name = "file") MultipartFile file,
+            @RequestParam(name = "idTipoDocumento") Integer idTipoDocumento,
+            @RequestParam(name = "numeroDocumento", required = false) String numeroDocumento,
+            @RequestParam(name = "descripcion", required = false) String descripcion) {
 
         DocumentoEmpleadoDTO dto = documentService.subirDocumentoEmpleado(
                 idEmpleado, file, idTipoDocumento, numeroDocumento, descripcion);
@@ -99,7 +100,7 @@ public class DocumentController {
     @PutMapping("/empleado/docs/{idDocumento}/estado")
     @PreAuthorize("hasRole('ADMIN_MASTER')")
     public ResponseEntity<DocumentoEmpleadoDTO> cambiarEstadoDocumento(
-            @PathVariable Integer idDocumento,
+            @PathVariable(name = "idDocumento") Integer idDocumento,
             @RequestBody Map<String, String> body) {
 
         String estado = body.get("estado");

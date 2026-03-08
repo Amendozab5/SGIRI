@@ -95,10 +95,6 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private java.util.List<HistorialEstado> historialEstados;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private java.util.List<Notificacion> notificaciones;
-
     @PrePersist
     protected void onCreate() {
         this.fechaCreacion = LocalDateTime.now();

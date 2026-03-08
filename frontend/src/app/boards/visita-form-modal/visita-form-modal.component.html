@@ -52,12 +52,26 @@
             </div>
 
             <!-- Técnico Selection -->
+            <!-- Técnico Asignado (Solo lectura, arrastra del Ticket) -->
             <div class="col-md-6">
-              <label class="form-label fw-bold">Técnico Asignado</label>
-              <select class="form-select" formControlName="idTecnico">
-                <option value="" disabled selected>Seleccione un técnico...</option>
-                <option *ngFor="let tec of tecnicos" [value]="tec.id">{{tec.fullName}}</option>
-              </select>
+              <label class="form-label fw-bold">Técnico Responsable</label>
+
+              <div class="input-group">
+                <span class="input-group-text border-0"
+                  [ngClass]="isTechnicianAutoSelected ? 'bg-primary text-white' : 'bg-light text-muted'">
+                  <i class="bi" [ngClass]="isTechnicianAutoSelected ? 'bi-person-check-fill' : 'bi-person-dash'"></i>
+                </span>
+                <input type="text" class="form-control border-0 bg-light-subtle fw-bold"
+                  [value]="getAutoSelectedTechnicianName()"
+                  [ngClass]="isTechnicianAutoSelected ? 'text-dark' : 'text-muted fst-italic'"
+                  placeholder="Se asignará automáticamente..." readonly>
+              </div>
+
+              <div *ngIf="isTechnicianAutoSelected" class="mt-2 animate__animated animate__fadeIn">
+                <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3">
+                  <i class="bi bi-robot me-1"></i> Asignación automática por ticket
+                </span>
+              </div>
             </div>
 
             <!-- Estado -->

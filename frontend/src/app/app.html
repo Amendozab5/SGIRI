@@ -15,6 +15,45 @@
     <!-- Right-aligned nav items - Entirely hidden during mandatory password change -->
     <ul class="navbar-nav ml-auto" *ngIf="!isPasswordChangeRequired">
 
+      <!-- Notifications Bell -->
+      <li class="nav-item dropdown mr-3" *ngIf="isLoggedIn" appBootstrapDropdown>
+        <a class="nav-link dropdown-toggle position-relative" href="javascript:void(0)" id="notiDropdown" role="button">
+          <i class="bi bi-bell-fill" style="font-size: 1.2rem;"></i>
+          <span *ngIf="unreadCount > 0"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+            style="font-size: 0.6rem; padding: 0.3em 0.5em;">
+            {{ unreadCount }}
+          </span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notiDropdown"
+          style="width: 320px; max-height: 450px; overflow-y: auto;">
+          <div class="p-2 border-bottom d-flex justify-content-between align-items-center bg-light">
+            <h6 class="mb-0 fw-bold">Notificaciones</h6>
+            <button *ngIf="unreadCount > 0" class="btn btn-sm btn-link text-decoration-none p-0"
+              (click)="markAllAsRead()">Marcar todas como leídas</button>
+          </div>
+
+          <div *ngIf="notificaciones.length === 0" class="p-4 text-center text-muted">
+            <i class="bi bi-info-circle d-block mb-2" style="font-size: 1.5rem;"></i>
+            No tienes notificaciones
+          </div>
+
+          <a *ngFor="let noti of notificaciones" href="javascript:void(0)" class="dropdown-item p-3 border-bottom"
+            [ngClass]="{'bg-light': !noti.leida}" (click)="handleNotificationClick(noti)">
+            <div class="d-flex align-items-start">
+              <div class="noti-icon me-3">
+                <i class="bi" [ngClass]="noti.idTicket ? 'bi-ticket-detailed-fill text-primary' : 'bi-info-circle-fill text-info'"></i>
+              </div>
+              <div class="flex-grow-1" style="white-space: normal;">
+                <p class="mb-1 fw-bold" style="font-size: 0.9rem;">{{ noti.titulo }}</p>
+                <p class="mb-1 text-muted" style="font-size: 0.8rem;">{{ noti.mensaje }}</p>
+                <small class="text-muted" style="font-size: 0.7rem;">{{ noti.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</small>
+              </div>
+            </div>
+          </a>
+        </div>
+      </li>
+
       <!-- Dropdown Menu for Logged In Users -->
       <li class="nav-item dropdown" *ngIf="isLoggedIn" appBootstrapDropdown>
         <a class="nav-link dropdown-toggle" href="javascript:void(0)" id="navbarDropdown" role="button"

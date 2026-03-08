@@ -3,6 +3,8 @@ package com.apweb.backend.service;
 import com.apweb.backend.model.*;
 import com.apweb.backend.payload.request.TicketRequest;
 import com.apweb.backend.repository.*;
+import com.apweb.backend.services.notificaciones.NotificacionServiceApp;
+import com.apweb.backend.services.notificaciones.MailTemplateService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,7 +50,10 @@ public class TicketService {
         private UsuarioBdRepository usuarioBdRepository;
 
         @Autowired
-        private NotificationService notificationService;
+        private NotificacionServiceApp notificacionServiceApp;
+
+        @Autowired
+        private MailTemplateService mailTemplateService;
 
         public List<Ticket> getAllTickets() {
                 return ticketRepository.findAllWithAssociations();
@@ -62,7 +67,8 @@ public class TicketService {
         public org.springframework.data.domain.Page<Ticket> getTicketsByUserPaginated(
                         User user, String searchTerm, Integer statusId, Integer categoryId,
                         org.springframework.data.domain.Pageable pageable) {
-                return ticketRepository.findByUsuarioCreadorWithFilters(user, searchTerm, statusId, categoryId, pageable);
+                return ticketRepository.findByUsuarioCreadorWithFilters(user, searchTerm, statusId, categoryId,
+                                pageable);
         }
 
         @Transactional
@@ -113,17 +119,55 @@ public class TicketService {
                 historial.setObservacion("Ticket asignado a " + technician.getUsername());
                 historialEstadoRepository.save(historial);
 
-                // Notify Technician
-                notificationService.createNotification(assigner, technician, ticket,
-                                "Nuevo Ticket Asignado: #" + ticket.getIdTicket(),
-                                "Se le ha asignado el ticket: " + ticket.getAsunto());
+                // Guardar cambios en el ticket primero
+                Ticket savedTicket = ticketRepository.save(ticket);
 
-                // Notify Client
-                notificationService.createNotification(assigner, ticket.getUsuarioCreador(), ticket,
-                                "Su ticket #" + ticket.getIdTicket() + " ha sido asignado",
-                                "Su ticket ahora está siendo atendido por " + technician.getUsername());
+                // --- NUEVO SISTEMA DE NOTIFICACIONES ---
 
-                return ticketRepository.save(ticket);
+                // 1. Notificar al Técnico (Solo Web + Interactiva)
+                String rutaTecnico = "/home/user/ticket/" + savedTicket.getIdTicket();
+                notificacionServiceApp.crearNotificacionWeb(
+                                technician,
+                                "Nuevo Ticket Asignado: #" + savedTicket.getIdTicket(),
+                                "Se le ha asignado el ticket: " + savedTicket.getAsunto(),
+                                rutaTecnico,
+                                savedTicket);
+
+                // 2. Notificar al Usuario Reportante (Web Interactiva + Correo)
+                User usuarioReportante = savedTicket.getUsuarioCreador();
+                if (usuarioReportante != null) {
+                        String rutaUsuario = "/home/user/ticket/" + savedTicket.getIdTicket();
+
+                        // Notificación Web (Segura contra Null)
+                        String nombreTecnico = getNombreCompleto(technician);
+                        notificacionServiceApp.crearNotificacionWeb(
+                                        usuarioReportante,
+                                        "Su ticket #" + savedTicket.getIdTicket() + " ha sido asignado",
+                                        "Su ticket ahora está siendo atendido por " + nombreTecnico,
+                                        rutaUsuario,
+                                        savedTicket);
+
+                        // Encolar Correo (Seguro contra Null)
+                        String emailDestino = getEmailSeguro(usuarioReportante);
+                        if (emailDestino != null) {
+                                String urlFront = "http://localhost:4200/home/user/ticket/"
+                                                + savedTicket.getIdTicket();
+                                String cuerpoMail = mailTemplateService.formatTicketAssignment(
+                                                getNombreCompleto(usuarioReportante),
+                                                savedTicket.getIdTicket(),
+                                                savedTicket.getAsunto(),
+                                                nombreTecnico,
+                                                urlFront);
+
+                                notificacionServiceApp.encolarCorreo(
+                                                savedTicket,
+                                                emailDestino,
+                                                "Ticket #" + savedTicket.getIdTicket() + " - Técnico Asignado",
+                                                cuerpoMail);
+                        }
+                }
+
+                return savedTicket;
         }
 
         @Transactional
@@ -276,10 +320,51 @@ public class TicketService {
                 historial.setObservacion(observation);
                 historialEstadoRepository.save(historial);
 
-                // Notify Creator
-                notificationService.createNotification(user, ticket.getUsuarioCreador(), ticket,
+                // Notificar al Creador del Ticket (Web Interactiva)
+                String rutaUsuario = "/home/user/ticket/" + ticket.getIdTicket();
+
+                notificacionServiceApp.crearNotificacionWeb(
+                                ticket.getUsuarioCreador(),
                                 "Actualización del Ticket #" + ticket.getIdTicket(),
-                                "El estado de su ticket ha cambiado a: " + estadoNuevo.getNombre());
+                                "El estado de su ticket ha cambiado a: " + estadoNuevo.getNombre(),
+                                rutaUsuario,
+                                ticket);
+
+                // --- NUEVA NOTIFICACIÓN POR CORREO (ESTADO) ---
+                User usuarioReportante = ticket.getUsuarioCreador();
+                if (usuarioReportante != null) {
+                        String emailDestino = getEmailSeguro(usuarioReportante);
+                        if (emailDestino != null) {
+                                String urlFront = "http://localhost:4200/home/user/ticket/" + ticket.getIdTicket();
+                                String cuerpoMail;
+                                String literalEstado = estadoNuevo.getNombre();
+
+                                if ("REQUIERE_VISITA".equals(statusCode)) {
+                                        cuerpoMail = mailTemplateService.formatVisitRequired(
+                                                        getNombreCompleto(usuarioReportante),
+                                                        ticket.getIdTicket(),
+                                                        ticket.getAsunto(),
+                                                        observation,
+                                                        getNombreCompleto(user),
+                                                        urlFront);
+                                } else {
+                                        cuerpoMail = mailTemplateService.formatTicketStatusUpdate(
+                                                        getNombreCompleto(usuarioReportante),
+                                                        ticket.getIdTicket(),
+                                                        ticket.getAsunto(),
+                                                        literalEstado,
+                                                        observation,
+                                                        getNombreCompleto(user),
+                                                        urlFront);
+                                }
+
+                                notificacionServiceApp.encolarCorreo(
+                                                ticket,
+                                                emailDestino,
+                                                "Ticket #" + ticket.getIdTicket() + " - " + literalEstado,
+                                                cuerpoMail);
+                        }
+                }
 
                 return ticketRepository.save(ticket);
         }
@@ -328,15 +413,38 @@ public class TicketService {
         }
 
         /**
-         * Resuelve el nombre físico del rol PostgreSQL en la base de datos (ej. emp_0503360398_7).
-         * Si el usuario no tiene un rol físico (ej. clientes), devuelve el username de la app.
+         * Resuelve el nombre físico del rol PostgreSQL en la base de datos (ej.
+         * emp_0503360398_7).
+         * Si el usuario no tiene un rol físico (ej. clientes), devuelve el username de
+         * la app.
          */
         private String resolveDbUsername(User user) {
-                if (user == null || user.getId() == null) return null;
+                if (user == null || user.getId() == null)
+                        return null;
                 List<UsuarioBd> dbs = usuarioBdRepository.findByUser_Id(user.getId());
                 if (dbs != null && !dbs.isEmpty()) {
                         return dbs.get(0).getNombre();
                 }
                 return user.getUsername();
+        }
+
+        private String getNombreCompleto(User user) {
+                if (user == null)
+                        return "Usuario desconocido";
+                if (user.getPersona() != null) {
+                        String nombre = user.getPersona().getNombre() != null ? user.getPersona().getNombre() : "";
+                        String apellido = user.getPersona().getApellido() != null ? user.getPersona().getApellido()
+                                        : "";
+                        String completo = (nombre + " " + apellido).trim();
+                        return completo.isEmpty() ? user.getUsername() : completo;
+                }
+                return user.getUsername();
+        }
+
+        private String getEmailSeguro(User user) {
+                if (user != null && user.getPersona() != null) {
+                        return user.getPersona().getCorreo();
+                }
+                return null;
         }
 }

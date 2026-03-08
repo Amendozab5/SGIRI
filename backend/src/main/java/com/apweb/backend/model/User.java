@@ -52,10 +52,6 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Persona persona;
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    @OneToMany(mappedBy = "usuarioOrigen", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private java.util.List<Notificacion> notificacionesOrigen;
-
     @PrePersist
     protected void onCreate() {
         this.fechaCreacion = LocalDateTime.now();

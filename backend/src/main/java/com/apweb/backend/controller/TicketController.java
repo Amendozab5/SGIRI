@@ -86,18 +86,19 @@ public class TicketController {
         @GetMapping("/my-tickets-paged")
         @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
         public ResponseEntity<org.springframework.data.domain.Page<Ticket>> getMyTicketsPaged(
-                        @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "10") int size,
-                        @RequestParam(required = false) String searchTerm,
-                        @RequestParam(required = false) Integer statusId,
-                        @RequestParam(required = false) Integer categoryId) {
+                        @RequestParam(name = "page", defaultValue = "0") int page,
+                        @RequestParam(name = "size", defaultValue = "10") int size,
+                        @RequestParam(name = "searchTerm", required = false) String searchTerm,
+                        @RequestParam(name = "statusId", required = false) Integer statusId,
+                        @RequestParam(name = "categoryId", required = false) Integer categoryId) {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 String currentUserName = authentication.getName();
 
                 User currentUser = userRepository.findByUsername(currentUserName)
                                 .orElseThrow(() -> new RuntimeException("Error: User not found"));
 
-                org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page,
+                                size,
                                 org.springframework.data.domain.Sort.by("fechaCreacion").descending());
 
                 return ResponseEntity.ok(ticketService.getTicketsByUserPaginated(
@@ -116,8 +117,6 @@ public class TicketController {
 
                 return ResponseEntity.ok(ticketService.getTicketsByAssignedUser(currentUser));
         }
-
-
 
         @PostMapping("/{id:[0-9]+}/comments")
         @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")

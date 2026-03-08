@@ -43,7 +43,7 @@ public class PersonnelController {
 
     @GetMapping("/empleados/{cedula}")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
-    public ResponseEntity<EmpleadoDTO> getEmpleado(@PathVariable String cedula) {
+    public ResponseEntity<EmpleadoDTO> getEmpleado(@PathVariable(name = "cedula") String cedula) {
         return personnelService.getEmpleadoByCedula(cedula)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -69,32 +69,35 @@ public class PersonnelController {
      */
     @GetMapping("/empleados/{cedula}/acceso-status")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
-    public ResponseEntity<EmpleadoAccessStatusDTO> getAccessStatus(@PathVariable String cedula) {
+    public ResponseEntity<EmpleadoAccessStatusDTO> getAccessStatus(@PathVariable(name = "cedula") String cedula) {
         return ResponseEntity.ok(personnelService.getAccessStatus(cedula));
     }
 
     /**
      * Habilita el acceso al sistema para un empleado existente.
      *
-     * <p>Endpoint exclusivo para el dominio de empleados. No requiere username ni
+     * <p>
+     * Endpoint exclusivo para el dominio de empleados. No requiere username ni
      * password ya que éstos son generados automáticamente por
-     * {@code usuarios.fn_crear_usuario_empleado(...)}.</p>
+     * {@code usuarios.fn_crear_usuario_empleado(...)}.
+     * </p>
      *
-     * <p>Precondiciones que valida la función SQL:
+     * <p>
+     * Precondiciones que valida la función SQL:
      * <ul>
-     *   <li>La cédula existe en usuarios.persona + empleados.empleado</li>
-     *   <li>El empleado tiene al menos un documento con estado ACTIVO</li>
-     *   <li>No existe ya un usuario del sistema para ese empleado</li>
+     * <li>La cédula existe en usuarios.persona + empleados.empleado</li>
+     * <li>El empleado tiene al menos un documento con estado ACTIVO</li>
+     * <li>No existe ya un usuario del sistema para ese empleado</li>
      * </ul>
      * </p>
      *
-     * @param cedula Cédula del empleado (path variable)
+     * @param cedula  Cédula del empleado (path variable)
      * @param request Datos de activación: rol, idEmpresa, anioNacimiento
      */
     @PostMapping("/empleados/{cedula}/activar-acceso")
     @PreAuthorize("hasRole('ADMIN_MASTER')")
     public ResponseEntity<UserAdminView> activarAccesoEmpleado(
-            @PathVariable String cedula,
+            @PathVariable(name = "cedula") String cedula,
             @Valid @RequestBody EmpleadoActivarAccesoRequest request) {
         UserAdminView result = personnelService.activarAccesoEmpleado(cedula, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
@@ -110,7 +113,7 @@ public class PersonnelController {
 
     @GetMapping("/clientes/{cedula}")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
-    public ResponseEntity<Cliente> getCliente(@PathVariable String cedula) {
+    public ResponseEntity<Cliente> getCliente(@PathVariable(name = "cedula") String cedula) {
         return personnelService.getClienteByCedula(cedula)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

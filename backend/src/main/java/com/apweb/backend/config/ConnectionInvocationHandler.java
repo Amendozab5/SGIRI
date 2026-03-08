@@ -13,7 +13,8 @@ import java.sql.Statement;
 import java.util.regex.Pattern;
 
 /**
- * Interceptor de conexiones JDBC que aplica SET ROLE antes de cada operación SQL
+ * Interceptor de conexiones JDBC que aplica SET ROLE antes de cada operación
+ * SQL
  * y RESET ROLE al cerrar la conexión.
  *
  * Esto permite que, aunque el backend use un único usuario técnico (sgiri_app),
@@ -59,24 +60,39 @@ public class ConnectionInvocationHandler implements InvocationHandler {
                 if (dbRole != null && !dbRole.isBlank()) {
                     // SEGURIDAD: validar nombre del rol antes de usarlo en SQL
                     if (!SAFE_ROLE_NAME.matcher(dbRole).matches()) {
-                        log.warn("[TRAZABILIDAD] Nombre de rol BD inválido '{}' para usuario '{}' — SET ROLE omitido por seguridad.",
+                        log.warn(
+                                "[TRAZABILIDAD] Nombre de rol BD inválido '{}' para usuario '{}' — SET ROLE omitido por seguridad.",
                                 dbRole, userDetails.getUsername());
                     } else {
                         try (Statement stmt = target.createStatement()) {
-                            // Usamos identificador entre comillas dobles (estándar SQL) para seguridad adicional
+                            // Usamos identificador entre comillas dobles (estándar SQL) para seguridad
+                            // adicional
                             stmt.execute("SET ROLE \"" + dbRole + "\"");
                             roleSet = true;
                             log.debug("[TRAZABILIDAD] SET ROLE '{}' aplicado para usuario app '{}'.",
                                     dbRole, userDetails.getUsername());
                         } catch (Exception e) {
-                            log.error("[TRAZABILIDAD] No se pudo aplicar SET ROLE '{}' para '{}': {}. " +
-                                    "Verifica que el rol físico existe en PostgreSQL y fue asignado correctamente.",
+                            log.error(
+                                    "[TRAZABILIDAD] CRÍTICO: No se pudo aplicar SET ROLE '{}' para '{}' (Transacción abortada). Error: {}",
                                     dbRole, userDetails.getUsername(), e.getMessage());
-                            // No bloqueamos la operación — continuamos como sgiri_app
+
+                            // IMPORTANTE: Si un SET ROLE falla, PostgreSQL aborta físicamente la
+                            // transacción actual.
+                            // Si capturamos el error y permitimos que la aplicación continúe, cada query
+                            // siguiente
+                            // lanzará un críptico "current transaction is aborted, commands ignored".
+                            // Lanzamos una excepción para forzar a Spring a realizar rollback y mostrar el
+                            // error real.
+                            throw new RuntimeException(
+                                    "Error de Seguridad/Permisos: No se pudo establecer el contexto de base de datos para '"
+                                            + dbRole + "'. " +
+                                            "La transacción ha sido invalidada por PostgreSQL. Detalles: "
+                                            + e.getMessage());
                         }
                     }
                 } else {
-                    log.debug("[TRAZABILIDAD] Usuario '{}' sin usuario BD asociado — opera como usuario técnico sgiri_app.",
+                    log.debug(
+                            "[TRAZABILIDAD] Usuario '{}' sin usuario BD asociado — opera como usuario técnico sgiri_app.",
                             userDetails.getUsername());
                 }
             }

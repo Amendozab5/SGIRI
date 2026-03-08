@@ -53,9 +53,10 @@ export class SchedulerComponent implements OnInit {
             this.tickets = res.filter(t => t.estadoItem?.codigo === 'REQUIERE_VISITA');
         });
 
-        // Cargar técnicos (usando el código correcto 'ADMIN_TECNICOS' a pedido del usuario)
+        // Cargar técnicos (incluyendo todos los roles operativos de empleados)
         this.userService.getAllUsers().subscribe(res => {
-            this.tecnicos = res.filter(u => u.roles.includes('ADMIN_TECNICOS'));
+            const employeeRoles = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_VISUAL'];
+            this.tecnicos = res.filter(u => u.roles.some(r => employeeRoles.includes(r.replace('ROLE_', ''))));
         });
     }
 

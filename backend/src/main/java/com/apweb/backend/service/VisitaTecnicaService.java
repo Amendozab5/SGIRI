@@ -3,6 +3,8 @@ package com.apweb.backend.service;
 import com.apweb.backend.model.*;
 import com.apweb.backend.payload.request.VisitaRequest;
 import com.apweb.backend.repository.*;
+import com.apweb.backend.services.notificaciones.NotificacionServiceApp;
+import com.apweb.backend.services.notificaciones.MailTemplateService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,10 @@ public class VisitaTecnicaService {
         private CatalogoItemRepository catalogoItemRepository;
 
         @Autowired
-        private NotificationService notificationService;
+        private NotificacionServiceApp notificacionServiceApp;
+
+        @Autowired
+        private MailTemplateService mailTemplateService;
 
         @Transactional
         public List<VisitaTecnica> getVisitasByDateRange(LocalDate start, LocalDate end) {
@@ -69,11 +74,37 @@ public class VisitaTecnicaService {
 
                 VisitaTecnica savedVisita = visitaTecnicaRepository.save(visita);
 
-                // Notificar al técnico
-                notificationService.createNotification(creator, tecnico, ticket,
+                // Notificar al técnico (Web Interactiva)
+                String rutaTecnico = "/home/agenda";
+                notificacionServiceApp.crearNotificacionWeb(
+                                tecnico,
                                 "Nueva Visita Programada: Ticket #" + ticket.getIdTicket(),
                                 "Se le ha programado una visita para el " + visita.getFechaVisita() + " a las "
-                                                + visita.getHoraInicio());
+                                                + visita.getHoraInicio(),
+                                rutaTecnico,
+                                ticket);
+
+                // Notificar al CLIENTE (Correo Electrónico)
+                User clienteApp = ticket.getUsuarioCreador();
+                if (clienteApp != null && clienteApp.getPersona() != null) {
+                        String emailCliente = clienteApp.getPersona().getCorreo();
+                        String nombreCliente = clienteApp.getPersona().getNombre();
+                        String subject = "Cita Programada: Visita Técnica para Ticket #" + ticket.getIdTicket();
+                        String body = mailTemplateService.formatVisitScheduled(
+                                        nombreCliente,
+                                        ticket.getIdTicket(),
+                                        ticket.getAsunto(),
+                                        visita.getFechaVisita().toString(),
+                                        visita.getHoraInicio().toString(),
+                                        (visita.getHoraFin() != null ? visita.getHoraFin().toString() : "--:--"),
+                                        (tecnico.getPersona() != null
+                                                        ? tecnico.getPersona().getNombre() + " "
+                                                                        + tecnico.getPersona().getApellido()
+                                                        : tecnico.getUsername()),
+                                        "http://localhost:4200/cliente/tickets/detalle/" + ticket.getIdTicket());
+
+                        notificacionServiceApp.encolarCorreo(ticket, emailCliente, subject, body);
+                }
 
                 return savedVisita;
         }
@@ -98,11 +129,42 @@ public class VisitaTecnicaService {
                                         .orElseThrow(() -> new RuntimeException("Error: Nuevo técnico no encontrado"));
                         visita.setTecnico(nuevoTecnico);
 
-                        notificationService.createNotification(updater, nuevoTecnico, visita.getTicket(),
+                        String rutaTecnico = "/home/agenda";
+                        notificacionServiceApp.crearNotificacionWeb(
+                                        nuevoTecnico,
                                         "Visita Técnica Reasignada: Ticket #" + visita.getTicket().getIdTicket(),
-                                        "Se le ha reasignado una visita para el " + visita.getFechaVisita());
+                                        "Se le ha reasignado una visita para el " + visita.getFechaVisita(),
+                                        rutaTecnico,
+                                        visita.getTicket());
                 }
 
-                return visitaTecnicaRepository.save(visita);
+                VisitaTecnica savedVisita = visitaTecnicaRepository.save(visita);
+
+                // Notificar al CLIENTE de la actualización/reprogramación
+                Ticket ticket = savedVisita.getTicket();
+                User clienteApp = ticket.getUsuarioCreador();
+                if (clienteApp != null && clienteApp.getPersona() != null) {
+                        String emailCliente = clienteApp.getPersona().getCorreo();
+                        String nombreCliente = clienteApp.getPersona().getNombre();
+                        String subject = "Actualización de Cita: Visita Técnica para Ticket #" + ticket.getIdTicket();
+                        String body = mailTemplateService.formatVisitScheduled(
+                                        nombreCliente,
+                                        ticket.getIdTicket(),
+                                        ticket.getAsunto(),
+                                        savedVisita.getFechaVisita().toString(),
+                                        savedVisita.getHoraInicio().toString(),
+                                        (savedVisita.getHoraFin() != null ? savedVisita.getHoraFin().toString()
+                                                        : "--:--"),
+                                        (savedVisita.getTecnico().getPersona() != null
+                                                        ? savedVisita.getTecnico().getPersona().getNombre() + " "
+                                                                        + savedVisita.getTecnico().getPersona()
+                                                                                        .getApellido()
+                                                        : savedVisita.getTecnico().getUsername()),
+                                        "http://localhost:4200/cliente/tickets/detalle/" + ticket.getIdTicket());
+
+                        notificacionServiceApp.encolarCorreo(ticket, emailCliente, subject, body);
+                }
+
+                return savedVisita;
         }
 }
