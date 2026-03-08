@@ -43,4 +43,5 @@ public class EmpleadoDTO {
     private boolean tieneDocumentoActivo;
     private boolean tieneUsuarioActivo;
     private String usernameSistema; // null si aún no tiene usuario
+    private String codigoEstadoUsuario; // Código de estado del usuario (ACTIVO, INACTIVO)
 }

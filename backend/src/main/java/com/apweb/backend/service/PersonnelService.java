@@ -199,13 +199,19 @@ public class PersonnelService {
 
                 boolean yaTieneUsuario = userOpt.isPresent();
                 String usernameExistente = userOpt.map(User::getUsername).orElse(null);
+                String codigoEstadoUsuario = userOpt.map(u -> u.getEstado() != null ? u.getEstado().getCodigo() : null).orElse(null);
+                String nombreEstadoUsuario = userOpt.map(u -> u.getEstado() != null ? u.getEstado().getNombre() : null).orElse(null);
 
                 boolean puedeActivar = tieneDocActivo && !yaTieneUsuario;
                 String razon = null;
                 if (!tieneDocActivo) {
                         razon = "El empleado no tiene documentos con estado ACTIVO. Suba y valide un documento primero.";
                 } else if (yaTieneUsuario) {
-                        razon = "El empleado ya tiene acceso al sistema (username: " + usernameExistente + ").";
+                        if ("INACTIVO".equals(codigoEstadoUsuario)) {
+                                razon = "El acceso del empleado está suspendido por falta de documentación válida.";
+                        } else {
+                                razon = "El empleado ya tiene acceso al sistema (username: " + usernameExistente + ").";
+                        }
                 }
 
                 return EmpleadoAccessStatusDTO.builder()
@@ -215,6 +221,8 @@ public class PersonnelService {
                                 .yaTieneUsuario(yaTieneUsuario)
                                 .puedeActivar(puedeActivar)
                                 .usernameExistente(usernameExistente)
+                                .codigoEstadoUsuario(codigoEstadoUsuario)
+                                .nombreEstadoUsuario(nombreEstadoUsuario)
                                 .razonBloqueo(razon)
                                 .build();
         }
@@ -346,6 +354,7 @@ public class PersonnelService {
 
                 boolean tieneUsuario = userOpt.isPresent();
                 String username = userOpt.map(User::getUsername).orElse(null);
+                String estadoUsuario = userOpt.map(u -> u.getEstado() != null ? u.getEstado().getCodigo() : null).orElse(null);
 
                 return EmpleadoDTO.builder()
                                 .idEmpleado(e.getIdEmpleado())
@@ -366,8 +375,9 @@ public class PersonnelService {
                                 .idSucursal(e.getSucursal() != null ? e.getSucursal().getId() : null)
                                 .nombreSucursal(e.getSucursal() != null ? e.getSucursal().getNombre() : null)
                                 .tieneDocumentoActivo(tieneDocActivo)
-                                .tieneUsuarioActivo(tieneUsuario)
+                                .tieneUsuarioActivo(tieneUsuario && "ACTIVO".equals(estadoUsuario))
                                 .usernameSistema(username)
+                                .codigoEstadoUsuario(estadoUsuario)
                                 .build();
         }
 }

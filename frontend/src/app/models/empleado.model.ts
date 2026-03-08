@@ -20,6 +20,7 @@ export interface EmpleadoDTO {
   tieneDocumentoActivo: boolean;
   tieneUsuarioActivo: boolean;
   usernameSistema?: string;
+  codigoEstadoUsuario?: string;
 }
 
 export interface EmpleadoCreateRequest {
@@ -59,6 +60,8 @@ export interface EmpleadoAccessStatusDTO {
   yaTieneUsuario: boolean;
   puedeActivar: boolean;
   usernameExistente?: string;
+  codigoEstadoUsuario?: string;
+  nombreEstadoUsuario?: string;
   razonBloqueo?: string;
 }
 

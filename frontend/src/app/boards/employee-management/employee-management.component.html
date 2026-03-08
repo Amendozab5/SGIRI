@@ -69,9 +69,9 @@
                 </span>
               </td>
               <td>
-                <span class="status-badge" [ngClass]="emp.tieneUsuarioActivo ? 'status-active' : 'status-none'">
-                  <i class="bi" [ngClass]="emp.tieneUsuarioActivo ? 'bi-shield-check' : 'bi-shield-slash'"></i>
-                  {{ emp.tieneUsuarioActivo ? emp.usernameSistema : 'Sin Acceso' }}
+                <span class="status-badge" [ngClass]="emp.tieneUsuarioActivo ? 'status-active' : (emp.codigoEstadoUsuario === 'INACTIVO' ? 'status-inactive' : 'status-none')">
+                  <i class="bi" [ngClass]="emp.tieneUsuarioActivo ? 'bi-shield-check' : (emp.codigoEstadoUsuario === 'INACTIVO' ? 'bi-shield-exclamation' : 'bi-shield-slash')"></i>
+                  {{ emp.tieneUsuarioActivo ? emp.usernameSistema : (emp.codigoEstadoUsuario === 'INACTIVO' ? 'Acceso Inactivo' : 'Sin Acceso') }}
                 </span>
               </td>
               <td class="text-end">
@@ -477,11 +477,20 @@
               </div>
             </div>
 
-            <div class="alert-success aura-alert d-flex align-items-center gap-4" *ngIf="accessStatus.yaTieneUsuario">
+            <div class="alert-success aura-alert d-flex align-items-center gap-4" *ngIf="accessStatus.yaTieneUsuario && accessStatus.codigoEstadoUsuario !== 'INACTIVO'">
               <div class="display-6"><i class="bi bi-shield-lock-fill"></i></div>
               <div>
                 <h5 class="m-0 fw-bold">Acceso Activo</h5>
                 <div class="mono fs-5">{{ accessStatus.usernameExistente }}</div>
+              </div>
+            </div>
+
+            <div class="alert-error aura-alert d-flex align-items-center gap-4" *ngIf="accessStatus.yaTieneUsuario && accessStatus.codigoEstadoUsuario === 'INACTIVO'">
+              <div class="display-6"><i class="bi bi-shield-exclamation"></i></div>
+              <div>
+                <h5 class="m-0 fw-bold">Acceso Inactivo</h5>
+                <div class="mono fs-5">{{ accessStatus.usernameExistente }}</div>
+                <div class="small mt-1">La cuenta ha sido suspendida por falta de documentación válida.</div>
               </div>
             </div>
           </div>

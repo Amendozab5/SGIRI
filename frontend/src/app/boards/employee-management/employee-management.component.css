@@ -198,6 +198,12 @@
   color: #C62828;
 }
 
+.status-inactive {
+  background: #ECEFF1;
+  color: #455A64;
+  border: 1px dashed #B0BEC5;
+}
+
 .status-none {
   background: #F5F5F5;
   color: #616161;

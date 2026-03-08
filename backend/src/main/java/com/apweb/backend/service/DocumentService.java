@@ -270,6 +270,54 @@ public class DocumentService {
         doc.setEstado(nuevoEstado);
         DocumentoEmpleado actualizado = documentoEmpleadoRepository.save(doc);
 
+        // ── Lógica de Refuerzo de Acceso: Trazabilidad Documento -> Usuario ──
+        Empleado emp = actualizado.getEmpleado();
+        if (emp != null && emp.getPersona() != null) {
+            String cedula = emp.getPersona().getCedula();
+            Optional<User> userOpt = userRepository.findByPersona_Cedula(cedula);
+
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                boolean tieneOtrosActivos = documentoEmpleadoRepository
+                        .existsByEmpleado_IdEmpleadoAndEstado_Codigo(emp.getIdEmpleado(), "ACTIVO");
+
+                String codigoEstadoActual = user.getEstado() != null ? user.getEstado().getCodigo() : "";
+
+                if ("RECHAZADO".equals(estadoNormalizado) && !tieneOtrosActivos) {
+                    // Si se rechaza y no quedan activos -> Suspender cuenta
+                    if (!"INACTIVO".equals(codigoEstadoActual)) {
+                        catalogoItemRepository.findFirstByCodigo("INACTIVO").ifPresent(status -> {
+                            user.setEstado(status);
+                            userRepository.save(user);
+                            log.info("[DOCS-ACCESO] Acceso SUSPENDIDO para {} por falta de documentos activos.", user.getUsername());
+                            
+                            auditService.registrarEventoContextual(
+                                AuditModulo.USUARIOS, "usuarios", "usuario", user.getId(),
+                                AuditAccion.CAMBIO_ESTADO, "Suspensión automática por documentos rechazados",
+                                java.util.Map.of("id_doc_causa", idDocumento), null
+                            );
+                        });
+                    }
+                } else if ("ACTIVO".equals(estadoNormalizado)) {
+                    // Si se activa -> Asegurar que la cuenta esté activa
+                    if ("INACTIVO".equals(codigoEstadoActual)) {
+                        catalogoItemRepository.findFirstByCodigo("ACTIVO").ifPresent(status -> {
+                            user.setEstado(status);
+                            userRepository.save(user);
+                            log.info("[DOCS-ACCESO] Acceso REACTIVADO para {} tras validación de documento.", user.getUsername());
+                            
+                            auditService.registrarEventoContextual(
+                                AuditModulo.USUARIOS, "usuarios", "usuario", user.getId(),
+                                AuditAccion.CAMBIO_ESTADO, "Reactivación automática por validación de documento",
+                                java.util.Map.of("id_doc_validacion", idDocumento), null
+                            );
+                        });
+                    }
+                }
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         // ── AUDITORÍA: Cambio de Estado Documento ────────────────────────────
         auditService.registrarEventoContextual(
                 AuditModulo.DOCUMENTOS,

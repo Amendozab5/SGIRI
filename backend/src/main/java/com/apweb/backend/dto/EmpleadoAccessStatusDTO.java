@@ -33,11 +33,14 @@ public class EmpleadoAccessStatusDTO {
      */
     private boolean puedeActivar;
 
-    /**
-     * Si ya tiene usuario, su username en el sistema (para mostrar en UI).
-     * Null si aún no tiene acceso.
-     */
+    /** Si ya tiene usuario, su username en el sistema (para mostrar en UI). */
     private String usernameExistente;
+
+    /** Código de estado del usuario (ACTIVO, INACTIVO) */
+    private String codigoEstadoUsuario;
+
+    /** Nombre de estado del usuario (Activo, Inactivo) */
+    private String nombreEstadoUsuario;
 
     // Mensajes de razón para el bloqueo, útiles en la UI
     private String razonBloqueo;
