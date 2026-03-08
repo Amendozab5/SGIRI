@@ -53,7 +53,7 @@ export class BoardAdminComponent implements OnInit {
       next: (data: UserAdminView[]) => {
         this.users$.next(data);
         this.isLoading = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error(err);
@@ -64,6 +64,7 @@ export class BoardAdminComponent implements OnInit {
     this.userService.getRoles().subscribe({
       next: (roles: string[]) => {
         this.availableRoles = roles;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error fetching roles', err);
