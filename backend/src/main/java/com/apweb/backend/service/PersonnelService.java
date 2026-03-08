@@ -7,6 +7,8 @@ import com.apweb.backend.dto.EmpleadoDTO;
 import com.apweb.backend.model.*;
 import com.apweb.backend.payload.response.UserAdminView;
 import com.apweb.backend.repository.*;
+import com.apweb.backend.util.AuditAccion;
+import com.apweb.backend.util.AuditModulo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,8 @@ public class PersonnelService {
         private AdminService adminService;
         @Autowired
         private MailService mailService;
+        @Autowired
+        private AuditService auditService;
 
         // ─── Consultas de solo lectura ────────────────────────────────────────────
 
@@ -131,6 +135,22 @@ public class PersonnelService {
                 Empleado guardado = empleadoRepository.save(empleado);
                 log.info("[EMPLEADOS] Empleado creado — id={}, cedula={}", guardado.getIdEmpleado(),
                                 persona.getCedula());
+
+                // ── AUDITORÍA: Alta Laboral ──────────────────────────────────────────
+                auditService.registrarEventoContextual(
+                        AuditModulo.EMPLEADOS,
+                        "empleados", "empleado",
+                        guardado.getIdEmpleado(),
+                        AuditAccion.INSERT,
+                        "Registro inicial de datos laborales del empleado",
+                        null,
+                        java.util.Map.of(
+                            "cedula", persona.getCedula(),
+                            "id_cargo", guardado.getCargo().getId(),
+                            "id_area", guardado.getArea().getId()
+                        )
+                );
+                // ────────────────────────────────────────────────────────────────────
 
                 return toDTO(guardado);
         }
@@ -258,8 +278,24 @@ public class PersonnelService {
                         createdUser.setEmailSent(false);
                         log.error("[EMPLEADOS] Error al enviar correo de bienvenida para {}: {}", 
                                 createdUser.getUsername(), e.getMessage());
-                        // No lanzamos excepción para no revertir la creación del usuario si ya fue exitosa
                 }
+
+                // ── AUDITORÍA: Activación de Acceso ──────────────────────────────────
+                // Registramos después de la lógica principal para asegurar el éxito del flujo.
+                auditService.registrarEventoContextual(
+                        AuditModulo.USUARIOS,
+                        "usuarios", "usuario",
+                        createdUser.getId(),
+                        AuditAccion.ACTIVACION_ACCESO,
+                        "Activación de acceso y creación de rol físico SQL",
+                        null,
+                        java.util.Map.of(
+                            "username", createdUser.getUsername(),
+                            "rol", req.getRol(),
+                            "id_empleado", empleado.getIdEmpleado()
+                        )
+                );
+                // ────────────────────────────────────────────────────────────────────
 
                 return createdUser;
         }

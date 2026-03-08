@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.apweb.backend.service.AuditService;
+import com.apweb.backend.util.AuditAccion;
+import com.apweb.backend.util.AuditModulo;
+
 @Service
 public class DocumentService {
 
@@ -26,6 +30,7 @@ public class DocumentService {
     private final CatalogoItemRepository catalogoItemRepository;
     private final FileStorageService fileStorageService;
     private final UserRepository userRepository;
+    private final AuditService auditService;
 
     public DocumentService(EmpleadoRepository empleadoRepository,
             ClienteRepository clienteRepository,
@@ -34,7 +39,8 @@ public class DocumentService {
             TipoDocumentoRepository tipoDocumentoRepository,
             CatalogoItemRepository catalogoItemRepository,
             FileStorageService fileStorageService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            AuditService auditService) {
         this.empleadoRepository = empleadoRepository;
         this.clienteRepository = clienteRepository;
         this.documentoEmpleadoRepository = documentoEmpleadoRepository;
@@ -43,6 +49,7 @@ public class DocumentService {
         this.catalogoItemRepository = catalogoItemRepository;
         this.fileStorageService = fileStorageService;
         this.userRepository = userRepository;
+        this.auditService = auditService;
     }
 
     // ─── Foto de perfil (lógica preexistente intacta) ─────────────────────────
@@ -77,6 +84,17 @@ public class DocumentService {
             doc.setCedulaEmpleado(persona.getCedula());
             doc.setDescripcion("Foto de perfil");
             documentoEmpleadoRepository.save(doc);
+
+            // ── AUDITORÍA: Foto Perfil Empleado ──────────────────────────────────
+            auditService.registrarEventoContextual(
+                    AuditModulo.PERFIL,
+                    "empleados", "documento_empleado",
+                    empleado.getIdEmpleado(),
+                    AuditAccion.UPLOAD_DOCUMENTO,
+                    "Carga de foto de perfil (Empleado)",
+                    null,
+                    java.util.Map.of("unique_filename", fileName)
+            );
             return;
         }
 
@@ -94,6 +112,17 @@ public class DocumentService {
             doc.setNumeroDocumento(persona.getCedula());
             doc.setDescripcion("Foto de perfil");
             documentoClienteRepository.save(doc);
+
+            // ── AUDITORÍA: Foto Perfil Cliente ───────────────────────────────────
+            auditService.registrarEventoContextual(
+                    AuditModulo.PERFIL,
+                    "catalogos", "documento_cliente",
+                    cliente.getIdCliente(),
+                    AuditAccion.UPLOAD_DOCUMENTO,
+                    "Carga de foto de perfil (Cliente)",
+                    null,
+                    java.util.Map.of("unique_filename", fileName)
+            );
             return;
         }
 
@@ -193,6 +222,23 @@ public class DocumentService {
         doc.setEstado(estadoPendiente);
 
         DocumentoEmpleado guardado = documentoEmpleadoRepository.save(doc);
+        
+        // ── AUDITORÍA: Carga de Documento Laboral ────────────────────────────
+        auditService.registrarEventoContextual(
+                AuditModulo.DOCUMENTOS,
+                "empleados", "documento_empleado",
+                guardado.getIdDocumento(),
+                AuditAccion.UPLOAD_DOCUMENTO,
+                "Carga de documento tipo: " + (tipoDoc != null ? tipoDoc.getCodigo() : "SIN TIPO"),
+                null,
+                java.util.Map.of(
+                    "id_empleado", idEmpleado,
+                    "tipo_codigo", tipoDoc != null ? tipoDoc.getCodigo() : "NULL",
+                    "id_estado", estadoPendiente.getId()
+                )
+        );
+        // ────────────────────────────────────────────────────────────────────
+
         log.info("[DOCS-EMPLEADO] Documento subido — empleadoId={}, tipo={}, estado=PENDIENTE",
                 idEmpleado, tipoDoc != null ? tipoDoc.getCodigo() : "(sin tipo)");
 
@@ -223,6 +269,21 @@ public class DocumentService {
 
         doc.setEstado(nuevoEstado);
         DocumentoEmpleado actualizado = documentoEmpleadoRepository.save(doc);
+
+        // ── AUDITORÍA: Cambio de Estado Documento ────────────────────────────
+        auditService.registrarEventoContextual(
+                AuditModulo.DOCUMENTOS,
+                "empleados", "documento_empleado",
+                actualizado.getIdDocumento(),
+                AuditAccion.CAMBIO_ESTADO_DOC,
+                "Gestión administrativa de documento: " + estadoNormalizado,
+                null,
+                java.util.Map.of(
+                    "id_empleado", actualizado.getEmpleado() != null ? actualizado.getEmpleado().getIdEmpleado() : "NULL",
+                    "nuevo_estado", estadoNormalizado
+                )
+        );
+        // ────────────────────────────────────────────────────────────────────
 
         log.info("[DOCS-EMPLEADO] Estado del documento id={} cambiado a {}", idDocumento, estadoNormalizado);
         return toDocumentoDTO(actualizado);

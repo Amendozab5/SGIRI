@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import com.apweb.backend.service.AuditService;
+import com.apweb.backend.util.AuditAccion;
+import com.apweb.backend.util.AuditModulo;
 
 @Service
 public class TicketService {
@@ -54,6 +57,9 @@ public class TicketService {
 
         @Autowired
         private MailTemplateService mailTemplateService;
+
+        @Autowired
+        private AuditService auditService;
 
         public List<Ticket> getAllTickets() {
                 return ticketRepository.findAllWithAssociations();
@@ -98,6 +104,7 @@ public class TicketService {
                                 .orElseThrow(() -> new RuntimeException("Error: Status 'ASIGNADO' not found"));
 
                 // Update ticket
+                User previousAssignee = ticket.getUsuarioAsignado();
                 ticket.setUsuarioAsignado(technician);
                 ticket.setEstadoItem(estadoAsignado);
 
@@ -118,6 +125,27 @@ public class TicketService {
                 historial.setUsuarioBd(resolveDbUsername(assigner));
                 historial.setObservacion("Ticket asignado a " + technician.getUsername());
                 historialEstadoRepository.save(historial);
+
+                // ── AUDITORÍA: Cambio de Estado y Asignación ────────────────────────
+                auditService.registrarCambioEstadoTicket(
+                        ticket.getIdTicket(),
+                        estadoAnterior.getId(),
+                        estadoAsignado.getId(),
+                        resolveDbUsername(assigner),
+                        assigner.getId()
+                );
+
+                auditService.registrarEvento(
+                        AuditModulo.TICKETS,
+                        "soporte", "ticket",
+                        ticket.getIdTicket(),
+                        AuditAccion.UPDATE,
+                        "Ticket asignado o reasignado al técnico: " + technician.getUsername(),
+                        previousAssignee != null ? java.util.Map.of("idUsuarioAsignadoAnterior", previousAssignee.getId()) : null,
+                        java.util.Map.of("idUsuarioAsignadoNuevo", technician.getId()),
+                        assigner.getId()
+                );
+                // ────────────────────────────────────────────────────────────────────
 
                 // Guardar cambios en el ticket primero
                 Ticket savedTicket = ticketRepository.save(ticket);
@@ -236,6 +264,18 @@ public class TicketService {
                 historial.setObservacion("Ticket creado por el cliente");
                 historialEstadoRepository.save(historial);
 
+                // ── AUDITORÍA: Creación de Ticket ────────────────────────────────────
+                auditService.registrarEventoContextual(
+                        AuditModulo.TICKETS,
+                        "soporte", "ticket",
+                        savedTicket.getIdTicket(),
+                        AuditAccion.INSERT,
+                        "Creación inicial de ticket por el cliente",
+                        null,
+                        java.util.Map.of("id_cliente", cliente.getIdCliente(), "asunto", ticket.getAsunto())
+                );
+                // ────────────────────────────────────────────────────────────────────
+
                 return savedTicket;
         }
 
@@ -278,13 +318,28 @@ public class TicketService {
                         }
                 }
 
-                Integer finalIdEmpresa = idEmpresa;
-                Empresa empresa = empresaRepository.findById(finalIdEmpresa)
-                                .orElseThrow(() -> new RuntimeException(
-                                                "Error: Empresa not found with ID: " + finalIdEmpresa));
-                comentario.setEmpresa(empresa);
+                ComentarioTicket savedComentario = comentarioTicketRepository.save(comentario);
 
-                return comentarioTicketRepository.save(comentario);
+                // ── AUDITORÍA: Creación de Comentario ────────────────────────────────
+                String obsComentario = (esInterno != null && esInterno) 
+                    ? "Comentario interno agregado al ticket" 
+                    : "Comentario visible al cliente agregado al ticket";
+
+                auditService.registrarEventoContextual(
+                        AuditModulo.TICKETS,
+                        "soporte", "comentario_ticket",
+                        savedComentario.getIdComentario(),
+                        AuditAccion.COMENTARIO,
+                        obsComentario,
+                        null,
+                        java.util.Map.of(
+                            "id_ticket", idTicket,
+                            "es_interno", (esInterno != null && esInterno)
+                        )
+                );
+                // ────────────────────────────────────────────────────────────────────
+
+                return savedComentario;
         }
 
         @Transactional
@@ -319,6 +374,31 @@ public class TicketService {
                 historial.setUsuarioBd(resolveDbUsername(user));
                 historial.setObservacion(observation);
                 historialEstadoRepository.save(historial);
+
+                // ── AUDITORÍA: Cambio de Estado y Posible Cierre ─────────────────────
+                boolean esCierre = "CERRADO".equals(statusCode) || "RESUELTO".equals(statusCode);
+                
+                if (esCierre) {
+                        auditService.registrarEvento(
+                                AuditModulo.TICKETS,
+                                "soporte", "ticket",
+                                ticket.getIdTicket(),
+                                AuditAccion.CAMBIO_ESTADO,
+                                "Cierre o resolución de ticket. Nota: " + observation,
+                                java.util.Map.of("estado_anterior", estadoAnterior.getCodigo()),
+                                java.util.Map.of("estado_final", statusCode),
+                                user.getId()
+                        );
+                } else {
+                        auditService.registrarCambioEstadoTicket(
+                                ticket.getIdTicket(),
+                                estadoAnterior.getId(),
+                                estadoNuevo.getId(),
+                                resolveDbUsername(user),
+                                user.getId()
+                        );
+                }
+                // ────────────────────────────────────────────────────────────────────
 
                 // Notificar al Creador del Ticket (Web Interactiva)
                 String rutaUsuario = "/home/user/ticket/" + ticket.getIdTicket();
@@ -397,7 +477,21 @@ public class TicketService {
                 ticket.setCalificacionSatisfaccion(puntuacion);
                 ticket.setComentarioCalificacion(comentario);
 
-                return ticketRepository.save(ticket);
+                Ticket savedTicket = ticketRepository.save(ticket);
+
+                // ── AUDITORÍA: Calificación de Servicio ──────────────────────────────
+                auditService.registrarEventoContextual(
+                        AuditModulo.TICKETS,
+                        "soporte", "ticket",
+                        savedTicket.getIdTicket(),
+                        AuditAccion.CALIFICACION,
+                        "Cliente registró calificación de satisfacción",
+                        null,
+                        java.util.Map.of("puntuacion", puntuacion)
+                );
+                // ────────────────────────────────────────────────────────────────────
+
+                return savedTicket;
         }
 
         public Double getAvgRatingByTecnico(User tecnico) {

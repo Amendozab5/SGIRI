@@ -1,0 +1,314 @@
+<div class="audit-dashboard p-lg-5 p-4">
+  <!-- Page Header -->
+  <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-5">
+    <div>
+      <h1 class="page-title h2 mb-1">
+        <i class="bi bi-shield-lock-fill me-3"></i> 
+        Gestión de Auditoría
+      </h1>
+      <p class="text-muted small mb-0 fw-medium">Monitoreo técnico y trazabilidad de eventos del ecosistema SGIM</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-light border-0 shadow-sm px-3 fw-600 rounded-pill" (click)="resetFilters()">
+        <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar
+      </button>
+      <button class="btn btn-primary px-4 shadow-primary fw-600 rounded-pill" (click)="loadTimeline()">
+        <i class="bi bi-arrow-repeat me-1"></i> Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Panel -->
+  <div class="filters-card mb-5">
+    <div class="card-body p-4">
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label-premium">Rango Inicial</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar-event text-muted"></i></span>
+            <input type="datetime-local" class="form-control form-control-premium border-start-0 ps-0" [(ngModel)]="filters.startDate">
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label-premium">Rango Final</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar-check text-muted"></i></span>
+            <input type="datetime-local" class="form-control form-control-premium border-start-0 ps-0" [(ngModel)]="filters.endDate">
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <label class="form-label-premium">Módulo</label>
+          <select class="form-select form-control-premium" [(ngModel)]="filters.modulo">
+            <option value="">Todos los Módulos</option>
+            <option value="TICKETS">Tickets / Soporte</option>
+            <option value="USUARIOS">Usuarios / Perfiles</option>
+            <option value="AUTH">Sesiones / Seguridad</option>
+            <option value="ADMIN">Administración Central</option>
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <label class="form-label-premium">Estado</label>
+          <select class="form-select form-control-premium" [(ngModel)]="filters.exito">
+            <option value="">Todo el Tráfico</option>
+            <option value="true">Operación Exitosa</option>
+            <option value="false">Fallas / Errores</option>
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 d-flex align-items-end">
+          <button class="btn w-100 fw-700 py-2 rounded-pill" 
+                  [ngClass]="showAdvancedFilters ? 'btn-dark' : 'btn-outline-indigo'"
+                  (click)="toggleAdvancedFilters()">
+            <i class="bi me-2" [ngClass]="showAdvancedFilters ? 'bi-chevron-up' : 'bi-sliders2-vertical'"></i>
+            {{ showAdvancedFilters ? 'Ocultar' : 'Filtros' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Advanced Filters Grid -->
+      <div class="row g-4 mt-2 pt-4 border-top" *ngIf="showAdvancedFilters">
+        <div class="col-lg-3">
+          <label class="form-label-premium">Acción Específica</label>
+          <input type="text" class="form-control form-control-premium" placeholder="Ej: INSERT, LOGIN..." [(ngModel)]="filters.accion">
+        </div>
+        <div class="col-lg-3">
+          <label class="form-label-premium">Entidad Afectada</label>
+          <input type="text" class="form-control form-control-premium" placeholder="Ej: usuarios, ticket_com..." [(ngModel)]="filters.tabla">
+        </div>
+        <div class="col-lg-2">
+          <label class="form-label-premium">ID Registro</label>
+          <input type="number" class="form-control form-control-premium" placeholder="ID numérico" [(ngModel)]="filters.idRegistro">
+        </div>
+        <div class="col-lg-4 d-flex align-items-end">
+          <button class="btn btn-indigo w-100 py-2 rounded-pill shadow-sm" (click)="applyFilters()">
+            <i class="bi bi-funnel-fill me-2"></i> Ejecutar Consulta Avanzada
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit Table Card -->
+  <div class="audit-table-card">
+    <!-- Card Header / Search -->
+    <div class="bg-white p-4 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input type="text" class="form-control form-control-premium rounded-pill" 
+               placeholder="Filtrar por actor humano / usuario BD..." [formControl]="searchControl">
+      </div>
+      <div class="text-muted small fw-600 px-3 py-1 bg-light rounded-pill" *ngIf="!isLoading">
+        Mostrando <span class="text-indigo">{{ events.length }}</span> de <span class="text-dark">{{ totalElements }}</span> registros
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-grow text-primary mb-3" role="status"></div>
+      <p class="text-muted small fw-medium">Consultando logs de auditoría...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && events.length === 0" class="text-center py-5">
+      <div class="mb-4">
+        <i class="bi bi-database-exclamation text-muted display-1"></i>
+      </div>
+      <h4 class="fw-800 text-slate-800">Sin coincidencias</h4>
+      <p class="text-muted mb-4">No se encontraron eventos para los criterios seleccionados.</p>
+      <button class="btn btn-primary rounded-pill px-4" (click)="resetFilters()">Reiniciar todos los filtros</button>
+    </div>
+
+    <!-- Main Table -->
+    <div *ngIf="!isLoading && events.length > 0" class="table-responsive">
+      <table class="table table-borderless">
+        <thead>
+          <tr>
+            <th class="ps-4">Trazabilidad Temporal</th>
+            <th>Módulo</th>
+            <th>Acción</th>
+            <th>Descripción del Evento</th>
+            <th>Actor del Sistema</th>
+            <th class="text-center">Estado</th>
+            <th class="text-end pe-4">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let event of events" class="audit-row">
+            <td class="ps-4">
+              <div class="timeline-date">
+                <div class="fw-bold text-slate-800" style="font-size: 0.85rem;">{{ event.fecha | date:'dd MMM yyyy' }}</div>
+                <div class="text-muted smallest fw-semibold">{{ event.fecha | date:'HH:mm:ss' }}</div>
+              </div>
+            </td>
+            <td>
+              <span class="badge-premium" [ngClass]="'badge-' + event.modulo.toLowerCase()">
+                {{ event.modulo }}
+              </span>
+            </td>
+            <td>
+              <div class="fw-800 text-indigo-700" style="font-size: 0.7rem;">{{ event.accion }}</div>
+            </td>
+            <td>
+              <div class="text-truncate fw-medium" style="max-width: 300px; font-size: 0.85rem;" [title]="event.descripcion">
+                {{ event.descripcion }}
+              </div>
+              <div *ngIf="event.tablaAfectada" class="text-muted mt-1" style="font-size: 0.65rem;">
+                <code class="px-1 bg-light rounded text-slate-600">{{ event.tablaAfectada }}</code>
+              </div>
+            </td>
+            <td>
+              <div class="actor-info">
+                <div class="actor-avatar">{{ getActorInitials(event) }}</div>
+                <div class="fw-600 text-slate-700" style="font-size: 0.8rem;">{{ getActorDisplay(event) }}</div>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="result-indicator mx-auto" [ngClass]="event.exito ? 'result-success' : 'result-error'">
+                <i class="bi" [ngClass]="event.exito ? 'bi-check2' : 'bi-shield-exclamation'"></i>
+              </div>
+            </td>
+            <td class="text-end pe-4">
+              <button type="button" class="btn-view-detail ms-auto" (click)="viewDetail(event.eventKey)">
+                <i class="bi bi-search-heart"></i> Explorar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Premium Footer / Pagination -->
+    <div class="audit-footer d-flex flex-column flex-md-row justify-content-between align-items-center gap-3" 
+         *ngIf="totalPages > 0 && !isLoading">
+      <div class="text-muted" style="font-size: 0.8rem;">
+        Página <span class="fw-bold text-dark">{{ currentPage + 1 }}</span> de <span class="fw-bold text-dark">{{ totalPages }}</span>
+      </div>
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item" [class.disabled]="currentPage === 0">
+            <a class="page-link shadow-none px-3" href="javascript:void(0)" (click)="onPageChange(currentPage - 1)">Ant.</a>
+          </li>
+          <li class="page-item active"><span class="page-link shadow-none">{{ currentPage + 1 }}</span></li>
+          <li class="page-item" [class.disabled]="currentPage >= totalPages - 1">
+            <a class="page-link shadow-none px-3" href="javascript:void(0)" (click)="onPageChange(currentPage + 1)">Sig.</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- Refined Modal -->
+<div class="modal-backdrop fade show" *ngIf="showModal"></div>
+<div class="modal fade show" tabindex="-1" style="display: block;" *ngIf="showModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-2xl border-0">
+      <div class="modal-header-premium d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <div class="bg-indigo-500 text-white p-2 rounded-lg me-3">
+            <i class="bi bi-robot fs-4"></i>
+          </div>
+          <div>
+            <h5 class="mb-0 fw-800 lh-1">Análisis Técnico de Operación</h5>
+            <span class="smallest text-white-50 opacity-75">UID: {{ selectedEvent?.eventKey }}</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+      </div>
+      
+      <div class="modal-body p-lg-5 p-4 bg-slate-50" *ngIf="selectedEvent">
+        <div class="row g-4">
+          <!-- Quick Specs -->
+          <div class="col-lg-4">
+            <div class="bg-white p-4 rounded-xl shadow-xs border h-100">
+              <h6 class="form-label-premium mb-4 text-indigo">Metadatos de Evento</h6>
+              
+              <div class="mb-4">
+                <div class="text-muted smallest fw-bold text-uppercase mb-1">Módulo</div>
+                <div class="fw-bold text-slate-800">{{ selectedEvent.modulo }}</div>
+              </div>
+              
+              <div class="mb-4">
+                <div class="text-muted smallest fw-bold text-uppercase mb-1">timestamp</div>
+                <div class="fw-bold text-slate-800">{{ selectedEvent.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+              </div>
+              
+              <div class="mb-4">
+                <div class="text-muted smallest fw-bold text-uppercase mb-1">Responsable Técnico</div>
+                <div class="badge-tech-premium px-3 py-2 rounded-lg d-inline-block">
+                  <i class="bi bi-person-fill-lock me-2"></i>{{ selectedEvent.usuarioBd || 'sgiri_app' }}
+                </div>
+              </div>
+              
+              <div>
+                <div class="text-muted smallest fw-bold text-uppercase mb-1">Dirección IP</div>
+                <code class="text-indigo-600 bg-indigo-50 px-2 py-1 rounded">{{ selectedEvent.ipOrigen || 'Internal' }}</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description & Status -->
+          <div class="col-lg-8">
+            <div class="bg-white p-4 rounded-xl shadow-xs border mb-4">
+              <h6 class="form-label-premium mb-3 text-indigo">Relato de Ejecución</h6>
+              <div class="p-3 bg-slate-50 rounded-lg border-start border-indigo border-4 mb-3">
+                <p class="mb-0 fw-700 text-slate-800">{{ selectedEvent.descripcion }}</p>
+              </div>
+              
+              <div class="d-flex align-items-center p-3 rounded-lg" 
+                   [ngClass]="selectedEvent.exito ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'">
+                <i class="bi fs-4 me-3" [ngClass]="selectedEvent.exito ? 'bi-shield-check' : 'bi-shield-x'"></i>
+                <div>
+                  <div class="smallest fw-bold text-uppercase">Resultado Final</div>
+                  <div class="fw-800">{{ selectedEvent.exito ? 'OPERACIÓN EXITOSA' : 'OPERACIÓN FALLIDA' }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Observations -->
+            <div class="bg-white p-4 rounded-xl shadow-xs border" *ngIf="selectedEvent.observacion || !selectedEvent.exito">
+              <h6 class="form-label-premium mb-3 text-rose-600">Observaciones y Diagnóstico</h6>
+              <div class="p-3 bg-rose-50 rounded-lg border border-rose-100">
+                <p class="mb-0 font-monospace small">{{ selectedEvent.observacion || 'No se registraron detalles del error.' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Semantic Data (JSON) -->
+          <div class="col-12" *ngIf="selectedEvent.valoresAnteriores || selectedEvent.valoresNuevos">
+            <div class="bg-slate-900 p-4 rounded-2xl shadow-xl">
+              <div class="d-flex align-items-center mb-4">
+                <div class="bg-indigo-500 p-2 rounded-lg me-3"><i class="bi bi-code-slash text-white"></i></div>
+                <h6 class="mb-0 text-white fw-700 text-uppercase tracking-wider">Payload de Datos Semánticos</h6>
+              </div>
+              
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="smallest text-white-50 fw-bold text-uppercase">Snapshot Anterior</span>
+                    <i class="bi bi-arrow-down-circle text-rose-400"></i>
+                  </div>
+                  <div class="json-block">
+                    <pre class="mb-0">{{ selectedEvent.valoresAnteriores ? (selectedEvent.valoresAnteriores | json) : '{}' }}</pre>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <span class="smallest text-white-50 fw-bold text-uppercase">Snapshot Resultante</span>
+                    <i class="bi bi-arrow-up-circle text-emerald-400"></i>
+                  </div>
+                  <div class="json-block">
+                    <pre class="mb-0">{{ selectedEvent.valoresNuevos ? (selectedEvent.valoresNuevos | json) : '{}' }}</pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer bg-white border-top p-4">
+        <button type="button" class="btn btn-elegant-close" (click)="closeModal()">Finalizar Revisión</button>
+      </div>
+    </div>
+  </div>
+</div>

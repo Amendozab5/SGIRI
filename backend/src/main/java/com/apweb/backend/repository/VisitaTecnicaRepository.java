@@ -20,7 +20,10 @@ public interface VisitaTecnicaRepository extends JpaRepository<VisitaTecnica, In
             "JOIN FETCH v.tecnico u " +
             "JOIN FETCH v.estado e " +
             "JOIN FETCH v.empresa emp " +
-            "WHERE v.fechaVisita BETWEEN :start AND :end")
+            "WHERE v.fechaVisita BETWEEN :start AND :end " +
+            "AND u.id = :tecnicoId")
+    List<VisitaTecnica> findByFechaVisitaBetweenAndTecnico_Id(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("tecnicoId") Integer tecnicoId);
+
     List<VisitaTecnica> findByFechaVisitaBetween(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
     List<VisitaTecnica> findByTecnico_Id(Integer tecnicoId);

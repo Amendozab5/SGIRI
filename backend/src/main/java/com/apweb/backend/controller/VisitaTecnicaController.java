@@ -34,12 +34,22 @@ public class VisitaTecnicaController {
             @RequestParam("start") String startStr,
             @RequestParam("end") String endStr) {
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_ADMIN_MASTER") || a.getAuthority().equals("ROLE_ADMIN_TECNICOS"));
+
         // Angular envía ISO string completo (ej: 2026-03-08T05:00:00.000Z)
-        // Pero LocalDate solo quiere yyyy-MM-dd. Tomamos los primeros 10 caracteres.
         LocalDate start = LocalDate.parse(startStr.substring(0, 10));
         LocalDate end = LocalDate.parse(endStr.substring(0, 10));
 
-        return ResponseEntity.ok(visitaTecnicaService.getVisitasByDateRange(start, end));
+        if (isAdmin) {
+            return ResponseEntity.ok(visitaTecnicaService.getVisitasByDateRange(start, end));
+        } else {
+            // Si es técnico (y no admin), solo ve sus propias visitas
+            User currentUser = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Error: Usuario no encontrado"));
+            return ResponseEntity.ok(visitaTecnicaService.getVisitasByDateRangeAndTecnico(start, end, currentUser.getId()));
+        }
     }
 
     @GetMapping("/{id}")

@@ -1,6 +1,7 @@
 import { Component, signal, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Subscription, interval } from 'rxjs';
 import { TokenStorageService } from './_services/token-storage.service';
+import { AuthService } from './_services/auth.service';
 import { SharedStateService } from './_services/shared-state.service';
 import { NotificationService } from './_services/notification.service';
 import { NotificacionWeb } from './models/notification';
@@ -34,6 +35,7 @@ export class App implements OnInit, OnDestroy {
     private tokenStorageService: TokenStorageService,
     private sharedState: SharedStateService,
     private notificationService: NotificationService,
+    private authService: AuthService,
     private router: Router,
     private cd: ChangeDetectorRef
   ) { }
@@ -128,8 +130,18 @@ export class App implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.tokenStorageService.signOut();
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe({
+      next: () => {
+        this.tokenStorageService.signOut();
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        console.error('Error en logout auditado:', err);
+        // Fallback: cerrar sesión local aunque falle la auditoría de red
+        this.tokenStorageService.signOut();
+        this.router.navigate(['/login']);
+      }
+    });
   }
 
   navigateToProfile(): void {

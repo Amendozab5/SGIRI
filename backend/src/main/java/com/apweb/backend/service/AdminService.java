@@ -15,6 +15,8 @@ import com.apweb.backend.repository.CatalogoItemRepository;
 import com.apweb.backend.model.CatalogoItem;
 import com.apweb.backend.model.Persona;
 import com.apweb.backend.model.UsuarioBd;
+import com.apweb.backend.util.AuditAccion;
+import com.apweb.backend.util.AuditModulo;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
@@ -69,6 +71,9 @@ public class AdminService {
 
     @Autowired
     private UsuarioBdRepository usuarioBdRepository;
+
+    @Autowired
+    private AuditService auditService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -136,7 +141,21 @@ public class AdminService {
     @Transactional
     public UserAdminView createUser(UserCreateRequest request) {
         String roleCode = normalizeRoleCode(request.getRole());
-        return createClientUser(request, roleCode);
+        UserAdminView result = createClientUser(request, roleCode);
+
+        // ── AUDITORÍA: Registro Usuario Cliente ──────────────────────────────
+        auditService.registrarEventoContextual(
+                AuditModulo.USUARIOS,
+                "usuarios", "usuario",
+                result.getId(),
+                AuditAccion.REGISTRO_USUARIO,
+                "Creación administrativa de cuenta para cliente",
+                null,
+                java.util.Map.of("username", result.getUsername(), "rol", roleCode)
+        );
+        // ─────────────────────────────────────────────────────────────────────
+
+        return result;
     }
 
     /**
@@ -212,6 +231,10 @@ public class AdminService {
 
         UserAdminView response = mapToUserAdminView(savedUser);
         response.setTemporaryPassword(tempPass);
+
+        // La auditoría de este flujo se dispara en PersonnelService.activarAccesoEmpleado
+        // para mantener consistencia con el flujo de negocio superior.
+
         return response;
     }
 
@@ -265,8 +288,21 @@ public class AdminService {
                     "Error: El estado '" + newStatusCode + "' está deshabilitado en el catálogo.");
         }
 
+        String oldStatus = user.getEstado() != null ? user.getEstado().getCodigo() : "N/A";
         user.setEstado(status);
         userRepository.save(user);
+
+        // ── AUDITORÍA: Cambio Estado Usuario ─────────────────────────────────
+        auditService.registrarEventoContextual(
+                AuditModulo.USUARIOS,
+                "usuarios", "usuario",
+                user.getId(),
+                AuditAccion.CAMBIO_ESTADO,
+                "Suspensión o reactivación administrativa de cuenta",
+                java.util.Map.of("estado", oldStatus),
+                java.util.Map.of("estado", newStatusCode)
+        );
+        // ─────────────────────────────────────────────────────────────────────
     }
 
     @Transactional
@@ -290,9 +326,23 @@ public class AdminService {
         String updateRoleCode = normalizeRoleCode(request.getRole());
         Role userRole = roleRepository.findByCodigo(updateRoleCode)
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        String oldRole = user.getRole().getCodigo();
         user.setRole(userRole);
 
         User updatedUser = userRepository.save(user);
+
+        // ── AUDITORÍA: Cambio de Rol ─────────────────────────────────────────
+        auditService.registrarEventoContextual(
+                AuditModulo.USUARIOS,
+                "usuarios", "usuario",
+                updatedUser.getId(),
+                AuditAccion.UPDATE,
+                "Cambio administrativo de rol de usuario",
+                java.util.Map.of("rol", oldRole),
+                java.util.Map.of("rol", updateRoleCode)
+        );
+        // ─────────────────────────────────────────────────────────────────────
+
         return mapToUserAdminView(updatedUser);
     }
 
@@ -310,12 +360,18 @@ public class AdminService {
             log.info("[ADMIN] Revocando acceso para el colaborador (cedula: {}) - userId: {}", persona.getCedula(),
                     userId);
 
+            // ── AUDITORÍA: Captura previa al borrado ─────────────────────────
+            String targetUsername = user.getUsername();
+            String targetRole = user.getRole().getCodigo();
+            List<UsuarioBd> bdUsers = usuarioBdRepository.findByUser_Id(userId);
+            String targetBdUser = bdUsers.stream().map(UsuarioBd::getNombre).findFirst().orElse("N/A");
+            // ─────────────────────────────────────────────────────────────────
+
             // 1. Desvincular Persona de Usuario (borrar FK en persona)
             persona.setUser(null);
             personaRepository.save(persona);
 
             // 2. Eliminar registros en usuarios.usuario_bd y roles físicos de DB
-            List<UsuarioBd> bdUsers = usuarioBdRepository.findByUser_Id(userId);
             for (UsuarioBd bdu : bdUsers) {
                 String bdUserName = bdu.getNombre();
                 usuarioBdRepository.delete(bdu);
@@ -333,18 +389,37 @@ public class AdminService {
             userRepository.delete(user);
             log.info("[ADMIN] Acceso de colaborador revocado exitosamente.");
 
+            // ── AUDITORÍA: Registro Final ────────────────────────────────────
+            auditService.registrarEventoContextual(
+                AuditModulo.USUARIOS,
+                "usuarios", "usuario",
+                userId,
+                AuditAccion.REVOCACION_ACCESO,
+                "Revocación total de acceso y destrucción de identidad física",
+                java.util.Map.of(
+                    "username", targetUsername,
+                    "rol", targetRole,
+                    "bd_user", targetBdUser
+                ),
+                null
+            );
+            // ─────────────────────────────────────────────────────────────────
+
         } else {
-            // Caso Clientes u otros: Desvinculamos siempre para proteger integridad de la
-            // Persona
+            // Caso Clientes u otros
             if (isLinkedToPersona && persona != null) {
                 log.info("[ADMIN] Desvinculando identidad de usuario {} (cedula: {})", userId, persona.getCedula());
+                
+                // ── AUDITORÍA: Captura previa ─────────────────────────────────
+                String targetUsername = user.getUsername();
+                String targetRole = user.getRole().getCodigo();
+                // ─────────────────────────────────────────────────────────────
+
                 persona.setUser(null);
                 personaRepository.save(persona);
 
                 userRepository.delete(user);
 
-                // Si no es un cliente, intentamos borrar la persona (podría ser un manual)
-                // pero si falla por integridad la dejamos como registro histórico de identidad
                 if (!isClient) {
                     try {
                         personaRepository.delete(persona);
@@ -353,6 +428,18 @@ public class AdminService {
                         log.info("[ADMIN] Persona mantenida por restricciones de integridad.");
                     }
                 }
+
+                // ── AUDITORÍA: Registro Final ────────────────────────────────────
+                auditService.registrarEventoContextual(
+                    AuditModulo.USUARIOS,
+                    "usuarios", "usuario",
+                    userId,
+                    AuditAccion.REVOCACION_ACCESO,
+                    "Revocación de acceso de usuario cliente",
+                    java.util.Map.of("username", targetUsername, "rol", targetRole),
+                    null
+                );
+                // ─────────────────────────────────────────────────────────────────
             } else {
                 userRepository.delete(user);
             }

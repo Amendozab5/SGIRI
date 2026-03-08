@@ -18,6 +18,8 @@ import { EmployeeManagementComponent } from './boards/employee-management/employ
 import { TechDashboardComponent } from './boards/tech-dashboard/tech-dashboard.component'; // Import TechDashboardComponent
 
 
+import { AuditManagementComponent } from './boards/audit-management/audit-management.component'; // New import
+
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent }, // Add register route
@@ -33,6 +35,7 @@ export const routes: Routes = [
       { path: 'gestion-empleados', component: EmployeeManagementComponent }, // Employee management
       { path: 'gestion-catalogos', component: CatalogManagementComponent }, // Catalog management
       { path: 'gestion-entidades', component: EntityManagementComponent }, // Entity management
+      { path: 'gestion-auditoria', component: AuditManagementComponent }, // New audit route
       { path: 'tech', component: TechDashboardComponent }, // Technician dashboard
       { path: 'tech-tickets', component: BoardTechnicianComponent }, // Technician tickets list
       { path: 'asignacion-tickets', component: TicketAssignmentComponent },

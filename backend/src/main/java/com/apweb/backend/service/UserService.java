@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import com.apweb.backend.util.AuditAccion;
+import com.apweb.backend.util.AuditModulo;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class UserService {
@@ -22,6 +26,12 @@ public class UserService {
         private DocumentService documentService;
         @Autowired
         private PersonaRepository personaRepository;
+
+        @Autowired
+        private PasswordEncoder encoder;
+
+        @Autowired
+        private AuditService auditService;
 
         @Transactional(readOnly = true)
         public UserProfileResponse getUserProfile(String username) {
@@ -67,7 +77,48 @@ public class UserService {
                 persona.setCelular(request.getCelular());
                 personaRepository.save(persona);
 
+                // ── AUDITORÍA: Autogestión de Perfil ─────────────────────────────────
+                auditService.registrarEventoContextual(
+                        AuditModulo.PERFIL,
+                        "usuarios", "persona",
+                        persona.getIdPersona(),
+                        AuditAccion.UPDATE,
+                        "Autogestión de datos de perfil por el usuario",
+                        null,
+                        Map.of(
+                            "nombre", persona.getNombre(),
+                            "apellido", persona.getApellido(),
+                            "correo", persona.getCorreo()
+                        )
+                );
+                // ─────────────────────────────────────────────────────────────────────
+
                 return getUserProfile(username);
+        }
+
+        @Transactional
+        public void changePassword(User user, String oldPassword, String newPassword) {
+                if (!encoder.matches(oldPassword, user.getPassword())) {
+                        throw new RuntimeException("Error: Contraseña actual incorrecta.");
+                }
+
+                user.setPassword(encoder.encode(newPassword));
+                user.setPrimerLogin(false);
+                userRepository.save(user);
+
+                // ── AUDITORÍA: Cambio de contraseña ──────────────────────────────────
+                // En cumplimiento con las reglas de seguridad, NUNCA expone el hash ni el texto plano.
+                // Se usa el string semánticamente seguro de confirmación del evento.
+                auditService.registrarEvento(
+                                AuditModulo.AUTH,
+                                "usuarios", "usuario",
+                                user.getId(),
+                                AuditAccion.CAMBIO_PASSWORD,
+                                "El usuario ha cambiado exitosamente su contraseña",
+                                null,
+                                Map.of("credencial_actualizada", true),
+                                user.getId());
+                // ────────────────────────────────────────────────────────────────────
         }
 
 }

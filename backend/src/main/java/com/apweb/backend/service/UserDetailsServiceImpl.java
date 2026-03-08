@@ -52,7 +52,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             dbUsername = usuariosBd.get(0).getNombre();
         }
 
-        // Usamos nuestro CustomUserDetails para incluir el rol f\u00edsico de la bd.
+        // Usamos nuestro CustomUserDetails para incluir el rol f\u00edsico de la bd y el ID.
         return new com.apweb.backend.security.jwt.CustomUserDetails(
                 user.getUsername(),
                 user.getPassword(),
@@ -61,6 +61,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 credentialsNonExpired,
                 accountNonLocked,
                 authorities,
-                dbUsername);
+                dbUsername,
+                user.getId());
     }
 }

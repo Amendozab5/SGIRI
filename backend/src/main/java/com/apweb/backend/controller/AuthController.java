@@ -9,13 +9,15 @@ import com.apweb.backend.payload.request.LoginRequest;
 import com.apweb.backend.payload.response.JwtResponse;
 import com.apweb.backend.payload.response.MessageResponse;
 import com.apweb.backend.repository.ClienteRepository;
-
 import com.apweb.backend.repository.RoleRepository;
 import com.apweb.backend.repository.UserRepository;
 import com.apweb.backend.repository.PersonaRepository;
 import com.apweb.backend.repository.CatalogoItemRepository;
 import com.apweb.backend.security.jwt.JwtUtils;
+import com.apweb.backend.service.AuditService;
 import com.apweb.backend.service.MailService;
+import com.apweb.backend.service.UserService;
+import com.apweb.backend.util.AuditAccion;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -55,6 +57,8 @@ public class AuthController {
     private final ClienteRepository clienteRepository;
     private final PersonaRepository personaRepository;
     private final CatalogoItemRepository catalogoItemRepository;
+    private final AuditService auditService;
+    private final UserService userService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -67,7 +71,9 @@ public class AuthController {
             MailService mailService,
             ClienteRepository clienteRepository,
             PersonaRepository personaRepository,
-            CatalogoItemRepository catalogoItemRepository) {
+            CatalogoItemRepository catalogoItemRepository,
+            AuditService auditService,
+            UserService userService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -77,6 +83,8 @@ public class AuthController {
         this.clienteRepository = clienteRepository;
         this.personaRepository = personaRepository;
         this.catalogoItemRepository = catalogoItemRepository;
+        this.auditService = auditService;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -86,6 +94,11 @@ public class AuthController {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (Exception e) {
+            // ── AUDITORÍA: Login fallido ─────────────────────────────────────
+            auditService.registrarLoginFallido(
+                    loginRequest.getUsername(),
+                    "Credenciales incorrectas o cuenta no activada");
+            // ────────────────────────────────────────────────────────────────
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse("Error: Credenciales incorrectas o cuenta no activada."));
@@ -104,6 +117,16 @@ public class AuthController {
                 .collect(Collectors.toList());
 
         String email = getEmailForUser(user);
+
+        // ── AUDITORÍA: Login exitoso ─────────────────────────────────────────
+        // Resolver usuario_bd: CustomUserDetails expone dbUsername para empleados;
+        // Clientes no tienen usuario físico — se guarda null y AuditService lo maneja.
+        String dbUsername = null;
+        if (userDetails instanceof com.apweb.backend.security.jwt.CustomUserDetails customUserDetails) {
+            dbUsername = customUserDetails.getDbUsername();
+        }
+        auditService.registrarLoginExitoso(user.getUsername(), dbUsername, user.getId());
+        // ────────────────────────────────────────────────────────────────────
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 user.getId(),
@@ -239,15 +262,26 @@ public class AuthController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Error: Usuario no encontrado."));
 
-        if (!encoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Contraseña actual incorrecta."));
+        try {
+            userService.changePassword(user, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+            return ResponseEntity.ok(new MessageResponse("Contraseña cambiada exitosamente."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
+    }
 
-        user.setPassword(encoder.encode(changePasswordRequest.getNewPassword()));
-        user.setPrimerLogin(false);
-        userRepository.save(user);
-
-        return ResponseEntity.ok(new MessageResponse("Contraseña cambiada exitosamente."));
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof UserDetails userDetails) {
+            User user = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
+            if (user != null) {
+                auditService.registrarEventoInterno("AUTH", null, null, null, 
+                        AuditAccion.LOGOUT, "Cierre de sesión de usuario", null, null, 
+                        user.getId(), true, null);
+            }
+        }
+        return ResponseEntity.ok(new MessageResponse("Logout exitoso."));
     }
 
     private String getEmailForUser(User user) {
