@@ -144,6 +144,7 @@ export class AuditManagementComponent implements OnInit {
         if (detail) {
           this.selectedEvent = detail;
           this.showModal = true;
+          this.cdr.detectChanges(); // Force UI update on first click
           // Forzar scroll al inicio del modal si es necesario
           window.scrollTo(0, 0);
         } else {
@@ -159,9 +160,11 @@ export class AuditManagementComponent implements OnInit {
 
   closeModal(): void {
     this.showModal = false;
+    this.cdr.detectChanges(); // Update UI immediately
     // Agregamos un pequeño delay para limpiar el objeto y evitar saltos visuales en la animación de cerrado
     setTimeout(() => {
       this.selectedEvent = undefined;
+      this.cdr.detectChanges();
     }, 200);
   }
 

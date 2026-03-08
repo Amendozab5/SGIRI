@@ -497,14 +497,21 @@ public class TicketService {
                 Ticket savedTicket = ticketRepository.save(ticket);
 
                 // ── AUDITORÍA: Calificación de Servicio ──────────────────────────────
-                auditService.registrarEventoContextual(
+                auditService.registrarEvento(
                         AuditModulo.TICKETS,
                         "soporte", "ticket",
                         savedTicket.getIdTicket(),
                         AuditAccion.CALIFICACION,
                         "Cliente registró calificación de satisfacción",
-                        null,
-                        java.util.Map.of("puntuacion", puntuacion)
+                        java.util.Map.of(
+                                "puntuacion", "sin calificar",
+                                "comentario", "n/a"
+                        ),
+                        java.util.Map.of(
+                                "puntuacion", puntuacion,
+                                "comentario", comentario != null ? comentario : ""
+                        ),
+                        user.getId()
                 );
                 // ────────────────────────────────────────────────────────────────────
 
