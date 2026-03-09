@@ -1,0 +1,271 @@
+<div class="dashboard-wrap animate-fade-in">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="dashboard-loader">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p>Generando centro de analítica...</p>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+        <!-- Page Header Section -->
+        <div class="page-header mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <h1 class="page-title mb-0">
+                        {{ selectedReport === 'TICKET_GESTION' ? 'Gestión de Tickets' :
+                        (selectedReport === 'SLA_TECNICO' ? 'Cumplimiento de SLA' :
+                        (selectedReport === 'CSAT_ANALISIS' ? 'Satisfacción Cliente' : 'Centro de Analítica')) }}
+                    </h1>
+                    <p class="page-subtitle text-muted">Inteligencia operativa y métricas de desempeño del sistema SGIM
+                    </p>
+                </div>
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2">
+                    <button class="btn btn-export-excel shadow-sm" (click)="exportToExcel()">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Exportar Excel
+                    </button>
+                    <button class="btn btn-export-pdf shadow-sm" (click)="downloadPdf()">
+                        <i class="bi bi-file-pdf me-2"></i>Descargar PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar card border-0 shadow-sm p-3 mb-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-4">
+                        <div class="search-input-group">
+                            <i class="bi bi-search search-icon"></i>
+                            <input type="text" class="form-control" placeholder="Buscar en el reporte..."
+                                (input)="onSearch($event)" [value]="searchTerm">
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="d-flex justify-content-end gap-2 px-2">
+                            <!-- Filtros dinámicos según el tipo de reporte -->
+                            <ng-container
+                                *ngIf="selectedReport === 'TICKET_GESTION' || selectedReport === 'TICKETS_RESUMEN'">
+                                <button class="btn btn-filter" [class.active]="statusFilter === 'TODOS'"
+                                    (click)="onStatusChange('TODOS')">Todos los Datos</button>
+                                <button class="btn btn-filter" [class.active]="statusFilter === 'OPEN'"
+                                    (click)="onStatusChange('OPEN')">Abiertos</button>
+                                <button class="btn btn-filter" [class.active]="statusFilter === 'EN_PROCESO'"
+                                    (click)="onStatusChange('EN_PROCESO')">En Proceso</button>
+                                <button class="btn btn-filter" [class.active]="statusFilter === 'RESUELTO'"
+                                    (click)="onStatusChange('RESUELTO')">Resueltos</button>
+                                <button class="btn btn-filter" [class.active]="statusFilter === 'CLOSED'"
+                                    (click)="onStatusChange('CLOSED')">Cerrados</button>
+                            </ng-container>
+
+                            <ng-container *ngIf="selectedReport === 'SLA_TECNICO'">
+                                <button class="btn btn-filter active">Todos los Técnicos</button>
+                                <button class="btn btn-filter">SLA Crítico</button>
+                            </ng-container>
+
+                            <ng-container *ngIf="selectedReport === 'CSAT_ANALISIS'">
+                                <button class="btn btn-filter active">Todo el Feedback</button>
+                                <button class="btn btn-filter">Baja Calificación</button>
+                            </ng-container>
+
+                            <div class="vr mx-2" style="height: 24px; align-self: center;"></div>
+                            <span class="text-muted small align-self-center">Mostrando {{ (selectedReport ===
+                                'SLA_TECNICO' ? slaData.length : (selectedReport === 'CSAT_ANALISIS' ?
+                                csatDetalle.length : ticketsData.length)) }} registros</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="report-content-container">
+
+            <!-- 1. DASHBOARD: GESTIÓN DE TICKETS -->
+            <div *ngIf="selectedReport === 'TICKET_GESTION' || selectedReport === 'TICKETS_RESUMEN' || !selectedReport"
+                class="animate__animated animate__fadeIn">
+                <div class="card border-0 shadow-sm overflow-hidden mb-4">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table premium-table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">ID</th>
+                                        <th>ASUNTO</th>
+                                        <th>FECHA CREACIÓN</th>
+                                        <th>ESTADO</th>
+                                        <th>PRIORIDAD</th>
+                                        <th class="text-center">CALIFICACIÓN</th>
+                                        <th class="pe-4 text-end">ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let t of ticketsData">
+                                        <td class="ps-4"><span class="id-tag">#{{ t.idTicket }}</span></td>
+                                        <td>
+                                            <div class="fw-bold">{{ t.asunto }}</div>
+                                            <div class="small text-muted">{{ t.categoria || 'Incidencia General' }}
+                                            </div>
+                                        </td>
+                                        <td class="small">{{ t.fechaCreacion | date:'medium' }}</td>
+                                        <td>
+                                            <span class="status-pill" [class.status-open]="t.estadoCodigo === 'OPEN'"
+                                                [class.status-closed]="t.estadoCodigo === 'CLOSED'">
+                                                {{ t.estado }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="priority-badge" [class]="'prio-' + t.prioridad?.toLowerCase()">
+                                                {{ t.prioridad }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-1"
+                                                *ngIf="t.calificacionSatisfaccion">
+                                                <i class="bi bi-star-fill text-warning"
+                                                    *ngFor="let star of [1,2,3,4,5].slice(0, t.calificacionSatisfaccion)"></i>
+                                            </div>
+                                            <span class="text-muted small"
+                                                *ngIf="!t.calificacionSatisfaccion">Pendiente</span>
+                                        </td>
+                                        <td class="pe-4 text-end">
+                                            <button class="btn btn-action"
+                                                [routerLink]="['/home/user/ticket', t.idTicket]" title="Ver Detalle">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. DASHBOARD: CUMPLIMIENTO DE SLA -->
+            <div *ngIf="selectedReport === 'SLA_TECNICO'" class="animate__animated animate__fadeIn">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);">
+                            <span class="stat-label">SLA GLOBAL PROM.</span>
+                            <span class="stat-value">91.4%</span>
+                            <i class="bi bi-graph-up-arrow stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);">
+                            <span class="stat-label">T. RESOLUCIÓN PROM.</span>
+                            <span class="stat-value">4.2 Horas</span>
+                            <i class="bi bi-clock-history stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <span class="stat-label">CUMPLIMIENTO OBJETIVO</span>
+                            <span class="stat-value">Efectivo</span>
+                            <i class="bi bi-check-all stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm overflow-hidden mt-4">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table premium-table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">TÉCNICO</th>
+                                        <th class="text-center">TOTAL</th>
+                                        <th class="text-center">RESUELTOS</th>
+                                        <th class="text-center">SLA CUMPLIDO</th>
+                                        <th class="text-center">PORCENTAJE</th>
+                                        <th class="text-center pe-4">T. PROM. RESOLUCIÓN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let s of slaData">
+                                        <td class="ps-4"><span class="fw-bold">{{ s.tecnicoNombre }}</span></td>
+                                        <td class="text-center">{{ s.totalTickets }}</td>
+                                        <td class="text-center">{{ s.ticketsResueltos }}</td>
+                                        <td class="text-center">{{ s.slaCumplido }}</td>
+                                        <td class="text-center">
+                                            <span class="fw-bold"
+                                                [class.text-success]="(s.slaCumplido/s.totalTickets) >= 0.8"
+                                                [class.text-warning]="(s.slaCumplido/s.totalTickets) < 0.8">
+                                                {{ (s.slaCumplido/s.totalTickets) | percent }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center pe-4">{{ s.avgResolucionHoras }}h</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. DASHBOARD: SATISFACCIÓN CLIENTE (CSAT) -->
+            <div *ngIf="selectedReport === 'CSAT_ANALISIS'" class="animate__animated animate__fadeIn">
+                <div class="row g-4 mb-4" *ngIf="csatData.length > 0">
+                    <div class="col-md-6">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <span class="stat-label">PUNTAJE SATISFACCIÓN GLOBAL</span>
+                            <span class="stat-value">{{ csatData[0].puntajePromedio || '0.0' }} / 5.0</span>
+                            <i class="bi bi-star-fill stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);">
+                            <span class="stat-label">TASA DE EXPERIENCIA POSITIVA</span>
+                            <span class="stat-value">{{ csatData[0].tasaPositiva || '0' }}%</span>
+                            <i class="bi bi-emoji-smile-fill stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm overflow-hidden">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table premium-table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">CLIENTE</th>
+                                        <th>ASUNTO / TICKET</th>
+                                        <th class="text-center">CALIFICACIÓN</th>
+                                        <th>COMENTARIO / FEEDBACK</th>
+                                        <th class="pe-4 text-end">FECHA CIERRE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let item of csatDetalle">
+                                        <td class="ps-4">
+                                            <div class="fw-bold">{{ item.clienteNombre }}</div>
+                                            <div class="small text-muted">{{ item.categoria }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="id-tag small">#{{ item.idTicket }}</span>
+                                            <div class="text-truncate" style="max-width: 200px;">{{ item.asunto }}</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="text-warning">
+                                                <i class="bi" *ngFor="let star of [1,2,3,4,5]"
+                                                    [ngClass]="item.calificacionSatisfaccion >= star ? 'bi-star-fill' : 'bi-star'"></i>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="feedback-text fst-italic text-secondary"
+                                                style="max-width: 300px;">
+                                                "{{ item.comentarioCalificacion || 'Sin comentarios.' }}"
+                                            </div>
+                                        </td>
+                                        <td class="pe-4 text-end small">{{ item.fechaCierre | date:'short' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</div>
