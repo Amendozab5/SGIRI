@@ -60,4 +60,28 @@ export class TicketService {
   getTechnicianStats(technicianId: number): Observable<any> {
     return this.http.get(API_URL + `/tecnico/${technicianId}/stats`);
   }
+
+  submitInforme(ticketId: number, informe: any): Observable<any> {
+    return this.http.post(API_URL + `/${ticketId}/informe`, informe);
+  }
+
+  getInforme(ticketId: number): Observable<any> {
+    return this.http.get(API_URL + `/${ticketId}/informe`);
+  }
+
+  getFrecuencias(): Observable<any> {
+    return this.http.get(API_URL + '/informe/frecuencias');
+  }
+
+  downloadPdf(ticketId: number): Observable<Blob> {
+    return this.http.get(`${API_URL}/${ticketId}/pdf`, { responseType: 'blob' });
+  }
+
+  getAvailableInventario(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:8081/api/inventario');
+  }
+
+  getInventarioUsado(ticketId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${API_URL}/${ticketId}/inventario-usado`);
+  }
 }

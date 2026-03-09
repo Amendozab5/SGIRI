@@ -4,6 +4,9 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { TicketService } from '../../_services/ticket.service';
 import { FormsModule } from '@angular/forms';
 import { TokenStorageService } from '../../_services/token-storage.service';
+import { HttpClient } from '@angular/common/http';
+
+import { MasterDataService } from '../../_services/master-data.service';
 
 @Component({
     selector: 'app-ticket-detail',
@@ -24,6 +27,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     currentUser: any = null;
     showStatusUpdate = false;
     isCliente = false;
+    isTecnico = false;
     backRoute = '/home/user';
 
     // Rating state
@@ -43,10 +47,56 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         confirmText: ''
     };
 
+    // ─── Tech Work Form State ──────────────────────────────────────────────────
+    formStep: number = 1; // 1: selections, 2: result/comments
+    searchTerm: string = '';
+    searchCategory: string = ''; // 'implementos', 'problemas', 'soluciones', 'pruebas'
+    inventorySearchTerm: string = '';
+
+    // Frequency data for dynamic coloring
+    frecuencias: any = null;
+
+    // Inventory items from backend
+    availableInventario: any[] = [];
+    filteredInventoryList: any[] = [];
+    selectedInventario: any[] = []; // { idItemInventario, nombre, cantidad }
+
+    // Existing informe (loaded from backend)
+    informeTecnico: any = null;
+    inventarioUsado: any[] = [];
+    loadingInforme = false;
+
+    // Form submission
+    techFormSubmitting = false;
+    techFormSuccess = false;
+    techFormError = '';
+
+    // Active tab (Stage 2)
+    techFormTab: 'RESUELTO' | 'NO_RESUELTO' = 'RESUELTO';
+
+    // Selections
+    selectedImplementos: string[] = [];
+    selectedProblemas: string[] = [];
+    selectedSoluciones: string[] = [];
+    selectedPruebas: string[] = [];
+
+    // NO_RESUELTO branch
+    selectedMotivo: string = '';
+    comentarioTecnico: string = '';
+    tiempoTrabajo: number = 30;
+    implementosOpciones: string[] = [];
+    problemasOpciones: string[] = [];
+    solucionesOpciones: string[] = [];
+    pruebasOpciones: string[] = [];
+    motivosNoResolucion: string[] = [];
+
+    starsArray = [1, 2, 3, 4, 5];
+
     constructor(
         private route: ActivatedRoute,
         private ticketService: TicketService,
         private tokenService: TokenStorageService,
+        private masterDataService: MasterDataService,
         private cdr: ChangeDetectorRef,
         private zone: NgZone
     ) { }
@@ -65,10 +115,52 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
 
     ngOnInit(): void {
         this.currentUser = this.tokenService.getUser();
+        this.checkPermissions(); // Set showStatusUpdate, isTecnico, etc. BEFORE loading data
+
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.loadTicket(+id);
         }
+        if (this.isTecnico || (this.currentUser && this.currentUser.roles?.includes('ROLE_ADMIN_MASTER'))) {
+            this.loadFrecuencias();
+            this.loadAvailableInventario();
+            this.loadCatalogos();
+        }
+    }
+
+    loadCatalogos() {
+        this.masterDataService.getCatalogoItems('IMPLEMENTOS_TECNICOS', true).subscribe(
+            res => { this.implementosOpciones = res.map((r: any) => r.nombre); this.updateGeneralFilters(); }
+        );
+        this.masterDataService.getCatalogoItems('PROBLEMAS_TECNICOS', true).subscribe(
+            res => { this.problemasOpciones = res.map((r: any) => r.nombre); this.updateGeneralFilters(); }
+        );
+        this.masterDataService.getCatalogoItems('SOLUCIONES_TECNICAS', true).subscribe(
+            res => { this.solucionesOpciones = res.map((r: any) => r.nombre); this.updateGeneralFilters(); }
+        );
+        this.masterDataService.getCatalogoItems('PRUEBAS_TECNICAS', true).subscribe(
+            res => { this.pruebasOpciones = res.map((r: any) => r.nombre); this.updateGeneralFilters(); }
+        );
+        this.masterDataService.getCatalogoItems('MOTIVOS_NO_RESOLUCION_TECNICA', true).subscribe(
+            res => this.motivosNoResolucion = res.map((r: any) => r.nombre)
+        );
+    }
+
+    loadAvailableInventario() {
+        this.ticketService.getAvailableInventario().subscribe({
+            next: (data) => {
+                this.availableInventario = data;
+                this.updateInventoryFilter();
+            },
+            error: (err) => console.error('Error loading inventario', err)
+        });
+    }
+
+    loadFrecuencias() {
+        this.ticketService.getFrecuencias().subscribe({
+            next: (data) => this.frecuencias = data,
+            error: (err) => console.error('Error loading frequencies', err)
+        });
     }
 
     loadTicket(id: number): void {
@@ -79,7 +171,8 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 this.zone.run(() => {
                     this.ticket = data;
                     this.loading = false;
-                    this.checkPermissions();
+                    // checkPermissions already called in ngOnInit, but update just in case roles come from data
+                    this.loadInformeTecnico(id);
                     this.cdr.detectChanges();
                 });
             },
@@ -94,6 +187,40 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         });
     }
 
+    loadInformeTecnico(ticketId: number): void {
+        if (!this.isTecnico && !this.showStatusUpdate) return;
+        this.loadingInforme = true;
+
+        // Load main informe
+        this.ticketService.getInforme(ticketId).subscribe({
+            next: (informe) => {
+                this.zone.run(() => {
+                    this.informeTecnico = informe;
+                    this.loadingInforme = false;
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.zone.run(() => {
+                    this.informeTecnico = null;
+                    this.loadingInforme = false;
+                    this.cdr.detectChanges();
+                });
+            }
+        });
+
+        // Load used inventory items
+        this.ticketService.getInventarioUsado(ticketId).subscribe({
+            next: (items) => {
+                this.zone.run(() => {
+                    this.inventarioUsado = items;
+                    this.cdr.detectChanges();
+                });
+            },
+            error: () => this.inventarioUsado = []
+        });
+    }
+
     checkPermissions(): void {
         if (!this.currentUser) return;
         const roles = this.currentUser.roles || [];
@@ -102,6 +229,8 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 roles.includes('ROLE_ADMIN') ||
                 roles.includes('ROLE_ADMIN_MASTER') ||
                 roles.includes('ROLE_ADMIN_TECNICOS');
+
+            this.isTecnico = roles.includes('ROLE_TECNICO') || roles.includes('ROLE_ADMIN_MASTER');
 
             this.isCliente = roles.includes('ROLE_CLIENTE');
 
@@ -156,11 +285,13 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     }
 
     get canRate(): boolean {
-        return this.isCliente && this.isTicketClosed && !this.ticket?.calificacionSatisfaccion;
+        return this.isCliente &&
+            (this.ticket?.estadoItem?.codigo === 'CERRADO' || this.ticket?.estadoItem?.codigo === 'RESUELTO') &&
+            !this.ticket?.calificacionSatisfaccion;
     }
 
     get alreadyRated(): boolean {
-        return this.isCliente && this.isTicketClosed && !!this.ticket?.calificacionSatisfaccion;
+        return !!this.ticket?.calificacionSatisfaccion;
     }
 
     setRating(stars: number): void { this.ratingValue = stars; }
@@ -175,8 +306,6 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     getDisplayStarClass(star: number): string {
         return star <= (this.ticket?.calificacionSatisfaccion || 0) ? 'rating-star filled' : 'rating-star';
     }
-
-    starsArray = [1, 2, 3, 4, 5];
 
     submitRating(): void {
         if (this.ratingValue === 0) {
@@ -282,5 +411,229 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
             case 'REQUIERE_VISITA': return 'bg-danger-subtle text-danger';
             default: return 'bg-secondary-subtle text-secondary';
         }
+    }
+
+    // ─── Tech Work Form helpers ────────────────────────────────────────────────
+
+    /** Whether the tech work form panel should be shown */
+    get showTechWorkForm(): boolean {
+        return this.isTecnico && this.ticket?.estadoItem?.codigo === 'EN_PROCESO';
+    }
+
+    /** Whether to show the existing informe summary (read-only) */
+    get showInformeSummary(): boolean {
+        return this.isTecnico && !!this.informeTecnico;
+    }
+
+    isChipSelected(list: string[], value: string): boolean {
+        return list.includes(value);
+    }
+
+    toggleChip(list: string[], value: string, category?: string): void {
+        // Enforce logic: NO_APLICA deselects everything else
+        if (value === 'NO_APLICA') {
+            list.length = 0;
+            list.push(value);
+            return;
+        }
+
+        // If something else is selected and NO_APLICA was there, remove NO_APLICA
+        const noAplicaIdx = list.indexOf('NO_APLICA');
+        if (noAplicaIdx > -1) {
+            list.splice(noAplicaIdx, 1);
+        }
+
+        const index = list.indexOf(value);
+
+        // For critical categories, we usually want only ONE selection to avoid confusing reports
+        // unless it's 'Pruebas' which can be multiple.
+        if (category === 'problemas' || category === 'soluciones' || category === 'implementos') {
+            if (index > -1) {
+                list.splice(index, 1);
+            } else {
+                list.length = 0; // Clear previous
+                list.push(value);
+            }
+        } else {
+            // Multiple selection for others (like Pruebas)
+            if (index > -1) {
+                list.splice(index, 1);
+            } else {
+                list.push(value);
+            }
+        }
+    }
+
+    submitTechForm() {
+        if (!this.confirmStage2()) return;
+
+        this.techFormSubmitting = true;
+        this.techFormError = '';
+
+        const payload = {
+            resultado: this.techFormTab,
+            implementosUsados: this.selectedImplementos.join(', '),
+            problemasEncontrados: this.selectedProblemas.join(', '),
+            solucionAplicada: this.selectedSoluciones.join(', '),
+            pruebasRealizadas: this.selectedPruebas.join(', '),
+            motivoNoResolucion: this.techFormTab === 'NO_RESUELTO' ? this.selectedMotivo : null,
+            comentarioTecnico: this.comentarioTecnico,
+            tiempoTrabajoMinutos: this.tiempoTrabajo,
+            inventarioItems: this.selectedInventario.map(item => ({
+                idItemInventario: item.idItemInventario,
+                cantidad: item.cantidad
+            }))
+        };
+
+        this.ticketService.submitInforme(this.ticket.idTicket, payload).subscribe({
+            next: (res) => {
+                this.techFormSubmitting = false;
+                this.techFormSuccess = true;
+                this.informeTecnico = res;
+                this.loadTicket(this.ticket.idTicket);
+
+                // Automatically download PDF if it was resolved
+                if (this.techFormTab === 'RESUELTO') {
+                    this.downloadPdf();
+                }
+            },
+            error: (err) => {
+                this.techFormSubmitting = false;
+                this.techFormError = err.error?.message || 'Error al guardar el informe';
+            }
+        });
+    }
+
+    confirmStage1() {
+        if (this.selectedProblemas.length === 0) {
+            this.techFormError = 'Debe seleccionar al menos un problema encontrado.';
+            return;
+        }
+        if (this.selectedSoluciones.length === 0) {
+            this.techFormError = 'Debe seleccionar la solución aplicada.';
+            return;
+        }
+        if (this.selectedPruebas.length === 0) {
+            this.techFormError = 'Debe registrar al menos una prueba realizada.';
+            return;
+        }
+        this.techFormError = '';
+        this.formStep = 2;
+    }
+
+    confirmStage2() {
+        if (this.techFormTab === 'NO_RESUELTO' && !this.selectedMotivo) {
+            this.techFormError = 'Por favor, seleccione el motivo de no resolución.';
+            return false;
+        }
+        return true;
+    }
+
+    // ─── Search and Filtering ──────────────────────────────────────────────────
+
+    filteredImplementosList: string[] = [];
+    filteredProblemasList: string[] = [];
+    filteredSolucionesList: string[] = [];
+    filteredPruebasList: string[] = [];
+
+    get filteredImplementos() { return this.filteredImplementosList; }
+    get filteredProblemas() { return this.filteredProblemasList; }
+    get filteredSoluciones() { return this.filteredSolucionesList; }
+    get filteredPruebas() { return this.filteredPruebasList; }
+    get filteredInventory() { return this.filteredInventoryList; }
+
+    onSearchTermChange() {
+        // Debounce not needed for small memory arrays, but could be added
+        this.updateGeneralFilters();
+    }
+
+    onInventorySearchChange() {
+        this.updateInventoryFilter();
+    }
+
+    updateGeneralFilters() {
+        this.filteredImplementosList = this.filterList(this.implementosOpciones, 'implementos');
+        this.filteredProblemasList = this.filterList(this.problemasOpciones, 'problemas');
+        this.filteredSolucionesList = this.filterList(this.solucionesOpciones, 'soluciones');
+        this.filteredPruebasList = this.filterList(this.pruebasOpciones, 'pruebas');
+    }
+
+    updateInventoryFilter() {
+        if (!this.inventorySearchTerm) {
+            this.filteredInventoryList = this.availableInventario;
+            return;
+        }
+        const term = this.inventorySearchTerm.toLowerCase();
+        this.filteredInventoryList = this.availableInventario.filter(item =>
+            item.nombre?.toLowerCase().includes(term) ||
+            item.codigo?.toLowerCase().includes(term)
+        );
+    }
+
+    private filterList(list: string[], category: string) {
+        if (this.searchCategory && this.searchCategory !== category) return [];
+        if (!this.searchTerm) return list;
+        const term = this.searchTerm.toLowerCase();
+        return list.filter(opt => opt.toLowerCase().includes(term));
+    }
+
+    setSearchCategory(cat: string) {
+        this.searchCategory = (this.searchCategory === cat) ? '' : cat;
+        this.updateGeneralFilters();
+    }
+
+    // ─── Dynamic Coloring ──────────────────────────────────────────────────────
+
+    getChipColorClass(category: string, value: string) {
+        if (value === 'NO_APLICA') return 'chip-no-aplica';
+        if (value === 'SIN_MATERIAL') return 'chip-sin-material';
+
+        if (!this.frecuencias || !this.frecuencias[category]) return 'freq-low';
+
+        const count = this.frecuencias[category][value] || 0;
+        if (count > 5) return 'freq-high';
+        if (count > 2) return 'freq-medium';
+        return 'freq-low';
+    }
+
+    // ─── Inventory management ──────────────────────────────────────────────────
+
+    toggleInventario(item: any) {
+        const idx = this.selectedInventario.findIndex(i => i.idItemInventario === item.idItemInventario);
+        if (idx >= 0) {
+            this.selectedInventario.splice(idx, 1);
+        } else {
+            if (!item.cantidad) item.cantidad = 1;
+            this.selectedInventario.push(item); // Push same reference to share quantity
+        }
+    }
+
+    isInventarioSelected(item: any) {
+        return this.selectedInventario.some(i => i.idItemInventario === item.idItemInventario);
+    }
+
+    // ─── PDF Export ────────────────────────────────────────────────────────────
+
+    downloadPdf() {
+        this.ticketService.downloadPdf(this.ticket.idTicket).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Ticket_${this.ticket.idTicket}_Reporte.pdf`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+            error: (err) => {
+                console.error('Error downloading PDF', err);
+                alert('No se pudo generar el PDF en este momento.');
+            }
+        });
+    }
+
+    /** Parse comma-separated string into array for display */
+    listFromText(text: string | null): string[] {
+        if (!text) return [];
+        return text.split(',').map(s => s.trim()).filter(s => !!s);
     }
 }

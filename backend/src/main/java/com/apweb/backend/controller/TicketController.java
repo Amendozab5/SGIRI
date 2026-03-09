@@ -2,6 +2,7 @@ package com.apweb.backend.controller;
 
 import com.apweb.backend.model.*;
 import com.apweb.backend.payload.request.CommentRequest;
+import com.apweb.backend.payload.request.InformeTrabajoTecnicoRequest;
 import com.apweb.backend.payload.request.RatingRequest;
 import com.apweb.backend.payload.request.TicketRequest;
 import com.apweb.backend.payload.response.MessageResponse;
@@ -14,6 +15,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import java.io.ByteArrayInputStream;
 
 import java.util.List;
 import java.util.Map;
@@ -192,5 +197,71 @@ public class TicketController {
                                 "promedio", promedio != null ? promedio : 0.0,
                                 "totalCalificados", totalCalificados,
                                 "totalTickets", totalTickets));
+        }
+
+        // ─── Informe Técnico ───────────────────────────────────────────────────
+
+        /**
+         * Submit a technical work report for a ticket.
+         * The ticket must be in EN_PROCESO state.
+         * On success, the ticket transitions to RESUELTO or ABIERTO (if not resolved).
+         */
+        @PostMapping("/{id:[0-9]+}/informe")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
+        public ResponseEntity<?> submitInforme(
+                        @PathVariable("id") Integer id,
+                        @RequestBody InformeTrabajoTecnicoRequest informeRequest) {
+
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentUserName = authentication.getName();
+                User currentUser = userRepository.findByUsername(currentUserName)
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                try {
+                        InformeTrabajoTecnico informe = ticketService.submitInformeTecnico(id, currentUser,
+                                        informeRequest);
+                        return ResponseEntity.ok(informe);
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        throw e;
+                }
+        }
+
+        /**
+         * Get the technical work report for a ticket (if it exists).
+         */
+        @GetMapping("/{id:[0-9]+}/informe")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<?> getInforme(@PathVariable("id") Integer id) {
+                return ticketService.getInformeTecnico(id)
+                                .map(informe -> ResponseEntity.ok((Object) informe))
+                                .orElse(ResponseEntity.noContent().build());
+        }
+
+        @GetMapping("/{id:[0-9]+}/inventario-usado")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<?> getInventarioUsado(@PathVariable("id") Integer id) {
+                return ResponseEntity.ok(ticketService.getInventarioUsado(id));
+        }
+
+        @GetMapping("/informe/frecuencias")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
+        public ResponseEntity<?> getFrecuencias() {
+                return ResponseEntity.ok(ticketService.getOptionFrequencies());
+        }
+
+        @GetMapping("/{id:[0-9]+}/pdf")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('CLIENTE')")
+        public ResponseEntity<InputStreamResource> exportTicketPdf(@PathVariable("id") Integer id) {
+                ByteArrayInputStream bis = ticketService.generateTicketPdf(id);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Content-Disposition", "attachment; filename=ticket_" + id + ".pdf");
+
+                return ResponseEntity
+                                .ok()
+                                .headers(headers)
+                                .contentType(MediaType.APPLICATION_PDF)
+                                .body(new InputStreamResource(bis));
         }
 }
