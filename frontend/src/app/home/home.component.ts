@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router'; // Import RouterModule for routerLink
+import { RouterModule, Router } from '@angular/router'; // Import RouterModule and Router
 import { TokenStorageService } from '../_services/token-storage.service';
 
 @Component({
@@ -18,7 +18,10 @@ export class HomeComponent implements OnInit {
   showUserBoard = false; // Added for clarity
   username?: string;
 
-  constructor(private tokenStorageService: TokenStorageService) { }
+  constructor(
+    private tokenStorageService: TokenStorageService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     this.isLoggedIn = !!this.tokenStorageService.getToken();
@@ -40,12 +43,16 @@ export class HomeComponent implements OnInit {
   logout(): void {
     this.tokenStorageService.signOut();
     // Redirect to login page after sign out
-    window.location.href = '/login';
+    this.router.navigate(['/login']);
   }
 
   toggleSidebar(): void {
     // This script toggles the 'sb-sidenav-toggled' class on the body
     document.body.classList.toggle('sb-sidenav-toggled');
+  }
+
+  navigateToReport(reportCode: string): void {
+    this.router.navigate(['/home/reportes'], { queryParams: { report: reportCode } });
   }
 }
 

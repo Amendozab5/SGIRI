@@ -19,6 +19,7 @@ import { TechDashboardComponent } from './boards/tech-dashboard/tech-dashboard.c
 
 
 import { AuditManagementComponent } from './boards/audit-management/audit-management.component'; // New import
+import { ReportsBoardComponent } from './boards/reports-board/reports-board.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -36,6 +37,7 @@ export const routes: Routes = [
       { path: 'gestion-catalogos', component: CatalogManagementComponent }, // Catalog management
       { path: 'gestion-entidades', component: EntityManagementComponent }, // Entity management
       { path: 'gestion-auditoria', component: AuditManagementComponent }, // New audit route
+      { path: 'reportes', component: ReportsBoardComponent }, // New reports route
       { path: 'tech', component: TechDashboardComponent }, // Technician dashboard
       { path: 'tech-tickets', component: BoardTechnicianComponent }, // Technician tickets list
       { path: 'asignacion-tickets', component: TicketAssignmentComponent },

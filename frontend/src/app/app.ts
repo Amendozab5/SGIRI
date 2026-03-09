@@ -25,6 +25,7 @@ export class App implements OnInit, OnDestroy {
   isLoggedIn = false;
   isPasswordChangeRequired = false;
   username?: string;
+  roles: string[] = [];
   avatarUrl: string = '//ssl.gstatic.com/accounts/ui/avatar_2x.png';
 
   // Notificaciones
@@ -114,6 +115,7 @@ export class App implements OnInit, OnDestroy {
     this.isLoggedIn = !!user;
     if (user) {
       this.username = user.username;
+      this.roles = user.roles || [];
 
       // Avatar
       this.avatarUrl = user.rutaFoto ? `http://localhost:8081/uploads/${user.rutaFoto}` : '//ssl.gstatic.com/accounts/ui/avatar_2x.png';

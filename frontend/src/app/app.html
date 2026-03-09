@@ -15,6 +15,15 @@
     <!-- Right-aligned nav items - Entirely hidden during mandatory password change -->
     <ul class="navbar-nav ml-auto" *ngIf="!isPasswordChangeRequired">
 
+      <!-- General Admin / Tech Reports Link -->
+      <li class="nav-item"
+        *ngIf="isLoggedIn && (roles.includes('ROLE_ADMIN_MASTER') || roles.includes('ROLE_ADMIN_VISUAL'))">
+        <a class="nav-link d-flex align-items-center" routerLink="/home/reportes">
+          <i class="bi bi-graph-up-arrow me-1"></i>
+          Reportes
+        </a>
+      </li>
+
       <!-- Notifications Bell -->
       <li class="nav-item dropdown mr-3" *ngIf="isLoggedIn" appBootstrapDropdown>
         <a class="nav-link dropdown-toggle position-relative" href="javascript:void(0)" id="notiDropdown" role="button">
@@ -42,12 +51,14 @@
             [ngClass]="{'bg-light': !noti.leida}" (click)="handleNotificationClick(noti)">
             <div class="d-flex align-items-start">
               <div class="noti-icon me-3">
-                <i class="bi" [ngClass]="noti.idTicket ? 'bi-ticket-detailed-fill text-primary' : 'bi-info-circle-fill text-info'"></i>
+                <i class="bi"
+                  [ngClass]="noti.idTicket ? 'bi-ticket-detailed-fill text-primary' : 'bi-info-circle-fill text-info'"></i>
               </div>
               <div class="flex-grow-1" style="white-space: normal;">
                 <p class="mb-1 fw-bold" style="font-size: 0.9rem;">{{ noti.titulo }}</p>
                 <p class="mb-1 text-muted" style="font-size: 0.8rem;">{{ noti.mensaje }}</p>
-                <small class="text-muted" style="font-size: 0.7rem;">{{ noti.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</small>
+                <small class="text-muted" style="font-size: 0.7rem;">{{ noti.fechaCreacion | date:'dd/MM/yyyy HH:mm'
+                  }}</small>
               </div>
             </div>
           </a>

@@ -77,11 +77,33 @@
         <span class="badge rounded-pill bg-danger ms-2" style="font-size: 0.65rem;" *ngIf="showAdminBoard">LIVE</span>
       </a>
 
-      <!-- Scheduler/Agenda Access -->
-      <a class="menu-item" routerLink="/home/agenda" routerLinkActive="active"
-        *ngIf="showAdminBoard">
+      <!-- Agenda Access -->
+      <a class="menu-item" routerLink="/home/agenda" routerLinkActive="active" *ngIf="showAdminBoard">
         <i class="bi bi-calendar3"></i>
         <span>Agenda de Visitas</span>
+      </a>
+
+      <!-- Analítica e Informes (GESTIÓN ESTRATÉGICA) -->
+      <div class="menu-category" *ngIf="showAdminBoard">
+        Centro de Analítica
+      </div>
+      <a class="menu-item" [routerLink]="['/home/reportes']" [queryParams]="{report: 'TICKET_GESTION'}"
+        routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false, queryParams: 'subset' }"
+        *ngIf="showAdminBoard">
+        <i class="bi bi-ticket-detailed-fill"></i>
+        <span>Gestión de Tickets</span>
+      </a>
+      <a class="menu-item" [routerLink]="['/home/reportes']" [queryParams]="{report: 'SLA_TECNICO'}"
+        routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false, queryParams: 'subset' }"
+        *ngIf="showAdminBoard">
+        <i class="bi bi-clock-history"></i>
+        <span>Cumplimiento de SLA</span>
+      </a>
+      <a class="menu-item" [routerLink]="['/home/reportes']" [queryParams]="{report: 'CSAT_ANALISIS'}"
+        routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false, queryParams: 'subset' }"
+        *ngIf="showAdminBoard">
+        <i class="bi bi-chat-heart-fill"></i>
+        <span>Satisfacción Cliente</span>
       </a>
     </div>
   </div>

@@ -55,7 +55,6 @@ export class BoardTechnicianComponent implements OnInit {
     this.ticketService.getAssignedTickets().subscribe({
       next: (data: Ticket[]) => {
         this.zone.run(() => {
-          console.log('Tickets recibidos:', data);
           this.tickets = data;
           this.isLoading = false;
           this.cdr.detectChanges();
@@ -66,12 +65,6 @@ export class BoardTechnicianComponent implements OnInit {
           console.error('Error al cargar tickets:', err);
           this.errorMessage = 'No se pudieron cargar tus tareas asignadas.';
           this.isLoading = false;
-          this.cdr.detectChanges();
-        });
-      },
-      complete: () => {
-        this.zone.run(() => {
-          console.log('Carga finalizada.');
           this.cdr.detectChanges();
         });
       }
