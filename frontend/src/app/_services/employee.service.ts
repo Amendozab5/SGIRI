@@ -19,7 +19,7 @@ const ORG_API       = 'http://localhost:8081/api/organization';
 export interface EmpleadoActivarAccesoRequest {
   rol: string;
   idEmpresa: number;
-  anioNacimiento: number;
+  anioNacimiento?: number;
 }
 
 /** Minimal shape returned by GET /api/documents/tipos-documento */

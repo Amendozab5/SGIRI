@@ -100,7 +100,7 @@ public class NetworkServiceImpl implements NetworkService {
                     "Esmeraldas", "Guayas", "Imbabura", "Loja", "Los Ríos", "Manabí",
                     "Morona Santiago", "Napo", "Pastaza", "Pichincha", "Tungurahua",
                     "Zamora Chinchipe", "Galápagos", "Sucumbíos", "Orellana",
-                    "Santo Domingo de los Tsáchilas", "Santa Elena", "Zonas No Delimitadas");
+                    "Santo Domingo de los Tsáchilas", "Santa Elena");
 
             Map<String, NetworkMapDTO> provMap = new java.util.HashMap<>();
             for (int i = 0; i < ALL_PROVINCES.size(); i++) {

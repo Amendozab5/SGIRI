@@ -260,7 +260,7 @@ public class PersonnelService {
                 // 2. Ejecutar creación (SQL + Rol físico)
                 UserAdminView createdUser = adminService.crearUsuarioEmpleado(
                                 cedula,
-                                req.getAnioNacimiento(),
+                                req.getAnioNacimiento() != null ? req.getAnioNacimiento() : 0,
                                 req.getRol(),
                                 req.getIdEmpresa());
 

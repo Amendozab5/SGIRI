@@ -142,12 +142,17 @@ export class TechDashboardComponent implements OnInit {
   }
 
   private processNetwork(nodes: NetworkMapData[]): void {
-    this.networkStatus = nodes.map(n => ({
-      region: n.zoneName,
-      status: n.level === 'CRITICAL' ? 'danger' : n.level === 'WARNING' ? 'warning' : 'success',
-      nodes: `${n.openTickets} Incidentes`,
-      percentage: n.scoreFinal || 0
-    }));
+    this.networkStatus = nodes
+      .filter(n => {
+        const name = (n.zoneName || '').toUpperCase();
+        return name !== 'ZONAS NO DELIMITADAS' && name !== 'ZONA NO DELIMITADA';
+      })
+      .map(n => ({
+        region: n.zoneName,
+        status: n.level === 'CRITICAL' ? 'danger' : n.level === 'WARNING' ? 'warning' : 'success',
+        nodes: `${n.openTickets} Incidentes`,
+        percentage: n.scoreFinal || 0
+      }));
   }
 
   private calculateKPIs(tickets: Ticket[], visitas: any[]): void {

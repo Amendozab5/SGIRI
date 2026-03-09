@@ -2,6 +2,9 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeService, EmpleadoActivarAccesoRequest, TipoDocumentoDTO } from '../../_services/employee.service';
+import { CompanyService } from '../../_services/company.service';
+import { Empresa } from '../../models/empresa';
+import { NetworkService, NetworkMapData } from '../../_services/network.service';
 import {
   EmpleadoDTO,
   EmpleadoCreateRequest,
@@ -67,8 +70,8 @@ export class EmployeeManagementComponent implements OnInit {
   showActivarForm = false;
   activarRol = '';
   activarEmpresa: number | null = null;
-  activarAnio: number | null = null;
   activating = false;
+  empresas: Empresa[] = [];
 
   // Roles de empleado disponibles
   rolesEmpleado = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_VISUAL'];
@@ -76,6 +79,7 @@ export class EmployeeManagementComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private employeeService: EmployeeService,
+    private companyService: CompanyService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -111,6 +115,7 @@ export class EmployeeManagementComponent implements OnInit {
     this.employeeService.getCargos().subscribe(c => this.cargos = c);
     this.employeeService.getTiposContrato().subscribe(t => this.tiposContrato = t);
     this.employeeService.getTiposDocumento().subscribe(t => this.tiposDocumento = t);
+    this.companyService.getISPs().subscribe(c => this.empresas = c);
   }
 
   loadEmpleados(): void {
@@ -154,11 +159,10 @@ export class EmployeeManagementComponent implements OnInit {
     this.documentos = [];
     this.accessStatus = null;
     this.showUploadForm = false;
-    this.showActivarForm = false;
-    this.uploadFile = null;
-    this.uploadIdTipo = undefined;
     this.uploadNumero = '';
     this.uploadDescripcion = '';
+    this.activarRol = '';
+    this.activarEmpresa = null;
     this.errorMsg = '';
     this.successMsg = '';
   }
@@ -366,14 +370,13 @@ export class EmployeeManagementComponent implements OnInit {
   }
 
   activarAcceso(): void {
-    if (!this.activarRol || !this.activarEmpresa || !this.activarAnio || !this.selectedEmpleado) return;
+    if (!this.activarRol || !this.activarEmpresa || !this.selectedEmpleado) return;
     this.activating = true;
     this.errorMsg = '';
 
     const req: EmpleadoActivarAccesoRequest = {
       rol: this.activarRol,
-      idEmpresa: this.activarEmpresa,
-      anioNacimiento: this.activarAnio
+      idEmpresa: this.activarEmpresa
     };
 
     this.employeeService.activarAcceso(this.selectedEmpleado.cedula, req).subscribe({
@@ -389,7 +392,6 @@ export class EmployeeManagementComponent implements OnInit {
         
         // Limpiar campos del formulario de activación
         this.activarRol = '';
-        this.activarAnio = null;
         this.activarEmpresa = null;
 
         // 1. Actualizar el empleado seleccionado
