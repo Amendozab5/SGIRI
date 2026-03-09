@@ -71,6 +71,58 @@ public class DataLoader implements CommandLineRunner {
         createItemIfMissing(cat, "ACTIVO", "Activo", 1);
         createItemIfMissing(cat, "INACTIVO", "Inactivo", 2);
         createItemIfMissing(cat, "PENDIENTE", "Pendiente / En Espera", 3);
+
+        // --- Catálogos para el Flujo del Técnico ---
+        createCatFlow("IMPLEMENTOS_TECNICOS", "Catálogo de implementos o herramientas no inventariadas.",
+                java.util.List.of(
+                        "NO_APLICA", "SIN_MATERIAL", "Cable HDMI", "Cable de red", "Router", "Switch", "Adaptador",
+                        "Fuente de poder", "Disco duro", "Memoria RAM", "Patch cord", "Convertidor USB", "Antena WiFi",
+                        "Laptop de prueba"));
+
+        createCatFlow("PROBLEMAS_TECNICOS", "Catálogo de problemas encontrados.", java.util.List.of(
+                "NO_APLICA", "Cable dañado", "Configuración incorrecta", "Hardware defectuoso", "Virus detectado",
+                "Sistema desactualizado", "Señal débil WiFi", "Puerto quemado", "Falta de drivers",
+                "Sobrecalentamiento",
+                "Error de software", "Saturación de red"));
+
+        createCatFlow("SOLUCIONES_TECNICAS", "Catálogo de soluciones aplicadas.", java.util.List.of(
+                "NO_APLICA", "Reemplazo de cable", "Reconfiguración del sistema", "Instalación de drivers",
+                "Eliminación de virus", "Actualización del sistema", "Cambio de hardware", "Reseteo de router",
+                "Optimización de red", "Reinstalación de software", "Cambio de configuración IP",
+                "Limpieza de equipo"));
+
+        createCatFlow("PRUEBAS_TECNICAS", "Catálogo de pruebas realizadas.", java.util.List.of(
+                "NO_APLICA", "Reinicio del sistema", "Prueba de conexión", "Test de velocidad", "Test de hardware",
+                "Prueba de ping", "Verificación de puertos", "Monitoreo de red", "Prueba de aplicación",
+                "Test de carga"));
+
+        createCatFlow("MOTIVOS_NO_RESOLUCION_TECNICA", "Catálogo de motivos por los que no se resolvió un ticket.",
+                java.util.List.of(
+                        "Falta de repuestos", "Problema mayor identificado", "Requiere especialista externo",
+                        "Cliente no disponible",
+                        "Problema externo al ISP", "Requiere visita presencial adicional", "Espera de autorización"));
+    }
+
+    private void createCatFlow(String nombreCat, String descripcion, java.util.List<String> items) {
+        Optional<Catalogo> catOpt = catalogoRepository.findByNombre(nombreCat);
+        Catalogo cat;
+        if (catOpt.isEmpty()) {
+            cat = new Catalogo();
+            cat.setNombre(nombreCat);
+            cat.setDescripcion(descripcion);
+            cat.setActivo(true);
+            cat = catalogoRepository.save(cat);
+            System.out.println("DataLoader: Creado catálogo " + nombreCat);
+        } else {
+            cat = catOpt.get();
+        }
+
+        int orden = 1;
+        for (String itemStr : items) {
+            String codigo = itemStr.toUpperCase().replace(" ", "_").replace("Ñ", "N").replace("Á", "A")
+                    .replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U");
+            createItemIfMissing(cat, codigo, itemStr, orden++);
+        }
     }
 
     private void createItemIfMissing(Catalogo cat, String codigo, String nombre, int orden) {

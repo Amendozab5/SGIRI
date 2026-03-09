@@ -9,309 +9,640 @@
 
     <div class="ticket-detail-view animate-fade-in" *ngIf="ticket || loading">
 
-    <!-- Loading overlay -->
-    <div *ngIf="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-3 text-muted fw-bold">Optimizando vista operativa...</p>
-    </div>
+        <!-- Loading overlay -->
+        <div *ngIf="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-3 text-muted fw-bold">Optimizando vista operativa...</p>
+        </div>
 
-    <ng-container *ngIf="!loading && ticket">
+        <ng-container *ngIf="!loading && ticket">
 
-        <!-- Sticky Action Bar -->
-        <header class="sticky-action-bar">
-            <div class="action-bar-content">
-                <div class="ticket-info-header">
-                    <div class="status-badge"
-                        [ngClass]="'status-' + ticket.estadoItem?.codigo.toLowerCase().replace('_', '-')">
-                        {{ ticket.estadoItem?.nombre }}
-                    </div>
-                    <div class="ticket-title-group">
-                        <h1>Ticket #{{ ticket.idTicket }}: {{ ticket.asunto }}</h1>
-                        <div class="ticket-meta-compact">
-                            <i class="bi bi-clock me-1"></i> Creado hace {{ ticket.fechaCreacion | date:'short' }}
-                            <span class="mx-2">•</span>
-                            <i class="bi bi-person-circle me-1"></i> {{ ticket.cliente?.persona.nombre }} {{
-                            ticket.cliente?.persona.apellido }}
+            <!-- Sticky Action Bar -->
+            <header class="sticky-action-bar">
+                <div class="action-bar-content">
+                    <div class="ticket-info-header">
+                        <div class="status-badge"
+                            [ngClass]="'status-' + ticket.estadoItem?.codigo.toLowerCase().replace('_', '-')">
+                            {{ ticket.estadoItem?.nombre }}
                         </div>
-                    </div>
-                </div>
-
-                <div class="action-buttons" *ngIf="showStatusUpdate">
-                    <button *ngIf="ticket.estadoItem?.codigo === 'ABIERTO' || ticket.estadoItem?.codigo === 'ASIGNADO'"
-                        (click)="changeStatus('EN_PROCESO')" class="btn-action btn-resolve" [disabled]="loading">
-                        <i class="bi bi-play-fill"></i> Atender
-                    </button>
-
-                    <button *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'" (click)="changeStatus('RESUELTO')"
-                        class="btn-action btn-resolve" [disabled]="loading">
-                        <i class="bi bi-check-lg"></i> Resolver
-                    </button>
-
-                    <button *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'" (click)="changeStatus('REQUIERE_VISITA')"
-                        class="btn-action btn-visit" [disabled]="loading">
-                        <i class="bi bi-calendar-plus"></i> Solicitar Visita
-                    </button>
-
-                    <button *ngIf="ticket.estadoItem?.codigo !== 'CERRADO'" (click)="changeStatus('CERRADO')"
-                        class="btn-action btn-close-ticket" [disabled]="loading">
-                        <i class="bi bi-x-circle"></i> Cerrar
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Layout Grid -->
-        <div class="main-layout-grid">
-
-            <!-- Left Column: Content -->
-            <div class="content-column">
-
-                <!-- Feedback Alerts -->
-                <div *ngIf="successMessage"
-                    class="alert alert-success border-0 shadow-sm rounded-4 animate-fade-in mb-0">
-                    <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
-                </div>
-                <div *ngIf="error" class="alert alert-danger border-0 shadow-sm rounded-4 animate-fade-in mb-0">
-                    <i class="bi bi-exclamation-circle-fill me-2"></i> {{ error }}
-                </div>
-
-                <!-- Description Card -->
-                <section class="section-card">
-                    <h2 class="section-title"><i class="bi bi-text-paragraph"></i> Descripción del Problema</h2>
-                    <div class="description-text">{{ ticket.descripcion }}</div>
-                </section>
-
-                <!-- Metadata Grid Card -->
-                <section class="section-card">
-                    <h2 class="section-title"><i class="bi bi-info-circle"></i> Detalles Técnicos</h2>
-                    <div class="metadata-grid">
-                        <div class="meta-item">
-                            <span class="meta-label">Categoría</span>
-                            <div class="meta-value-chip"><i class="bi bi-tag"></i> {{ ticket.categoriaItem?.nombre }}
+                        <div class="ticket-title-group">
+                            <h1>Ticket #{{ ticket.idTicket }}: {{ ticket.asunto }}</h1>
+                            <div class="ticket-meta-compact">
+                                <i class="bi bi-clock me-1"></i> Creado hace {{ ticket.fechaCreacion | date:'short' }}
+                                <span class="mx-2">•</span>
+                                <i class="bi bi-person-circle me-1"></i> {{ ticket.cliente?.persona.nombre }} {{
+                                ticket.cliente?.persona.apellido }}
                             </div>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Prioridad</span>
-                            <div class="meta-value-chip priority-badge"
-                                [ngClass]="'priority-' + ticket.prioridadItem?.codigo.toLowerCase()">
-                                <i class="bi bi-exclamation-triangle"></i> {{ ticket.prioridadItem?.nombre }}
-                            </div>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Servicio Afectado</span>
-                            <div class="meta-value-chip"><i class="bi bi-hdd-network"></i> {{ ticket.servicio?.nombre }}
-                            </div>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Sucursal</span>
-                            <div class="meta-value-chip"><i class="bi bi-geo-alt"></i> {{ ticket.sucursal?.nombre }}
-                            </div>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Fecha Creación</span>
-                            <div class="meta-value-chip"><i class="bi bi-calendar3"></i> {{ ticket.fechaCreacion |
-                                date:'medium' }}</div>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Última Actualización</span>
-                            <div class="meta-value-chip"><i class="bi bi-arrow-repeat"></i> {{ ticket.fechaActualizacion
-                                | date:'medium' }}</div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Conversation Section -->
-                <section class="section-card conversation-section p-0">
-                    <div class="p-4 border-bottom">
-                        <h2 class="section-title mb-0"><i class="bi bi-chat-left-text"></i> Conversación</h2>
-                    </div>
-
-                    <div class="chat-feed" #chatFeed>
-                        <div *ngFor="let comment of ticket.comentarios" class="chat-bubble"
-                            [ngClass]="comment.usuario?.role?.codigo === 'CLIENTE' ? 'bubble-left' : 'bubble-right'">
-
-                            <div class="chat-avatar">
-                                {{ comment.usuario?.username.slice(0, 2).toUpperCase() }}
-                            </div>
-
-                            <div class="bubble-wrapper">
-                                <div class="bubble-content">
-                                    {{ comment.comentario }}
-                                </div>
-                                <div class="bubble-info">
-                                    <span class="fw-bold">{{ comment.usuario?.username }}</span>
-                                    <span>•</span>
-                                    <span>{{ comment.fechaCreacion | date:'shortTime' }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Empty State -->
-                        <div *ngIf="!ticket.comentarios?.length" class="text-center py-5 opacity-50">
-                            <i class="bi bi-chat-dots display-4 mb-3"></i>
-                            <p class="fw-bold">Aún no hay mensajes. Inicia la conversación.</p>
                         </div>
                     </div>
 
-                    <!-- Composer -->
-                    <div class="chat-composer">
-                        <textarea class="composer-input" rows="2" placeholder="Escribe un mensaje de seguimiento..."
-                            [(ngModel)]="commentText" (keydown.enter)="onKeyEnter($event)"></textarea>
-                        <button class="btn-send" (click)="addComment()"
-                            [disabled]="!commentText.trim() || isSubmitting">
-                            <i class="bi bi-send-fill" *ngIf="!isSubmitting"></i>
-                            <span class="spinner-border spinner-border-sm" *ngIf="isSubmitting"></span>
+                    <div class="action-buttons">
+                        <!-- PDF Download Button: shown for RESUELTO or CERRADO tickets -->
+                        <button type="button"
+                            *ngIf="ticket.estadoItem?.codigo === 'RESUELTO' || ticket.estadoItem?.codigo === 'CERRADO'"
+                            (click)="downloadPdf()" class="btn-action btn-pdf" [disabled]="loading">
+                            <i class="bi bi-file-earmark-pdf"></i> Reporte PDF
+                        </button>
+
+                        <!-- ATENDER TICKET: shown when status is ABIERTO or ASIGNADO -->
+                        <button type="button"
+                            *ngIf="showStatusUpdate && (ticket.estadoItem?.codigo === 'ABIERTO' || ticket.estadoItem?.codigo === 'ASIGNADO')"
+                            (click)="changeStatus('EN_PROCESO')" class="btn-action btn-resolve" [disabled]="loading">
+                            <i class="bi bi-play-fill"></i> Atender
+                        </button>
+
+                        <!-- Only show Resolver/Visita quick buttons for non-tecnico roles -->
+                        <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo === 'EN_PROCESO' && !isTecnico"
+                            (click)="changeStatus('RESUELTO')" class="btn-action btn-resolve" [disabled]="loading">
+                            <i class="bi bi-check-lg"></i> Resolver
+                        </button>
+
+                        <button type="button" *ngIf="showStatusUpdate && ticket.estadoItem?.codigo === 'EN_PROCESO'"
+                            (click)="changeStatus('REQUIERE_VISITA')" class="btn-action btn-visit" [disabled]="loading">
+                            <i class="bi bi-calendar-plus"></i> Solicitar Visita
+                        </button>
+
+                        <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo !== 'CERRADO'"
+                            (click)="changeStatus('CERRADO')" class="btn-action btn-close-ticket" [disabled]="loading">
+                            <i class="bi bi-x-circle"></i> Cerrar
                         </button>
                     </div>
-                </section>
+                </div>
+            </header>
 
-                <!-- ─── Rating Section ─────────────────────────────────────── -->
-                <!-- Case 1: Ticket closed, CLIENTE, not yet rated -->
-                <section class="section-card rating-card" *ngIf="canRate">
-                    <h2 class="section-title"><i class="bi bi-star-half"></i> Califica la atención recibida</h2>
-                    <p class="text-muted small mb-3">Tu opinión nos ayuda a mejorar el servicio. Solo puedes calificar una vez.</p>
+            <!-- Main Layout Grid -->
+            <div class="main-layout-grid">
 
-                    <!-- Star selector -->
-                    <div class="stars-row mb-3" (mouseleave)="clearHover()">
-                        <span *ngFor="let s of starsArray"
-                            [class]="getStarClass(s)"
-                            (mouseenter)="setHover(s)"
-                            (click)="setRating(s)"
-                            [title]="s + ' estrella' + (s > 1 ? 's' : '')">
-                            <i class="bi bi-star-fill"></i>
-                        </span>
-                        <span class="rating-label ms-2" *ngIf="ratingValue > 0">
-                            {{ ['', 'Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'][ratingValue] }}
-                        </span>
+                <!-- Left Column: Content -->
+                <div class="content-column">
+
+                    <!-- Feedback Alerts -->
+                    <div *ngIf="successMessage"
+                        class="alert alert-success border-0 shadow-sm rounded-4 animate-fade-in mb-0">
+                        <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+                    </div>
+                    <div *ngIf="error" class="alert alert-danger border-0 shadow-sm rounded-4 animate-fade-in mb-0">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i> {{ error }}
                     </div>
 
-                    <!-- Comment -->
-                    <textarea class="form-control rounded-3 mb-3" rows="3" maxlength="500"
-                        placeholder="Comentario opcional sobre la atención del técnico..."
-                        [(ngModel)]="ratingComment"></textarea>
+                    <!-- Description Card -->
+                    <section class="section-card">
+                        <h2 class="section-title"><i class="bi bi-text-paragraph"></i> Descripción del Problema</h2>
+                        <div class="description-text">{{ ticket.descripcion }}</div>
+                    </section>
 
-                    <!-- Error -->
-                    <div *ngIf="ratingError" class="alert alert-danger alert-sm py-2 mb-2 rounded-3">
-                        <i class="bi bi-exclamation-circle me-1"></i> {{ ratingError }}
+                    <!-- Metadata Grid Card -->
+                    <section class="section-card">
+                        <h2 class="section-title"><i class="bi bi-info-circle"></i> Detalles Técnicos</h2>
+                        <div class="metadata-grid">
+                            <div class="meta-item">
+                                <span class="meta-label">Categoría</span>
+                                <div class="meta-value-chip"><i class="bi bi-tag"></i> {{ ticket.categoriaItem?.nombre
+                                    }}
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Prioridad</span>
+                                <div class="meta-value-chip priority-badge"
+                                    [ngClass]="'priority-' + ticket.prioridadItem?.codigo.toLowerCase()">
+                                    <i class="bi bi-exclamation-triangle"></i> {{ ticket.prioridadItem?.nombre }}
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Servicio Afectado</span>
+                                <div class="meta-value-chip"><i class="bi bi-hdd-network"></i> {{
+                                    ticket.servicio?.nombre }}
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Sucursal</span>
+                                <div class="meta-value-chip"><i class="bi bi-geo-alt"></i> {{ ticket.sucursal?.nombre }}
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Fecha Creación</span>
+                                <div class="meta-value-chip"><i class="bi bi-calendar3"></i> {{ ticket.fechaCreacion |
+                                    date:'medium' }}</div>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Última Actualización</span>
+                                <div class="meta-value-chip"><i class="bi bi-arrow-repeat"></i> {{
+                                    ticket.fechaActualizacion
+                                    | date:'medium' }}</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════════════════════ -->
+                    <!-- Tech Work Form: shown when EN_PROCESO + user is tecnico   -->
+                    <!-- ══════════════════════════════════════════════════════════ -->
+
+                    <!-- EXISTING INFORME SUMMARY (read-only, shown after submit) -->
+                    <section class="section-card informe-card informe-done" *ngIf="showInformeSummary">
+                        <h2 class="section-title">
+                            <i class="bi bi-clipboard2-check-fill"></i> Informe Técnico Registrado
+                            <span class="badge-resultado badge-{{ informeTecnico.resultado.toLowerCase() }} ms-auto">
+                                {{ informeTecnico.resultado === 'RESUELTO' ? '✅ RESUELTO' : '⚠️ NO RESUELTO' }}
+                            </span>
+                        </h2>
+
+                        <div class="informe-grid">
+                            <div class="informe-field" *ngIf="informeTecnico.implementosUsados">
+                                <span class="informe-label"><i class="bi bi-tools"></i> Implementos Usados</span>
+                                <div class="chip-display-row">
+                                    <span class="chip-display"
+                                        *ngFor="let item of listFromText(informeTecnico.implementosUsados)">{{ item
+                                        }}</span>
+                                </div>
+                            </div>
+                            <div class="informe-field" *ngIf="informeTecnico.problemasEncontrados">
+                                <span class="informe-label"><i class="bi bi-bug"></i> Problemas Encontrados</span>
+                                <div class="chip-display-row">
+                                    <span class="chip-display chip-danger"
+                                        *ngFor="let item of listFromText(informeTecnico.problemasEncontrados)">{{ item
+                                        }}</span>
+                                </div>
+                            </div>
+                            <div class="informe-field" *ngIf="informeTecnico.solucionAplicada">
+                                <span class="informe-label"><i class="bi bi-check2-all"></i> Solución Aplicada</span>
+                                <div class="chip-display-row">
+                                    <span class="chip-display chip-success"
+                                        *ngFor="let item of listFromText(informeTecnico.solucionAplicada)">{{ item
+                                        }}</span>
+                                </div>
+                            </div>
+                            <div class="informe-field" *ngIf="informeTecnico.pruebasRealizadas">
+                                <span class="informe-label"><i class="bi bi-speedometer2"></i> Pruebas Realizadas</span>
+                                <div class="chip-display-row">
+                                    <span class="chip-display"
+                                        *ngFor="let item of listFromText(informeTecnico.pruebasRealizadas)">{{ item
+                                        }}</span>
+                                </div>
+                            </div>
+                            <div class="informe-field" *ngIf="inventarioUsado?.length">
+                                <span class="informe-label"><i class="bi bi-box-seam"></i> Repuestos / Materiales</span>
+                                <div class="chip-display-row">
+                                    <span class="chip-display" *ngFor="let u of inventarioUsado">
+                                        {{ u.inventario?.nombre }} (x{{ u.cantidad }})
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="informe-field" *ngIf="informeTecnico.motivoNoResolucion">
+                                <span class="informe-label"><i class="bi bi-exclamation-octagon"></i> Motivo No
+                                    Resolución</span>
+                                <span class="chip-display chip-warning">{{ informeTecnico.motivoNoResolucion }}</span>
+                            </div>
+                            <div class="informe-field" *ngIf="informeTecnico.comentarioTecnico">
+                                <span class="informe-label"><i class="bi bi-chat-text"></i> Comentario del
+                                    Técnico</span>
+                                <p class="informe-text">{{ informeTecnico.comentarioTecnico }}</p>
+                            </div>
+                            <div class="informe-field" *ngIf="informeTecnico.tiempoTrabajoMinutos">
+                                <span class="informe-label"><i class="bi bi-clock-history"></i> Tiempo de Trabajo</span>
+                                <span class="chip-display">{{ informeTecnico.tiempoTrabajoMinutos }} minutos</span>
+                            </div>
+                            <div class="informe-field">
+                                <span class="informe-label"><i class="bi bi-calendar-event"></i> Registrado</span>
+                                <span class="text-muted small">{{ informeTecnico.fechaRegistro | date:'medium' }}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TECH WORK FORM (active when EN_PROCESO + is tecnico + no informe yet) -->
+                    <section class="section-card informe-card" *ngIf="showTechWorkForm && !informeTecnico">
+                        <div class="informe-header">
+                            <h2 class="section-title mb-0">
+                                <i class="bi bi-clipboard2-pulse"></i> Registrar Trabajo Técnico
+                            </h2>
+                            <div class="step-indicator">
+                                <div class="step" [class.active]="formStep === 1" [class.done]="formStep > 1">1</div>
+                                <div class="step-line"></div>
+                                <div class="step" [class.active]="formStep === 2">2</div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 1: Selections, Search & Frequencies -->
+                        <div *ngIf="formStep === 1" class="animate-fade-in">
+
+                            <!-- Smart Search Bar -->
+                            <div class="search-container mb-4">
+                                <div class="search-input-wrapper">
+                                    <i class="bi bi-search search-icon"></i>
+                                    <input type="text" class="search-input"
+                                        placeholder="Buscar implementos, problemas o soluciones..."
+                                        [(ngModel)]="searchTerm" (ngModelChange)="onSearchTermChange()">
+                                    <button *ngIf="searchTerm" class="btn-clear-search"
+                                        (click)="searchTerm = ''; onSearchTermChange()">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                                <div class="category-filters mt-2">
+                                    <span class="filter-label">Filtrar por:</span>
+                                    <button type="button" class="filter-chip"
+                                        [class.active]="searchCategory === 'implementos'"
+                                        (click)="setSearchCategory('implementos')">Implementos</button>
+                                    <button type="button" class="filter-chip"
+                                        [class.active]="searchCategory === 'problemas'"
+                                        (click)="setSearchCategory('problemas')">Problemas</button>
+                                    <button type="button" class="filter-chip"
+                                        [class.active]="searchCategory === 'soluciones'"
+                                        (click)="setSearchCategory('soluciones')">Soluciones</button>
+                                </div>
+                            </div>
+
+                            <!-- Implementos Usados -->
+                            <div class="form-group-tech" *ngIf="filteredImplementos.length">
+                                <label class="form-label-tech">
+                                    <i class="bi bi-tools"></i> Implemento Utilizado (Opcional)
+                                    <span class="label-hint">({{ selectedImplementos.length }} seleccionado)</span>
+                                </label>
+                                <div class="chip-selector">
+                                    <span *ngFor="let op of filteredImplementos" class="chip-option"
+                                        [ngClass]="getChipColorClass('implementos', op)"
+                                        [class.chip-selected]="isChipSelected(selectedImplementos, op)"
+                                        (click)="toggleChip(selectedImplementos, op, 'implementos')">
+                                        {{ op }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Problemas Encontrados -->
+                            <div class="form-group-tech" *ngIf="filteredProblemas.length">
+                                <label class="form-label-tech required">
+                                    <i class="bi bi-bug-fill"></i> Problema Encontrado
+                                </label>
+                                <div class="chip-selector">
+                                    <span *ngFor="let op of filteredProblemas" class="chip-option chip-danger-option"
+                                        [ngClass]="getChipColorClass('problemas', op)"
+                                        [class.chip-selected]="isChipSelected(selectedProblemas, op)"
+                                        (click)="toggleChip(selectedProblemas, op, 'problemas')">
+                                        {{ op }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Solución Aplicada -->
+                            <div class="form-group-tech" *ngIf="filteredSoluciones.length">
+                                <label class="form-label-tech required">
+                                    <i class="bi bi-check2-all"></i> Solución Aplicada
+                                </label>
+                                <div class="chip-selector">
+                                    <span *ngFor="let op of filteredSoluciones" class="chip-option chip-success-option"
+                                        [ngClass]="getChipColorClass('soluciones', op)"
+                                        [class.chip-selected]="isChipSelected(selectedSoluciones, op)"
+                                        (click)="toggleChip(selectedSoluciones, op, 'soluciones')">
+                                        {{ op }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Pruebas Realizadas -->
+                            <div class="form-group-tech" *ngIf="filteredPruebas.length">
+                                <label class="form-label-tech required">
+                                    <i class="bi bi-speedometer2"></i> Pruebas Realizadas (Múltiples)
+                                </label>
+                                <div class="chip-selector">
+                                    <span *ngFor="let op of filteredPruebas" class="chip-option"
+                                        [class.chip-selected]="isChipSelected(selectedPruebas, op)"
+                                        (click)="toggleChip(selectedPruebas, op, 'pruebas')">
+                                        {{ op }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div *ngIf="techFormError" class="alert alert-danger py-2 mb-3 rounded-3 mt-3">
+                                <i class="bi bi-exclamation-circle me-1"></i> {{ techFormError }}
+                            </div>
+
+                            <!-- Next Step Button -->
+                            <div class="informe-submit-row mt-4">
+                                <button class="btn-action btn-resolve w-100 py-3 rounded-4 fw-bold shadow-sm"
+                                    (click)="confirmStage1()">
+                                    CONTINUAR A RESULTADOS Y REPUESTOS <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- STEP 2: Outcome & Final Details -->
+                        <div *ngIf="formStep === 2" class="animate-fade-in">
+                            <button class="btn btn-sm btn-outline-secondary mb-3 rounded-pill" (click)="formStep = 1">
+                                <i class="bi bi-arrow-left"></i> Volver a selecciones
+                            </button>
+
+                            <div class="result-tabs mb-4">
+                                <button type="button" class="result-tab"
+                                    [class.active-resuelto]="techFormTab === 'RESUELTO'"
+                                    (click)="techFormTab = 'RESUELTO'">
+                                    <i class="bi bi-check-circle-fill"></i> RESUELTO
+                                </button>
+                                <button type="button" class="result-tab"
+                                    [class.active-no-resuelto]="techFormTab === 'NO_RESUELTO'"
+                                    (click)="techFormTab = 'NO_RESUELTO'">
+                                    <i class="bi bi-exclamation-circle-fill"></i> NO RESUELTO
+                                </button>
+                            </div>
+
+                            <!-- INVENTARIO SELECTOR (Real items from DB) -->
+                            <div class="form-group-tech" *ngIf="availableInventario.length">
+                                <label class="form-label-tech">
+                                    <i class="bi bi-box-seam"></i> Repuestos / Inventario (Stock)
+                                </label>
+
+                                <!-- Search specifically for inventory -->
+                                <div class="search-input-wrapper mb-2">
+                                    <i class="bi bi-search search-icon"></i>
+                                    <input type="text" class="search-input"
+                                        placeholder="Buscar repuesto por nombre o código..."
+                                        [(ngModel)]="inventorySearchTerm" (ngModelChange)="onInventorySearchChange()">
+                                </div>
+
+                                <div class="inventory-flow-container">
+                                    <div *ngFor="let item of filteredInventory" class="inventory-item-card"
+                                        [class.selected]="isInventarioSelected(item)" (click)="toggleInventario(item)">
+                                        <div class="item-name">{{ item.nombre }}</div>
+                                        <div class="item-code" *ngIf="item.codigo"><small class="opacity-75">{{
+                                                item.codigo }}</small></div>
+                                        <div class="item-stock" [class.text-danger]="item.stockActual === 0">Stock
+                                            original: {{ item.stockActual }}</div>
+                                        <div class="item-quantity-control" *ngIf="isInventarioSelected(item)"
+                                            (click)="$event.stopPropagation()">
+                                            <button type="button" class="btn-qty"
+                                                (click)="item.cantidad = (item.cantidad > 1 ? item.cantidad - 1 : 1)">-</button>
+                                            <input type="number" class="qty-input" [(ngModel)]="item.cantidad" min="1"
+                                                [max]="item.stockActual">
+                                            <button type="button" class="btn-qty"
+                                                (click)="item.cantidad = (item.cantidad < item.stockActual ? item.cantidad + 1 : item.stockActual)">+</button>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="filteredInventory.length === 0"
+                                        class="w-100 text-center py-4 opacity-50">
+                                        <i class="bi bi-search display-6 mb-2"></i>
+                                        <p>No se encontraron repuestos con "{{ inventorySearchTerm }}"</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Conditionally show for NO_RESUELTO -->
+                            <div *ngIf="techFormTab === 'NO_RESUELTO'" class="animate-fade-in">
+                                <div class="no-resolved-warning mb-3">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    El ticket será devuelto para reasignación. Indica el motivo exacto.
+                                </div>
+                                <div class="form-group-tech">
+                                    <label class="form-label-tech required">Motivo de No Resolución</label>
+                                    <div class="chip-selector">
+                                        <span *ngFor="let op of motivosNoResolucion"
+                                            class="chip-option chip-warning-option"
+                                            [class.chip-selected]="selectedMotivo === op"
+                                            (click)="selectedMotivo = (selectedMotivo === op ? '' : op)">
+                                            {{ op }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-group-tech">
+                                    <label class="form-label-tech">Adjuntar Evidencia (PDF)</label>
+                                    <div class="upload-placeholder-tech">
+                                        <i class="bi bi-file-earmark-arrow-up display-6"></i>
+                                        <p>Subida de archivos próximamente...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Common fields for stage 2 -->
+                            <div class="form-group-tech">
+                                <label class="form-label-tech"><i class="bi bi-chat-text"></i> Comentario Técnico
+                                    Final</label>
+                                <textarea class="tech-textarea" rows="4" [(ngModel)]="comentarioTecnico"
+                                    placeholder="Notas adicionales sobre el trabajo realizado..." spellcheck="false"
+                                    data-gramm="false" data-gramm_editor="false"
+                                    data-enable-grammarly="false"></textarea>
+                            </div>
+
+                            <div class="form-group-tech form-row-inline">
+                                <label class="form-label-tech"><i class="bi bi-clock-history"></i> Tiempo de trabajo
+                                    (minutos)</label>
+                                <input type="number" class="tech-input-sm" [(ngModel)]="tiempoTrabajo">
+                            </div>
+
+                            <!-- Submit button -->
+                            <div class="informe-submit-row">
+                                <div *ngIf="techFormError" class="alert alert-danger py-2 mb-3 w-100 rounded-3">
+                                    <i class="bi bi-exclamation-circle me-1"></i> {{ techFormError }}
+                                </div>
+                                <button type="button" class="btn-informe-submit"
+                                    [class.btn-resuelto-submit]="techFormTab === 'RESUELTO'"
+                                    [class.btn-no-resuelto-submit]="techFormTab === 'NO_RESUELTO'"
+                                    (click)="submitTechForm()" [disabled]="techFormSubmitting">
+                                    <span *ngIf="!techFormSubmitting">
+                                        <i class="bi bi-send-fill me-2"></i>
+                                        {{ techFormTab === 'RESUELTO' ? 'REGISTRAR COMO RESUELTO' : 'REGISTRAR SIN
+                                        RESOLUCIÓN' }}
+                                    </span>
+                                    <span *ngIf="techFormSubmitting">
+                                        <span class="spinner-border spinner-border-sm me-2"></span> Registrando...
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Conversation Section -->
+                    <section class="section-card conversation-section p-0">
+                        <div class="p-4 border-bottom">
+                            <h2 class="section-title mb-0"><i class="bi bi-chat-left-text"></i> Conversación</h2>
+                        </div>
+
+                        <div class="chat-feed" #chatFeed>
+                            <div *ngFor="let comment of ticket.comentarios" class="chat-bubble"
+                                [ngClass]="comment.usuario?.role?.codigo === 'CLIENTE' ? 'bubble-left' : 'bubble-right'">
+
+                                <div class="chat-avatar">
+                                    {{ comment.usuario?.username.slice(0, 2).toUpperCase() }}
+                                </div>
+
+                                <div class="bubble-wrapper">
+                                    <div class="bubble-content">
+                                        {{ comment.comentario }}
+                                    </div>
+                                    <div class="bubble-info">
+                                        <span class="fw-bold">{{ comment.usuario?.username }}</span>
+                                        <span>•</span>
+                                        <span>{{ comment.fechaCreacion | date:'shortTime' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div *ngIf="!ticket.comentarios?.length" class="text-center py-5 opacity-50">
+                                <i class="bi bi-chat-dots display-4 mb-3"></i>
+                                <p class="fw-bold">Aún no hay mensajes. Inicia la conversación.</p>
+                            </div>
+                        </div>
+
+                        <!-- Composer -->
+                        <div class="chat-composer">
+                            <textarea class="composer-input" rows="2" placeholder="Escribe un mensaje de seguimiento..."
+                                [(ngModel)]="commentText" (keydown.enter)="onKeyEnter($event)"></textarea>
+                            <button type="button" class="btn-send" (click)="addComment()"
+                                [disabled]="!commentText.trim() || isSubmitting">
+                                <i class="bi bi-send-fill" *ngIf="!isSubmitting"></i>
+                                <span class="spinner-border spinner-border-sm" *ngIf="isSubmitting"></span>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- ─── Rating Section ─────────────────────────────────────── -->
+                    <!-- Case 1: Ticket closed, CLIENTE, not yet rated -->
+                    <section class="section-card rating-card" *ngIf="canRate">
+                        <h2 class="section-title"><i class="bi bi-star-half"></i> Califica la atención recibida</h2>
+                        <p class="text-muted small mb-3">Tu opinión nos ayuda a mejorar el servicio. Solo puedes
+                            calificar una vez.</p>
+
+                        <!-- Star selector -->
+                        <div class="stars-row mb-3" (mouseleave)="clearHover()">
+                            <span *ngFor="let s of starsArray" [class]="getStarClass(s)" (mouseenter)="setHover(s)"
+                                (click)="setRating(s)" [title]="s + ' estrella' + (s > 1 ? 's' : '')">
+                                <i class="bi bi-star-fill"></i>
+                            </span>
+                            <span class="rating-label ms-2" *ngIf="ratingValue > 0">
+                                {{ ['', 'Muy malo', 'Malo', 'Regular', 'Bueno', 'Excelente'][ratingValue] }}
+                            </span>
+                        </div>
+
+                        <!-- Comment -->
+                        <textarea class="form-control rounded-3 mb-3" rows="3" maxlength="500"
+                            placeholder="Comentario opcional sobre la atención del técnico..."
+                            [(ngModel)]="ratingComment"></textarea>
+
+                        <!-- Error -->
+                        <div *ngIf="ratingError" class="alert alert-danger alert-sm py-2 mb-2 rounded-3">
+                            <i class="bi bi-exclamation-circle me-1"></i> {{ ratingError }}
+                        </div>
+
+                        <!-- Submit -->
+                        <button class="btn-rating-submit" (click)="submitRating()"
+                            [disabled]="ratingSubmitting || ratingValue === 0">
+                            <span *ngIf="!ratingSubmitting"><i class="bi bi-send-fill me-1"></i> Enviar
+                                calificación</span>
+                            <span *ngIf="ratingSubmitting" class="spinner-border spinner-border-sm"></span>
+                        </button>
+                    </section>
+
+                    <!-- Case 2: Already rated -->
+                    <section class="section-card rating-card rating-done" *ngIf="alreadyRated">
+                        <h2 class="section-title"><i class="bi bi-patch-check-fill text-success"></i> Tu calificación
+                        </h2>
+                        <div class="stars-row mb-2">
+                            <span *ngFor="let s of starsArray" [class]="getDisplayStarClass(s)">
+                                <i class="bi bi-star-fill"></i>
+                            </span>
+                            <span class="badge bg-success ms-2 fw-semibold">{{ ticket.calificacionSatisfaccion
+                                }}/5</span>
+                        </div>
+                        <p class="text-muted fst-italic small" *ngIf="ticket.comentarioCalificacion">
+                            "{{ ticket.comentarioCalificacion }}"
+                        </p>
+                        <p class="text-muted small" *ngIf="!ticket.comentarioCalificacion">
+                            Sin comentario adicional.
+                        </p>
+                    </section>
+                </div>
+
+                <!-- Right Column: Sidebar -->
+                <aside class="sidebar-column">
+
+                    <!-- Customer Info -->
+                    <div class="sidebar-card" *ngIf="ticket.cliente">
+                        <h3><i class="bi bi-person-badge"></i> Cliente</h3>
+                        <div class="tech-card-compact mb-3">
+                            <div class="tech-avatar"><i class="bi bi-person"></i></div>
+                            <div class="tech-info">
+                                <h4>{{ ticket.cliente.persona.nombre }} {{ ticket.cliente.persona.apellido }}</h4>
+                                <p>CI: {{ ticket.cliente.persona.cedula }}</p>
+                            </div>
+                        </div>
+                        <div class="small-meta-list">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small fw-bold">CELULAR</span>
+                                <span class="small fw-bold">{{ ticket.cliente.persona.celular || 'N/A' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small fw-bold">CORREO</span>
+                                <span class="small fw-bold text-truncate ms-3">{{ ticket.cliente.persona.correo || 'N/A'
+                                    }}</span>
+                            </div>
+                            <div class="mt-3">
+                                <span class="text-muted small fw-bold d-block mb-1">DIRECCIÓN</span>
+                                <span class="small fw-bold d-block">{{ ticket.cliente.persona.direccion || 'No
+                                    especificada'
+                                    }}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Submit -->
-                    <button class="btn-rating-submit"
-                        (click)="submitRating()"
-                        [disabled]="ratingSubmitting || ratingValue === 0">
-                        <span *ngIf="!ratingSubmitting"><i class="bi bi-send-fill me-1"></i> Enviar calificación</span>
-                        <span *ngIf="ratingSubmitting" class="spinner-border spinner-border-sm"></span>
-                    </button>
-                </section>
-
-                <!-- Case 2: Already rated -->
-                <section class="section-card rating-card rating-done" *ngIf="alreadyRated">
-                    <h2 class="section-title"><i class="bi bi-patch-check-fill text-success"></i> Tu calificación</h2>
-                    <div class="stars-row mb-2">
-                        <span *ngFor="let s of starsArray" [class]="getDisplayStarClass(s)">
-                            <i class="bi bi-star-fill"></i>
-                        </span>
-                        <span class="badge bg-success ms-2 fw-semibold">{{ ticket.calificacionSatisfaccion }}/5</span>
+                    <!-- Technician Assigned -->
+                    <div class="sidebar-card">
+                        <h3><i class="bi bi-headset"></i> Técnico Responsable</h3>
+                        <div class="tech-card-compact" *ngIf="ticket.usuarioAsignado">
+                            <div class="tech-avatar"><i class="bi bi-shield-check text-success"></i></div>
+                            <div class="tech-info">
+                                <h4>{{ ticket.usuarioAsignado.username }}</h4>
+                                <p>Especialista en Soporte</p>
+                            </div>
+                        </div>
+                        <div class="text-center py-2 text-muted small" *ngIf="!ticket.usuarioAsignado">
+                            <i class="bi bi-person-dash me-1"></i> Sin técnico asignado aún
+                        </div>
                     </div>
-                    <p class="text-muted fst-italic small" *ngIf="ticket.comentarioCalificacion">
-                        “{{ ticket.comentarioCalificacion }}”
-                    </p>
-                    <p class="text-muted small" *ngIf="!ticket.comentarioCalificacion">
-                        Sin comentario adicional.
-                    </p>
-                </section>
+
+                    <!-- History Timeline -->
+                    <div class="sidebar-card">
+                        <h3><i class="bi bi-activity"></i> Historial de Estados</h3>
+                        <div class="timeline-vertical" *ngIf="ticket.historialEstados?.length">
+                            <div *ngFor="let history of ticket.historialEstados" class="timeline-event">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-status">{{ history.estado?.nombre }}</div>
+                                <div class="timeline-time">{{ history.fechaCambio | date:'MMM d, h:mm a' }}</div>
+                                <div class="timeline-obs" *ngIf="history.observacion">{{ history.observacion }}</div>
+                            </div>
+                        </div>
+                        <div *ngIf="!ticket.historialEstados?.length" class="text-center py-3 text-muted small">
+                            Sin actividad registrada
+                        </div>
+                    </div>
+
+                </aside>
             </div>
 
-            <!-- Right Column: Sidebar -->
-            <aside class="sidebar-column">
-
-                <!-- Customer Info -->
-                <div class="sidebar-card" *ngIf="ticket.cliente">
-                    <h3><i class="bi bi-person-badge"></i> Cliente</h3>
-                    <div class="tech-card-compact mb-3">
-                        <div class="tech-avatar"><i class="bi bi-person"></i></div>
-                        <div class="tech-info">
-                            <h4>{{ ticket.cliente.persona.nombre }} {{ ticket.cliente.persona.apellido }}</h4>
-                            <p>CI: {{ ticket.cliente.persona.cedula }}</p>
-                        </div>
+            <!-- Confirmation Modal -->
+            <div class="modal-overlay animate-fade-in" *ngIf="showConfirmModal" (click)="showConfirmModal = false">
+                <div class="modal-card" (click)="$event.stopPropagation()">
+                    <div class="modal-header-custom">
+                        <h5 class="mb-0 fw-bold">{{ modalData.title }}</h5>
+                        <button type="button" class="btn-close border-0 bg-transparent"
+                            (click)="showConfirmModal = false">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                     </div>
-                    <div class="small-meta-list">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small fw-bold">CELULAR</span>
-                            <span class="small fw-bold">{{ ticket.cliente.persona.celular || 'N/A' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small fw-bold">CORREO</span>
-                            <span class="small fw-bold text-truncate ms-3">{{ ticket.cliente.persona.correo || 'N/A'
-                                }}</span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-muted small fw-bold d-block mb-1">DIRECCIÓN</span>
-                            <span class="small fw-bold d-block">{{ ticket.cliente.persona.direccion || 'No especificada'
-                                }}</span>
-                        </div>
+                    <div class="modal-body-custom">
+                        <p class="text-muted small mb-3">Agrega una nota interna para este cambio de estado (opcional).
+                        </p>
+                        <textarea class="form-control rounded-3" rows="3" [(ngModel)]="modalData.observation"
+                            placeholder="Ej: El cliente confirma que el router ya encendió..." autofocus></textarea>
                     </div>
-                </div>
-
-                <!-- Technician Assigned -->
-                <div class="sidebar-card">
-                    <h3><i class="bi bi-headset"></i> Técnico Responsable</h3>
-                    <div class="tech-card-compact" *ngIf="ticket.usuarioAsignado">
-                        <div class="tech-avatar"><i class="bi bi-shield-check text-success"></i></div>
-                        <div class="tech-info">
-                            <h4>{{ ticket.usuarioAsignado.username }}</h4>
-                            <p>Especialista en Soporte</p>
-                        </div>
+                    <div class="modal-footer-custom">
+                        <button class="btn btn-light rounded-pill px-4 me-2"
+                            (click)="showConfirmModal = false">Cancelar</button>
+                        <button class="btn btn-primary rounded-pill px-4" (click)="onConfirmAction()"
+                            [disabled]="loading">
+                            {{ modalData.confirmText }}
+                        </button>
                     </div>
-                    <div class="text-center py-2 text-muted small" *ngIf="!ticket.usuarioAsignado">
-                        <i class="bi bi-person-dash me-1"></i> Sin técnico asignado aún
-                    </div>
-                </div>
-
-                <!-- History Timeline -->
-                <div class="sidebar-card">
-                    <h3><i class="bi bi-activity"></i> Historial de Estados</h3>
-                    <div class="timeline-vertical" *ngIf="ticket.historialEstados?.length">
-                        <div *ngFor="let history of ticket.historialEstados" class="timeline-event">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-status">{{ history.estado?.nombre }}</div>
-                            <div class="timeline-time">{{ history.fechaCambio | date:'MMM d, h:mm a' }}</div>
-                            <div class="timeline-obs" *ngIf="history.observacion">{{ history.observacion }}</div>
-                        </div>
-                    </div>
-                    <div *ngIf="!ticket.historialEstados?.length" class="text-center py-3 text-muted small">
-                        Sin actividad registrada
-                    </div>
-                </div>
-
-            </aside>
-        </div>
-
-        <!-- Confirmation Modal -->
-        <div class="modal-overlay animate-fade-in" *ngIf="showConfirmModal" (click)="showConfirmModal = false">
-            <div class="modal-card" (click)="$event.stopPropagation()">
-                <div class="modal-header-custom">
-                    <h5 class="mb-0 fw-bold">{{ modalData.title }}</h5>
-                    <button type="button" class="btn-close border-0 bg-transparent" (click)="showConfirmModal = false">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-                <div class="modal-body-custom">
-                    <p class="text-muted small mb-3">Agrega una nota interna para este cambio de estado (opcional).</p>
-                    <textarea class="form-control rounded-3" rows="3" [(ngModel)]="modalData.observation"
-                        placeholder="Ej: El cliente confirma que el router ya encendió..." autofocus></textarea>
-                </div>
-                <div class="modal-footer-custom">
-                    <button class="btn btn-light rounded-pill px-4 me-2"
-                        (click)="showConfirmModal = false">Cancelar</button>
-                    <button class="btn btn-primary rounded-pill px-4" (click)="onConfirmAction()" [disabled]="loading">
-                        {{ modalData.confirmText }}
-                    </button>
                 </div>
             </div>
-        </div>
 
-    </ng-container>
-   </div> 
+        </ng-container>
+    </div>
 
-  </div> 
+</div>

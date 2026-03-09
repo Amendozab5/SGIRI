@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ComentarioTicketRepository extends JpaRepository<ComentarioTicket, Integer> {
+    java.util.List<ComentarioTicket> findByTicket_IdTicketOrderByFechaCreacionDesc(Integer idTicket);
 }

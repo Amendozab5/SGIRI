@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface HistorialEstadoRepository extends JpaRepository<HistorialEstado, Integer> {
+    java.util.List<HistorialEstado> findByTicket_IdTicketOrderByFechaCambioDesc(Integer idTicket);
 }

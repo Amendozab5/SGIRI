@@ -1,10 +1,12 @@
 package com.apweb.backend.service;
 
 import com.apweb.backend.model.*;
+import com.apweb.backend.payload.request.InformeTrabajoTecnicoRequest;
 import com.apweb.backend.payload.request.TicketRequest;
 import com.apweb.backend.repository.*;
 import com.apweb.backend.services.notificaciones.NotificacionServiceApp;
 import com.apweb.backend.services.notificaciones.MailTemplateService;
+import java.io.ByteArrayInputStream;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,7 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import com.apweb.backend.service.AuditService;
+import java.util.Optional;
+import java.time.LocalDateTime;
 import com.apweb.backend.util.AuditAccion;
 import com.apweb.backend.util.AuditModulo;
 
@@ -60,6 +63,15 @@ public class TicketService {
 
         @Autowired
         private AuditService auditService;
+
+        @Autowired
+        private InformeTrabajoTecnicoRepository informeTrabajoTecnicoRepository;
+
+        @Autowired
+        private InventarioRepository inventarioRepository;
+
+        @Autowired
+        private InventarioUsadoTicketRepository inventarioUsadoTicketRepository;
 
         public List<Ticket> getAllTickets() {
                 return ticketRepository.findAllWithAssociations();
@@ -145,23 +157,24 @@ public class TicketService {
 
                 // ── AUDITORÍA: Cambio de Estado y Asignación ────────────────────────
                 auditService.registrarCambioEstadoTicket(
-                        ticket.getIdTicket(),
-                        estadoAnterior.getId(),
-                        estadoAsignado.getId(),
-                        resolveDbUsername(assigner),
-                        assigner.getId()
-                );
+                                ticket.getIdTicket(),
+                                estadoAnterior.getId(),
+                                estadoAsignado.getId(),
+                                resolveDbUsername(assigner),
+                                assigner.getId());
 
                 auditService.registrarEvento(
-                        AuditModulo.TICKETS,
-                        "soporte", "ticket",
-                        ticket.getIdTicket(),
-                        AuditAccion.UPDATE,
-                        "Ticket asignado o reasignado al técnico: " + technician.getUsername(),
-                        previousAssignee != null ? java.util.Map.of("idUsuarioAsignadoAnterior", previousAssignee.getId()) : null,
-                        java.util.Map.of("idUsuarioAsignadoNuevo", technician.getId()),
-                        assigner.getId()
-                );
+                                AuditModulo.TICKETS,
+                                "soporte", "ticket",
+                                ticket.getIdTicket(),
+                                AuditAccion.UPDATE,
+                                "Ticket asignado o reasignado al técnico: " + technician.getUsername(),
+                                previousAssignee != null
+                                                ? java.util.Map.of("idUsuarioAsignadoAnterior",
+                                                                previousAssignee.getId())
+                                                : null,
+                                java.util.Map.of("idUsuarioAsignadoNuevo", technician.getId()),
+                                assigner.getId());
                 // ────────────────────────────────────────────────────────────────────
 
                 // Guardar cambios en el ticket primero
@@ -283,14 +296,13 @@ public class TicketService {
 
                 // ── AUDITORÍA: Creación de Ticket ────────────────────────────────────
                 auditService.registrarEventoContextual(
-                        AuditModulo.TICKETS,
-                        "soporte", "ticket",
-                        savedTicket.getIdTicket(),
-                        AuditAccion.INSERT,
-                        "Creación inicial de ticket por el cliente",
-                        null,
-                        java.util.Map.of("id_cliente", cliente.getIdCliente(), "asunto", ticket.getAsunto())
-                );
+                                AuditModulo.TICKETS,
+                                "soporte", "ticket",
+                                savedTicket.getIdTicket(),
+                                AuditAccion.INSERT,
+                                "Creación inicial de ticket por el cliente",
+                                null,
+                                java.util.Map.of("id_cliente", cliente.getIdCliente(), "asunto", ticket.getAsunto()));
                 // ────────────────────────────────────────────────────────────────────
 
                 return savedTicket;
@@ -335,25 +347,32 @@ public class TicketService {
                         }
                 }
 
+                final Integer finalIdEmpresa = idEmpresa;
+
+                // --- FIX: SET THE EMPRESA ENTITY ---
+                Empresa empresa = empresaRepository.findById(finalIdEmpresa)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Error: Empresa no encontrada con ID: " + finalIdEmpresa));
+                comentario.setEmpresa(empresa);
+                // -----------------------------------
+
                 ComentarioTicket savedComentario = comentarioTicketRepository.save(comentario);
 
                 // ── AUDITORÍA: Creación de Comentario ────────────────────────────────
-                String obsComentario = (esInterno != null && esInterno) 
-                    ? "Comentario interno agregado al ticket" 
-                    : "Comentario visible al cliente agregado al ticket";
+                String obsComentario = (esInterno != null && esInterno)
+                                ? "Comentario interno agregado al ticket"
+                                : "Comentario visible al cliente agregado al ticket";
 
                 auditService.registrarEventoContextual(
-                        AuditModulo.TICKETS,
-                        "soporte", "comentario_ticket",
-                        savedComentario.getIdComentario(),
-                        AuditAccion.COMENTARIO,
-                        obsComentario,
-                        null,
-                        java.util.Map.of(
-                            "id_ticket", idTicket,
-                            "es_interno", (esInterno != null && esInterno)
-                        )
-                );
+                                AuditModulo.TICKETS,
+                                "soporte", "comentario_ticket",
+                                savedComentario.getIdComentario(),
+                                AuditAccion.COMENTARIO,
+                                obsComentario,
+                                null,
+                                java.util.Map.of(
+                                                "id_ticket", idTicket,
+                                                "es_interno", (esInterno != null && esInterno)));
                 // ────────────────────────────────────────────────────────────────────
 
                 return savedComentario;
@@ -394,26 +413,24 @@ public class TicketService {
 
                 // ── AUDITORÍA: Cambio de Estado y Posible Cierre ─────────────────────
                 boolean esCierre = "CERRADO".equals(statusCode) || "RESUELTO".equals(statusCode);
-                
+
                 if (esCierre) {
                         auditService.registrarEvento(
-                                AuditModulo.TICKETS,
-                                "soporte", "ticket",
-                                ticket.getIdTicket(),
-                                AuditAccion.CAMBIO_ESTADO,
-                                "Cierre o resolución de ticket. Nota: " + observation,
-                                java.util.Map.of("estado_anterior", estadoAnterior.getCodigo()),
-                                java.util.Map.of("estado_final", statusCode),
-                                user.getId()
-                        );
+                                        AuditModulo.TICKETS,
+                                        "soporte", "ticket",
+                                        ticket.getIdTicket(),
+                                        AuditAccion.CAMBIO_ESTADO,
+                                        "Cierre o resolución de ticket. Nota: " + observation,
+                                        java.util.Map.of("estado_anterior", estadoAnterior.getCodigo()),
+                                        java.util.Map.of("estado_final", statusCode),
+                                        user.getId());
                 } else {
                         auditService.registrarCambioEstadoTicket(
-                                ticket.getIdTicket(),
-                                estadoAnterior.getId(),
-                                estadoNuevo.getId(),
-                                resolveDbUsername(user),
-                                user.getId()
-                        );
+                                        ticket.getIdTicket(),
+                                        estadoAnterior.getId(),
+                                        estadoNuevo.getId(),
+                                        resolveDbUsername(user),
+                                        user.getId());
                 }
                 // ────────────────────────────────────────────────────────────────────
 
@@ -498,21 +515,18 @@ public class TicketService {
 
                 // ── AUDITORÍA: Calificación de Servicio ──────────────────────────────
                 auditService.registrarEvento(
-                        AuditModulo.TICKETS,
-                        "soporte", "ticket",
-                        savedTicket.getIdTicket(),
-                        AuditAccion.CALIFICACION,
-                        "Cliente registró calificación de satisfacción",
-                        java.util.Map.of(
-                                "puntuacion", "sin calificar",
-                                "comentario", "n/a"
-                        ),
-                        java.util.Map.of(
-                                "puntuacion", puntuacion,
-                                "comentario", comentario != null ? comentario : ""
-                        ),
-                        user.getId()
-                );
+                                AuditModulo.TICKETS,
+                                "soporte", "ticket",
+                                savedTicket.getIdTicket(),
+                                AuditAccion.CALIFICACION,
+                                "Cliente registró calificación de satisfacción",
+                                java.util.Map.of(
+                                                "puntuacion", "sin calificar",
+                                                "comentario", "n/a"),
+                                java.util.Map.of(
+                                                "puntuacion", puntuacion,
+                                                "comentario", comentario != null ? comentario : ""),
+                                user.getId());
                 // ────────────────────────────────────────────────────────────────────
 
                 return savedTicket;
@@ -528,6 +542,193 @@ public class TicketService {
 
         public Long countTicketsByTecnico(User tecnico) {
                 return ticketRepository.countTicketsByTecnico(tecnico);
+        }
+
+        // ─── Informe Técnico ──────────────────────────────────────────────────────
+
+        @Transactional
+        public InformeTrabajoTecnico submitInformeTecnico(Integer idTicket, User tecnico,
+                        InformeTrabajoTecnicoRequest req) {
+
+                Ticket ticket = getTicketById(idTicket);
+
+                // 1. Verify ticket is in EN_PROCESO state
+                String estadoActual = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
+                if (!"EN_PROCESO".equals(estadoActual)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "El ticket debe estar en estado EN_PROCESO para registrar el informe técnico.");
+                }
+
+                // 2. Verify this technician is the assigned one
+                if (ticket.getUsuarioAsignado() == null ||
+                                !ticket.getUsuarioAsignado().getId().equals(tecnico.getId())) {
+                        // Allow ADMIN_MASTER to submit informe regardless
+                        boolean isAdmin = tecnico.getRole() != null &&
+                                        ("ADMIN_MASTER".equals(tecnico.getRole().getCodigo()));
+                        if (!isAdmin) {
+                                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                                "Solo el técnico asignado puede registrar el informe de este ticket.");
+                        }
+                }
+
+                // 3. Check if an informe already exists for this ticket
+                Optional<InformeTrabajoTecnico> existente = informeTrabajoTecnicoRepository
+                                .findByTicket_IdTicket(idTicket);
+                if (existente.isPresent()) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                        "Ya existe un informe técnico registrado para este ticket.");
+                }
+
+                // 4. Validate required fields based on resultado
+                String resultado = req.getResultado();
+                if (resultado == null || (!"RESUELTO".equals(resultado) && !"NO_RESUELTO".equals(resultado))) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "El campo 'resultado' debe ser RESUELTO o NO_RESUELTO.");
+                }
+
+                // 5. Build and save informe
+                InformeTrabajoTecnico informe = InformeTrabajoTecnico.builder()
+                                .ticket(ticket)
+                                .tecnico(tecnico)
+                                .resultado(resultado)
+                                .implementosUsados(req.getImplementosUsados())
+                                .problemasEncontrados(req.getProblemasEncontrados())
+                                .solucionAplicada(req.getSolucionAplicada())
+                                .pruebasRealizadas(req.getPruebasRealizadas())
+                                .motivoNoResolucion(req.getMotivoNoResolucion())
+                                .comentarioTecnico(req.getComentarioTecnico())
+                                .urlAdjunto(req.getUrlAdjunto())
+                                .tiempoTrabajoMinutos(req.getTiempoTrabajoMinutos())
+                                .build();
+
+                InformeTrabajoTecnico savedInforme = informeTrabajoTecnicoRepository.save(informe);
+
+                // 5.b Save Inventory Usage
+                if (req.getInventarioItems() != null) {
+                        for (InformeTrabajoTecnicoRequest.ItemUsadoRequest itemReq : req.getInventarioItems()) {
+                                if (itemReq.getIdItemInventario() != null && itemReq.getCantidad() != null
+                                                && itemReq.getCantidad() > 0) {
+                                        Inventario inv = inventarioRepository.findById(itemReq.getIdItemInventario())
+                                                        .orElseThrow(() -> new ResponseStatusException(
+                                                                        HttpStatus.NOT_FOUND,
+                                                                        "Item de inventario no encontrado: " + itemReq
+                                                                                        .getIdItemInventario()));
+
+                                        // Validation before saving
+                                        if (inv.getStockActual() < itemReq.getCantidad()) {
+                                                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                                                "Stock insuficiente para el ítem: " + inv.getNombre()
+                                                                                + ". Disponible: "
+                                                                                + inv.getStockActual());
+                                        }
+
+                                        // Stock manual deduction removed. Handled by BD Trigger.
+
+                                        InventarioUsadoTicket uso = InventarioUsadoTicket.builder()
+                                                        .ticket(ticket)
+                                                        .inventario(inv)
+                                                        .cantidad(itemReq.getCantidad())
+                                                        .tecnico(tecnico)
+                                                        .fechaRegistro(LocalDateTime.now())
+                                                        .build();
+                                        inventarioUsadoTicketRepository.save(uso);
+                                }
+                        }
+                }
+
+                // 6. Update ticket status based on resultado
+                String nuevoEstadoCodigo;
+                if ("RESUELTO".equals(resultado)) {
+                        nuevoEstadoCodigo = "RESUELTO";
+                } else {
+                        // NO_RESUELTO: re-open ticket to ABIERTO for new assignment
+                        // Check if NO_RESUELTO catalog item exists, fallback to ABIERTO
+                        boolean noResueltoExists = catalogoItemRepository
+                                        .findByCatalogo_NombreAndCodigo("ESTADO_TICKET", "NO_RESUELTO")
+                                        .isPresent();
+                        nuevoEstadoCodigo = noResueltoExists ? "NO_RESUELTO" : "ABIERTO";
+                }
+
+                updateTicketStatus(idTicket, tecnico, nuevoEstadoCodigo,
+                                "NO_RESUELTO".equals(resultado)
+                                                ? "Técnico no pudo resolver: " + (req.getMotivoNoResolucion() != null
+                                                                ? req.getMotivoNoResolucion()
+                                                                : "")
+                                                : "Informe técnico registrado. Ticket resuelto.");
+
+                // 7. Audit
+                auditService.registrarEventoContextual(
+                                AuditModulo.TICKETS,
+                                "soporte", "informe_trabajo_tecnico",
+                                savedInforme.getIdInforme(),
+                                AuditAccion.INSERT,
+                                "Técnico registró informe de trabajo. Resultado: " + resultado,
+                                null,
+                                java.util.Map.of(
+                                                "id_ticket", idTicket,
+                                                "resultado", resultado));
+
+                return savedInforme;
+        }
+
+        @Transactional
+        public java.util.Map<String, java.util.Map<String, Long>> getOptionFrequencies() {
+                java.util.Map<String, java.util.Map<String, Long>> frequencies = new java.util.HashMap<>();
+
+                frequencies.put("implementos",
+                                countFrequencies(informeTrabajoTecnicoRepository.findAllResolvedImplementos()));
+                frequencies.put("problemas",
+                                countFrequencies(informeTrabajoTecnicoRepository.findAllResolvedProblemas()));
+                frequencies.put("soluciones",
+                                countFrequencies(informeTrabajoTecnicoRepository.findAllResolvedSoluciones()));
+
+                return frequencies;
+        }
+
+        private java.util.Map<String, Long> countFrequencies(List<String> rawData) {
+                java.util.Map<String, Long> counts = new java.util.HashMap<>();
+                if (rawData == null)
+                        return counts;
+
+                for (String line : rawData) {
+                        if (line == null)
+                                continue;
+                        String[] parts = line.split(",");
+                        for (String p : parts) {
+                                String clean = p.trim();
+                                if (!clean.isEmpty()) {
+                                        counts.put(clean, counts.getOrDefault(clean, 0L) + 1);
+                                }
+                        }
+                }
+                return counts;
+        }
+
+        @Transactional
+        public Optional<InformeTrabajoTecnico> getInformeTecnico(Integer idTicket) {
+                return informeTrabajoTecnicoRepository.findByTicket_IdTicket(idTicket);
+        }
+
+        public List<InventarioUsadoTicket> getInventarioUsado(Integer idTicket) {
+                return inventarioUsadoTicketRepository.findByTicket_IdTicket(idTicket);
+        }
+
+        @Autowired
+        private PdfReporteService pdfReporteService;
+
+        @Transactional
+        public ByteArrayInputStream generateTicketPdf(Integer idTicket) {
+                Ticket ticket = getTicketById(idTicket);
+                InformeTrabajoTecnico informe = getInformeTecnico(idTicket).orElse(null);
+                List<HistorialEstado> historial = historialEstadoRepository
+                                .findByTicket_IdTicketOrderByFechaCambioDesc(idTicket);
+                List<ComentarioTicket> comentarios = comentarioTicketRepository
+                                .findByTicket_IdTicketOrderByFechaCreacionDesc(idTicket);
+                List<InventarioUsadoTicket> inventarioUsado = inventarioUsadoTicketRepository
+                                .findByTicket_IdTicket(idTicket);
+
+                return pdfReporteService.generateTicketDetailReport(ticket, informe, historial, comentarios,
+                                inventarioUsado);
         }
 
         /**
