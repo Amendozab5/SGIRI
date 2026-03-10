@@ -37,6 +37,9 @@ export class HomeComponent implements OnInit {
         this.showTechnicianBoard = this.roles.includes('ROLE_TECNICO');
         this.showUserBoard = this.roles.includes('ROLE_CLIENTE');
       }
+    } else {
+      // Not logged in, redirect to login with returnUrl
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
     }
   }
 

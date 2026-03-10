@@ -264,4 +264,10 @@ public class TicketController {
                                 .contentType(MediaType.APPLICATION_PDF)
                                 .body(new InputStreamResource(bis));
         }
+
+        @GetMapping("/pending-visit")
+        @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<List<Ticket>> getTicketsPendingVisit() {
+                return ResponseEntity.ok(ticketService.getTicketsPendingVisit());
+        }
 }

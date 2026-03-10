@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angula
 import { CommonModule } from '@angular/common';
 import { SharedStateService } from '../../_services/shared-state.service';
 import { TicketService } from '../../_services/ticket.service';
+import { VisitaService } from '../../_services/visita.service';
 import { MasterDataService } from '../../_services/master-data.service';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -21,6 +22,7 @@ export class BoardUserComponent implements OnInit, OnDestroy {
   incidentStats: any = { open: 0, inProgress: 0, resolved: 0, total: 0 };
   incidents: any[] = [];
   isLoadingIncidents = true;
+  myVisits: any[] = [];
   errorMessage = '';
 
   // Pagination & Filtering
@@ -40,6 +42,7 @@ export class BoardUserComponent implements OnInit, OnDestroy {
   constructor(
     private sharedState: SharedStateService,
     private ticketService: TicketService,
+    private visitaService: VisitaService,
     private masterDataService: MasterDataService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone
@@ -54,7 +57,8 @@ export class BoardUserComponent implements OnInit, OnDestroy {
 
     this.loadFilterOptions();
     this.loadIncidents();
-    this.loadGlobalStats(); // Cargar estadísticas globales sin filtros
+    this.loadGlobalStats();
+    this.loadMyVisits();
   }
 
   loadFilterOptions(): void {
@@ -77,15 +81,28 @@ export class BoardUserComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadMyVisits(): void {
+    this.visitaService.getMyVisits().subscribe(visits => {
+      // Solo visitas futuras o de hoy que no estén canceladas ni finalizadas
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      this.myVisits = visits.filter((v: any) => {
+        const vDate = new Date(v.fechaVisita + 'T00:00:00');
+        return vDate >= today && v.estado.codigo !== 'CANCELADA' && v.estado.codigo !== 'FINALIZADA';
+      });
+      this.cdr.detectChanges();
+    });
+  }
+
   loadIncidents(): void {
     this.isLoadingIncidents = true;
     this.cdr.detectChanges();
-    
+
     this.ticketService.getMyTicketsPaged(
-      this.currentPage, 
-      this.pageSize, 
-      this.searchTerm, 
-      this.selectedStatusId ?? undefined, 
+      this.currentPage,
+      this.pageSize,
+      this.searchTerm,
+      this.selectedStatusId ?? undefined,
       this.selectedCategoryId ?? undefined
     ).subscribe({
       next: (data: any) => {
@@ -165,6 +182,24 @@ export class BoardUserComponent implements OnInit, OnDestroy {
       case 'CERRADO': return '#10b981';
       default: return '#64748b';
     }
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '??';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+
+  getAvatarColor(name: string): string {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = hash % 360;
+    return `hsl(${h}, 60%, 45%)`;
   }
 
   ngOnDestroy(): void {

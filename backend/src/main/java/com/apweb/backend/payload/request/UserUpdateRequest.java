@@ -11,6 +11,18 @@ public class UserUpdateRequest {
     private String username;
 
     @NotBlank
+    @Size(min = 3, max = 100)
+    private String nombre;
+
+    @NotBlank
+    @Size(min = 3, max = 100)
+    private String apellido;
+
+    @NotBlank
+    @Size(max = 100)
+    private String email;
+
+    @NotBlank
     private String role; // Role code (e.g., "ROLE_ADMIN")
 
     @NotBlank

@@ -179,7 +179,7 @@
                                         }}</span>
                                 </div>
                             </div>
-                            <div class="informe-field" *ngIf="inventarioUsado?.length">
+                            <div class="informe-field" *ngIf="inventarioUsado.length">
                                 <span class="informe-label"><i class="bi bi-box-seam"></i> Repuestos / Materiales</span>
                                 <div class="chip-display-row">
                                     <span class="chip-display" *ngFor="let u of inventarioUsado">
@@ -593,6 +593,29 @@
                         </div>
                         <div class="text-center py-2 text-muted small" *ngIf="!ticket.usuarioAsignado">
                             <i class="bi bi-person-dash me-1"></i> Sin técnico asignado aún
+                        </div>
+                    </div>
+
+                    <!-- Visit Schedule History -->
+                    <div class="sidebar-card" *ngIf="visits && visits.length > 0">
+                        <h3><i class="bi bi-calendar-event"></i> Agenda de Visitas</h3>
+                        <div class="timeline-vertical visits-timeline">
+                            <div *ngFor="let v of visits" class="timeline-event"
+                                [class.visit-cancelled]="v.estado.codigo === 'CANCELADA'">
+                                <div class="timeline-dot"
+                                    [style.background-color]="v.estado.codigo === 'FINALIZADA' ? '#198754' : '#0d6efd'">
+                                </div>
+                                <div class="timeline-status d-flex justify-content-between">
+                                    <span>{{ v.estado.nombre }}</span>
+                                    <span class="badge bg-light text-dark smallest">{{ v.horaInicio.substring(0, 5)
+                                        }}</span>
+                                </div>
+                                <div class="timeline-time fw-bold">{{ v.fechaVisita | date:'EEE, d MMM' }}</div>
+                                <div class="timeline-obs smallest text-muted">
+                                    <i class="bi bi-person me-1"></i> {{ v.tecnico.fullName || v.tecnico.username }}
+                                </div>
+                                <div class="timeline-obs mt-1" *ngIf="v.reporteVisita">"{{ v.reporteVisita }}"</div>
+                            </div>
                         </div>
                     </div>
 

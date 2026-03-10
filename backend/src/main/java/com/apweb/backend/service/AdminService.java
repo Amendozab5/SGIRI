@@ -141,7 +141,7 @@ public class AdminService {
     @Transactional
     public UserAdminView createUser(UserCreateRequest request) {
         String roleCode = normalizeRoleCode(request.getRole());
-        
+
         // Asegurar idEmpresa si viene nulo del frontend
         if (request.getIdEmpresa() == null) {
             request.setIdEmpresa(1); // Default a empresa 1
@@ -153,11 +153,10 @@ public class AdminService {
         if (EMPLOYEE_ROLES.contains(roleCode)) {
             // Ruta A: Empleados (Automático via DB)
             result = crearUsuarioEmpleado(
-                request.getCedula(), 
-                0, // Año de nacimiento (No usado por el SP, pasamos 0)
-                roleCode, 
-                request.getIdEmpresa()
-            );
+                    request.getCedula(),
+                    0, // Año de nacimiento (No usado por el SP, pasamos 0)
+                    roleCode,
+                    request.getIdEmpresa());
         } else {
             // Ruta B: Clientes (Automático via DB - fn_crear_usuario_cliente)
             result = createClientUser(request, roleCode);
@@ -171,8 +170,7 @@ public class AdminService {
                 AuditAccion.REGISTRO_USUARIO,
                 "Creación administrativa de cuenta (" + roleCode + ")",
                 null,
-                java.util.Map.of("username", result.getUsername(), "rol", roleCode)
-        );
+                java.util.Map.of("username", result.getUsername(), "rol", roleCode));
         // ─────────────────────────────────────────────────────────────────────
 
         return result;
@@ -252,7 +250,8 @@ public class AdminService {
         UserAdminView response = mapToUserAdminView(savedUser);
         response.setTemporaryPassword(tempPass);
 
-        // La auditoría de este flujo se dispara en PersonnelService.activarAccesoEmpleado
+        // La auditoría de este flujo se dispara en
+        // PersonnelService.activarAccesoEmpleado
         // para mantener consistencia con el flujo de negocio superior.
 
         return response;
@@ -272,14 +271,18 @@ public class AdminService {
                         "Error: Estado 'ACTIVO' no encontrado."));
 
         // Validar que tengamos los datos necesarios para fn_crear_usuario_cliente
-        // En este flujo, si es creación administrativa, usamos la cédula de la persona si existe,
+        // En este flujo, si es creación administrativa, usamos la cédula de la persona
+        // si existe,
         // o la del request si se proporciona.
         String cedula = request.getCedula();
 
         if (cedula == null) {
-            // Intentar obtener de la persona si está vinculada (un poco redundante pero seguro)
-            // Sin embargo, fn_crear_usuario_cliente REQUIERE la cédula para generar credenciales.
-            throw new RuntimeException("Error: La cédula es obligatoria para generar credenciales automáticas del cliente.");
+            // Intentar obtener de la persona si está vinculada (un poco redundante pero
+            // seguro)
+            // Sin embargo, fn_crear_usuario_cliente REQUIERE la cédula para generar
+            // credenciales.
+            throw new RuntimeException(
+                    "Error: La cédula es obligatoria para generar credenciales automáticas del cliente.");
         }
 
         log.info("[TRAZABILIDAD] Creando usuario cliente vía DB: cedula={}, rol={}, empresa={}",
@@ -305,9 +308,9 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException(
                         "Error interno: El usuario cliente se creó pero no se encontró con ID=" + idUsuarioCreado));
 
-        log.info("[TRAZABILIDAD] Usuario cliente creado exitosamente — id={}, username={}", 
+        log.info("[TRAZABILIDAD] Usuario cliente creado exitosamente — id={}, username={}",
                 savedUser.getId(), savedUser.getUsername());
-        
+
         return mapToUserAdminView(savedUser);
     }
 
@@ -341,8 +344,7 @@ public class AdminService {
                 AuditAccion.CAMBIO_ESTADO,
                 "Suspensión o reactivación administrativa de cuenta",
                 java.util.Map.of("estado", oldStatus),
-                java.util.Map.of("estado", newStatusCode)
-        );
+                java.util.Map.of("estado", newStatusCode));
         // ─────────────────────────────────────────────────────────────────────
     }
 
@@ -352,6 +354,14 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Error: User not found with id " + userId));
 
         user.setUsername(request.getUsername());
+
+        // Actualizar datos de Persona
+        Persona persona = user.getPersona();
+        if (persona != null) {
+            persona.setNombre(request.getNombre());
+            persona.setApellido(request.getApellido());
+            persona.setCorreo(request.getEmail());
+        }
 
         CatalogoItem status = catalogoItemRepository.findFirstByCodigo(request.getEstado())
                 .orElseThrow(() -> new RuntimeException(
@@ -380,8 +390,7 @@ public class AdminService {
                 AuditAccion.UPDATE,
                 "Cambio administrativo de rol de usuario",
                 java.util.Map.of("rol", oldRole),
-                java.util.Map.of("rol", updateRoleCode)
-        );
+                java.util.Map.of("rol", updateRoleCode));
         // ─────────────────────────────────────────────────────────────────────
 
         return mapToUserAdminView(updatedUser);
@@ -432,25 +441,23 @@ public class AdminService {
 
             // ── AUDITORÍA: Registro Final ────────────────────────────────────
             auditService.registrarEventoContextual(
-                AuditModulo.USUARIOS,
-                "usuarios", "usuario",
-                userId,
-                AuditAccion.REVOCACION_ACCESO,
-                "Revocación total de acceso y destrucción de identidad física",
-                java.util.Map.of(
-                    "username", targetUsername,
-                    "rol", targetRole,
-                    "bd_user", targetBdUser
-                ),
-                null
-            );
+                    AuditModulo.USUARIOS,
+                    "usuarios", "usuario",
+                    userId,
+                    AuditAccion.REVOCACION_ACCESO,
+                    "Revocación total de acceso y destrucción de identidad física",
+                    java.util.Map.of(
+                            "username", targetUsername,
+                            "rol", targetRole,
+                            "bd_user", targetBdUser),
+                    null);
             // ─────────────────────────────────────────────────────────────────
 
         } else {
             // Caso Clientes u otros
             if (isLinkedToPersona && persona != null) {
                 log.info("[ADMIN] Desvinculando identidad de usuario {} (cedula: {})", userId, persona.getCedula());
-                
+
                 // ── AUDITORÍA: Captura previa ─────────────────────────────────
                 String targetUsername = user.getUsername();
                 String targetRole = user.getRole().getCodigo();
@@ -472,14 +479,13 @@ public class AdminService {
 
                 // ── AUDITORÍA: Registro Final ────────────────────────────────────
                 auditService.registrarEventoContextual(
-                    AuditModulo.USUARIOS,
-                    "usuarios", "usuario",
-                    userId,
-                    AuditAccion.REVOCACION_ACCESO,
-                    "Revocación de acceso de usuario cliente",
-                    java.util.Map.of("username", targetUsername, "rol", targetRole),
-                    null
-                );
+                        AuditModulo.USUARIOS,
+                        "usuarios", "usuario",
+                        userId,
+                        AuditAccion.REVOCACION_ACCESO,
+                        "Revocación de acceso de usuario cliente",
+                        java.util.Map.of("username", targetUsername, "rol", targetRole),
+                        null);
                 // ─────────────────────────────────────────────────────────────────
             } else {
                 userRepository.delete(user);

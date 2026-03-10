@@ -766,4 +766,8 @@ public class TicketService {
                 }
                 return null;
         }
+
+        public List<Ticket> getTicketsPendingVisit() {
+                return ticketRepository.findTicketsPendingVisit();
+        }
 }

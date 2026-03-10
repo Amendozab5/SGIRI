@@ -19,6 +19,12 @@
                 <option *ngFor="let t of tickets" [value]="t.idTicket">
                   #{{t.idTicket}} - {{t.asunto}} ({{t.cliente?.persona?.nombre}} {{t.cliente?.persona?.apellido}})
                 </option>
+                <!-- Opción de respaldo si el ticket no está en la lista de pendientes (ej: carga desde edición) -->
+                <option *ngIf="currentTicket && !tickets.find(t => t.idTicket == currentTicket!.idTicket)"
+                  [value]="currentTicket.idTicket">
+                  #{{currentTicket.idTicket}} - {{currentTicket.asunto}} ({{currentTicket.cliente?.persona?.nombre}}
+                  {{currentTicket.cliente?.persona?.apellido}})
+                </option>
               </select>
 
               <!-- Detalles del Ticket Seleccionado -->
@@ -104,6 +110,20 @@
               <input type="time" class="form-control" formControlName="horaFin">
             </div>
 
+            <!-- Alerta de Conflicto -->
+            <div class="col-12 animate__animated animate__shakeX" *ngIf="conflictInfo">
+              <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center mb-0">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>
+                  <h6 class="alert-heading fw-bold mb-1">¡Conflicto de Horario Detectado!</h6>
+                  <p class="mb-0 small">
+                    El técnico ya tiene asignado el <strong>Ticket #{{conflictInfo.ticket}}</strong>
+                    de <strong>{{conflictInfo.time}}</strong> a <strong>{{conflictInfo.endTime}}</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <!-- Reporte / Observaciones -->
             <div class="col-12">
               <label class="form-label fw-bold">Reporte / Observaciones</label>
@@ -115,14 +135,13 @@
         <div class="modal-footer bg-light border-0 d-flex justify-content-between">
           <div>
             <span *ngIf="isLocked" class="badge bg-warning text-dark p-2">
-              <i class="bi bi-lock-fill"></i> Visita Finalizada/Cancelada (Solo lectura)
+              <i class="bi bi-lock-fill"></i> {{ isTechnician ? 'Vista de Solo Lectura' : 'Visita Finalizada/Cancelada
+              (Solo lectura)' }}
             </span>
           </div>
           <div class="d-flex gap-2">
             <button type="button" class="btn btn-outline-secondary px-4" (click)="hide()">Cerrar</button>
-
-            <!-- Botón de Re-programar (Solo si está bloqueado) -->
-            <button type="button" class="btn btn-warning px-4 fw-bold" *ngIf="isLocked"
+            <button type="button" class="btn btn-warning px-4 fw-bold" *ngIf="isLocked && !isTechnician"
               (click)="$event.preventDefault(); reprogramar()">
               <i class="bi bi-calendar-plus"></i> Re-programar
             </button>

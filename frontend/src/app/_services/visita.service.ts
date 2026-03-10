@@ -30,4 +30,12 @@ export class VisitaService {
     updateVisita(id: number, visita: VisitaRequest): Observable<any> {
         return this.http.put(`${API_URL}/${id}`, visita);
     }
+
+    getMyVisits(): Observable<VisitaTecnica[]> {
+        return this.http.get<VisitaTecnica[]>(`${API_URL}/my-visits`);
+    }
+
+    getVisitaHistory(ticketId: number): Observable<VisitaTecnica[]> {
+        return this.http.get<VisitaTecnica[]>(`${API_URL}/ticket/${ticketId}/history`);
+    }
 }

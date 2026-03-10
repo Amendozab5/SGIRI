@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { VisitaService } from '../../_services/visita.service';
 import { TicketService } from '../../_services/ticket.service';
 import { UserService } from '../../_services/user.service';
@@ -7,6 +8,8 @@ import { VisitaTecnica, VisitaRequest } from '../../models/visita';
 import { Ticket } from '../../models/ticket';
 import { UserAdminView } from '../../models/user-admin-view.model';
 import { VisitaFormModalComponent } from '../visita-form-modal/visita-form-modal.component';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { TokenStorageService } from '../../_services/token-storage.service';
 
 interface DayCell {
     date: Date;
@@ -21,7 +24,7 @@ interface DayCell {
     templateUrl: './scheduler.component.html',
     styleUrls: ['./scheduler.component.css'],
     standalone: true,
-    imports: [CommonModule, VisitaFormModalComponent]
+    imports: [CommonModule, VisitaFormModalComponent, FormsModule, DragDropModule]
 })
 export class SchedulerComponent implements OnInit {
     currentDate = new Date();
@@ -32,6 +35,9 @@ export class SchedulerComponent implements OnInit {
     tecnicos: UserAdminView[] = [];
     allVisitas: VisitaTecnica[] = [];
     selectedTecnicoFilter: string = '';
+    pendingSearchTerm: string = '';
+    isUserTechnician: boolean = false;
+    currentUsername: string = '';
 
     @ViewChild(VisitaFormModalComponent) visitaFormModal!: VisitaFormModalComponent;
 
@@ -39,24 +45,35 @@ export class SchedulerComponent implements OnInit {
         private visitaService: VisitaService,
         private ticketService: TicketService,
         private userService: UserService,
+        private tokenService: TokenStorageService,
         private cdr: ChangeDetectorRef // Inyectar ChangeDetectorRef
     ) { }
 
     ngOnInit(): void {
+        const user = this.tokenService.getUser();
+        if (user) {
+            this.currentUsername = user.username;
+            this.isUserTechnician = user.roles.includes('ROLE_TECNICO');
+            if (this.isUserTechnician) {
+                this.selectedTecnicoFilter = this.currentUsername;
+            }
+        }
         this.generateCalendar();
         this.loadInitialData();
     }
 
     loadInitialData(): void {
-        // Cargar tickets que REQUIEREN VISITA para el modal
-        this.ticketService.getAllTickets().subscribe(res => {
-            this.tickets = res.filter(t => t.estadoItem?.codigo === 'REQUIERE_VISITA');
+        // Cargar tickets que REQUIEREN VISITA y NO tienen agenda ya colocada
+        this.ticketService.getTicketsPendingVisit().subscribe(res => {
+            this.tickets = res;
+            this.cdr.detectChanges(); // Trigger change detection
         });
 
         // Cargar técnicos (incluyendo todos los roles operativos de empleados)
         this.userService.getAllUsers().subscribe(res => {
             const employeeRoles = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_VISUAL'];
             this.tecnicos = res.filter(u => u.roles.some(r => employeeRoles.includes(r.replace('ROLE_', ''))));
+            this.cdr.detectChanges(); // Trigger change detection
         });
     }
 
@@ -120,7 +137,9 @@ export class SchedulerComponent implements OnInit {
             const dateStr = this.formatDate(day.date);
             day.visitas = this.allVisitas.filter(v => {
                 const sameDate = v.fechaVisita === dateStr;
-                const matchesTecnico = !this.selectedTecnicoFilter || v.tecnico.username === this.selectedTecnicoFilter;
+                // Si es técnico, solo cargamos SUS visitas. Si es admin, usamos el filtro seleccionado.
+                const filterValue = this.isUserTechnician ? this.currentUsername : this.selectedTecnicoFilter;
+                const matchesTecnico = !filterValue || v.tecnico.username === filterValue;
                 return sameDate && matchesTecnico;
             });
         });
@@ -150,8 +169,24 @@ export class SchedulerComponent implements OnInit {
     }
 
     onDayClick(day: DayCell): void {
-        if (day.isPast) return;
+        if (day.isPast || this.isUserTechnician) return;
         this.visitaFormModal.open(undefined, this.formatDate(day.date));
+    }
+
+    onPendingTicketClick(ticket: Ticket): void {
+        const today = new Date();
+        const dateStr = this.formatDate(today);
+        this.visitaFormModal.open(undefined, dateStr, ticket.idTicket);
+    }
+
+    // CDK Drag and Drop Handlers
+    dropTicket(event: CdkDragDrop<any>, day: DayCell): void {
+        if (day.isPast || this.isUserTechnician) return;
+
+        const ticket = event.item.data as Ticket;
+        if (ticket) {
+            this.visitaFormModal.open(undefined, this.formatDate(day.date), ticket.idTicket);
+        }
     }
 
     onVisitaClick(event: MouseEvent, visita: VisitaTecnica): void {
@@ -163,11 +198,13 @@ export class SchedulerComponent implements OnInit {
         if (id) {
             this.visitaService.updateVisita(id, request).subscribe(() => {
                 this.loadVisitas();
+                this.loadInitialData(); // Reload pending list
                 this.visitaFormModal.hide();
             });
         } else {
             this.visitaService.createVisita(request).subscribe(() => {
                 this.loadVisitas();
+                this.loadInitialData(); // Reload pending list
                 this.visitaFormModal.hide();
             });
         }
@@ -182,5 +219,45 @@ export class SchedulerComponent implements OnInit {
             case 'FINALIZADA': return '#198754';
             default: return '#6c757d';
         }
+    }
+
+    isVisitaLocked(v: VisitaTecnica): boolean {
+        const ticketStatus = v.ticket.estadoItem?.codigo;
+        return ['FINALIZADA', 'CANCELADA'].includes(v.estado.codigo) ||
+            ['CERRADO', 'RESUELTO'].includes(ticketStatus || '');
+    }
+
+    getInitials(name: string): string {
+        if (!name) return '??';
+        const parts = name.split(' ');
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    }
+
+    getAvatarColor(name: string): string {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const h = hash % 360;
+        return `hsl(${h}, 60%, 45%)`;
+    }
+
+    getTecnicoLoad(username: string): number {
+        return this.allVisitas.filter(v => v.tecnico.username === username).length;
+    }
+
+    get filteredPendingTickets(): Ticket[] {
+        if (!this.pendingSearchTerm) return this.tickets;
+        const term = this.pendingSearchTerm.toLowerCase();
+        return this.tickets.filter(t => {
+            const idMatch = t.idTicket?.toString().includes(term) || false;
+            const asuntoMatch = t.asunto?.toLowerCase().includes(term) || false;
+            const clienteNombre = (t.cliente?.persona?.nombre || '') + ' ' + (t.cliente?.persona?.apellido || '');
+            const clienteMatch = clienteNombre.toLowerCase().includes(term);
+            return idMatch || asuntoMatch || clienteMatch;
+        });
     }
 }

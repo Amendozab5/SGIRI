@@ -96,8 +96,9 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
       this.userForm.get('password')?.updateValueAndValidity();
 
       this.userForm.get('username')?.disable();
-      this.userForm.get('fullName')?.disable();
-      this.userForm.get('email')?.disable();
+      this.userForm.get('nombre')?.enable();
+      this.userForm.get('apellido')?.enable();
+      this.userForm.get('email')?.enable();
 
     } else {
       this.userForm.reset({ estado: 'ACTIVO', fullName: '', email: '' });
@@ -117,7 +118,7 @@ export class UserFormModalComponent implements OnInit, AfterViewInit {
       this.userForm.get('username')?.clearValidators();
       this.userForm.get('password')?.clearValidators();
       this.userForm.get('cedula')?.setValidators([Validators.required, Validators.pattern('^[0-9]{10}$')]);
-      
+
       this.userForm.get('username')?.updateValueAndValidity();
       this.userForm.get('password')?.updateValueAndValidity();
       this.userForm.get('cedula')?.updateValueAndValidity();

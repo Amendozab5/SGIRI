@@ -56,7 +56,7 @@ public class PersonnelController {
      * No crea usuario del sistema — eso es un paso posterior explícito.
      */
     @PostMapping("/empleados")
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<EmpleadoDTO> crearEmpleado(@Valid @RequestBody EmpleadoCreateRequest request) {
         EmpleadoDTO creado = personnelService.crearEmpleado(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
@@ -95,7 +95,7 @@ public class PersonnelController {
      * @param request Datos de activación: rol, idEmpresa, anioNacimiento
      */
     @PostMapping("/empleados/{cedula}/activar-acceso")
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<UserAdminView> activarAccesoEmpleado(
             @PathVariable(name = "cedula") String cedula,
             @Valid @RequestBody EmpleadoActivarAccesoRequest request) {
