@@ -95,6 +95,12 @@
     border: 1px solid #fecaca;
 }
 
+.status-reprogramada {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
 .ticket-title-group h1 {
     font-size: 1.25rem;
     font-weight: 800;
@@ -272,11 +278,13 @@
     position: fixed;
     bottom: 24px;
     right: 24px;
-    z-index: 1050; /* Above action bar and modals normally */
+    z-index: 1050;
+    /* Above action bar and modals normally */
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    pointer-events: none; /* Let clicks pass through container */
+    pointer-events: none;
+    /* Let clicks pass through container */
 }
 
 /* FAB Toggle Button */
@@ -320,9 +328,11 @@
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
     }
+
     60% {
         transform: translate(-50%, -50%) scale(1.2);
     }
+
     100% {
         transform: translate(-50%, -50%) scale(1);
         opacity: 1;
@@ -332,19 +342,20 @@
 /* Chat Window */
 .chat-window-floating {
     position: absolute;
-    bottom: 80px; /* Right above the FAB */
+    bottom: 80px;
+    /* Right above the FAB */
     right: 0;
     width: 360px;
     height: 550px;
     max-height: calc(100vh - 120px);
     background: white;
     border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     pointer-events: auto;
-    
+
     /* Animation settings */
     opacity: 0;
     visibility: hidden;
@@ -367,7 +378,7 @@
     align-items: center;
     padding: 12px 16px;
     border-bottom: 1px solid var(--border);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
     z-index: 10;
 }
 
@@ -467,7 +478,8 @@
     font-weight: 700;
     font-size: 0.7rem;
     flex-shrink: 0;
-    margin-top: auto; /* Aligns avatar to the bottom of the message group like Messenger */
+    margin-top: auto;
+    /* Aligns avatar to the bottom of the message group like Messenger */
 }
 
 .bubble-right .chat-avatar {
@@ -476,7 +488,8 @@
 }
 
 .bubble-content {
-    background: #e4e6eb; /* Messenger gray */
+    background: #e4e6eb;
+    /* Messenger gray */
     color: #050505;
     padding: 8px 14px;
     border-radius: 18px;
@@ -576,11 +589,12 @@
         height: 100%;
         max-height: 100vh;
         border-radius: 0;
-        z-index: 1060; /* Fullscreen over everything */
+        z-index: 1060;
+        /* Fullscreen over everything */
     }
 
     /* Hide FAB when open on mobile */
-    .chat-window-floating.chat-open ~ .fab-chat {
+    .chat-window-floating.chat-open~.fab-chat {
         display: none;
     }
 }
@@ -1062,7 +1076,8 @@
 
 .chip-option {
     padding: 8px 16px;
-    border-radius: 12px; /* Slightly squarer modern pill */
+    border-radius: 12px;
+    /* Slightly squarer modern pill */
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
@@ -1087,7 +1102,7 @@
     left: 50%;
     width: 0;
     height: 0;
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     transform: translate(-50%, -50%);
     transition: width 0.4s ease, height 0.4s ease;
@@ -1102,61 +1117,39 @@
 .chip-option:hover {
     border-color: #cbd5e1;
     transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
 }
 
-/* Primary Selection (Implementos / Pruebas) */
-.chip-option.chip-selected {
-    border-color: var(--primary);
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-    transform: translateY(-2px);
+/* Primary Selection (Implementos / Pruebas / All Selected) */
+.chip-option.chip-selected,
+.chip-danger-option.chip-selected,
+.chip-success-option.chip-selected,
+.chip-warning-option.chip-selected {
+    border-color: #2563eb !important;
+    background: #2563eb !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45) !important;
+    transform: translateY(-2px) scale(1.02);
+    z-index: 2;
 }
 
-/* Danger Selection (Problemas) */
-.chip-danger-option:hover {
+/* Specific hover effects for non-selected remain as they were but selection is now unified blue */
+.chip-danger-option:hover:not(.chip-selected) {
     border-color: var(--danger);
     background: #fef2f2;
     color: var(--danger);
 }
 
-.chip-danger-option.chip-selected {
-    border-color: var(--danger);
-    background: var(--danger);
-    color: white;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-    transform: translateY(-2px);
-}
-
-/* Success Selection (Soluciones) */
-.chip-success-option:hover {
+.chip-success-option:hover:not(.chip-selected) {
     border-color: var(--success);
     background: #ecfdf5;
     color: #065f46;
 }
 
-.chip-success-option.chip-selected {
-    border-color: var(--success);
-    background: var(--success);
-    color: white;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-    transform: translateY(-2px);
-}
-
-/* Warning Selection (Motivos) */
-.chip-warning-option:hover {
+.chip-warning-option:hover:not(.chip-selected) {
     border-color: #f59e0b;
     background: #fffbeb;
     color: #92400e;
-}
-
-.chip-warning-option.chip-selected {
-    border-color: #f59e0b;
-    background: #f59e0b;
-    color: white;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
-    transform: translateY(-2px);
 }
 
 /* Inline inputs */
@@ -1382,7 +1375,7 @@
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .informe-header .section-title {
@@ -1421,7 +1414,7 @@
     font-weight: 700;
     font-size: 0.9rem;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .step.active {

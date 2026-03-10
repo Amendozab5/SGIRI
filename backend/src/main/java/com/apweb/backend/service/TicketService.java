@@ -385,8 +385,34 @@ public class TicketService {
 
                 CatalogoItem estadoNuevo = catalogoItemRepository
                                 .findByCatalogo_NombreAndCodigo("ESTADO_TICKET", statusCode)
-                                .orElseThrow(() -> new RuntimeException(
-                                                "Error: Status '" + statusCode + "' not found"));
+                                .orElse(null);
+
+                // Handling for specific REPROGRAMADA case as per user requirement (id_item =
+                // 42)
+                if (estadoNuevo == null && "REPROGRAMADA".equals(statusCode)) {
+                        estadoNuevo = catalogoItemRepository.findById(42).orElse(null);
+                }
+
+                // Global fallback search by code if not found yet
+                if (estadoNuevo == null) {
+                        estadoNuevo = catalogoItemRepository.findByCodigo(statusCode).orElse(null);
+                }
+
+                if (estadoNuevo == null) {
+                        throw new RuntimeException("Error: Status '" + statusCode + "' not found");
+                }
+
+                // Logic: Only admin can change status if it is currently REPROGRAMADA
+                if ("REPROGRAMADA".equals(estadoAnterior.getCodigo())) {
+                        boolean isAdmin = user.getRole() != null &&
+                                        ("ADMIN_MASTER".equals(user.getRole().getCodigo()) ||
+                                                        "ADMIN".equals(user.getRole().getCodigo()) ||
+                                                        "ADMIN_TECNICOS".equals(user.getRole().getCodigo()));
+                        if (!isAdmin) {
+                                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                                "Solo un administrador puede permitir continuar un ticket despuès de ser REPROGRAMADA.");
+                        }
+                }
 
                 if (estadoAnterior.getId().equals(estadoNuevo.getId())) {
                         return ticket;
@@ -637,24 +663,14 @@ public class TicketService {
                 }
 
                 // 6. Update ticket status based on resultado
-                String nuevoEstadoCodigo;
                 if ("RESUELTO".equals(resultado)) {
-                        nuevoEstadoCodigo = "RESUELTO";
+                        updateTicketStatus(idTicket, tecnico, "RESUELTO",
+                                        "Informe técnico registrado. Ticket resuelto.");
                 } else {
-                        // NO_RESUELTO: re-open ticket to ABIERTO for new assignment
-                        // Check if NO_RESUELTO catalog item exists, fallback to ABIERTO
-                        boolean noResueltoExists = catalogoItemRepository
-                                        .findByCatalogo_NombreAndCodigo("ESTADO_TICKET", "NO_RESUELTO")
-                                        .isPresent();
-                        nuevoEstadoCodigo = noResueltoExists ? "NO_RESUELTO" : "ABIERTO";
+                        // NO_RESUELTO: updateTicketStatus will now find REPROGRAMADA correctly
+                        // including specifically checking ID 42
+                        updateTicketStatus(idTicket, tecnico, "REPROGRAMADA", "Técnico registró NO resolutivo.");
                 }
-
-                updateTicketStatus(idTicket, tecnico, nuevoEstadoCodigo,
-                                "NO_RESUELTO".equals(resultado)
-                                                ? "Técnico no pudo resolver: " + (req.getMotivoNoResolucion() != null
-                                                                ? req.getMotivoNoResolucion()
-                                                                : "")
-                                                : "Informe técnico registrado. Ticket resuelto.");
 
                 // 7. Audit
                 auditService.registrarEventoContextual(
@@ -719,6 +735,16 @@ public class TicketService {
         @Transactional
         public ByteArrayInputStream generateTicketPdf(Integer idTicket) {
                 Ticket ticket = getTicketById(idTicket);
+
+                // Requerimiento: Se puede descargar si está CERRADO, RESUELTO o REPROGRAMADA
+                String code = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
+                boolean canGenerate = "CERRADO".equals(code) || "RESUELTO".equals(code) || "REPROGRAMADA".equals(code);
+
+                if (ticket.getIdTicket() != null && !canGenerate) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "El reporte PDF solo está disponible cuando el ticket ha sido resuelto o reprogramado.");
+                }
+
                 InformeTrabajoTecnico informe = getInformeTecnico(idTicket).orElse(null);
                 List<HistorialEstado> historial = historialEstadoRepository
                                 .findByTicket_IdTicketOrderByFechaCambioDesc(idTicket);

@@ -27,6 +27,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     commentText = '';
     currentUser: any = null;
     showStatusUpdate = false;
+    isOnlyTecnico = false;
     isCliente = false;
     isTecnico = false;
     backRoute = '/home/user';
@@ -250,6 +251,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 roles.includes('ROLE_ADMIN_TECNICOS');
 
             this.isTecnico = roles.includes('ROLE_TECNICO') || roles.includes('ROLE_ADMIN_MASTER');
+            this.isOnlyTecnico = roles.includes('ROLE_TECNICO') && !roles.includes('ROLE_ADMIN_MASTER') && !roles.includes('ROLE_ADMIN');
 
             this.isCliente = roles.includes('ROLE_CLIENTE');
 
@@ -295,13 +297,13 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         const totalComments = this.ticket?.comentarios?.length || 0;
         const userKey = this.currentUser?.username || 'guest';
         const storageKey = `ticket_${ticketId}_read_count_${userKey}`;
-        
+
         if (this.isChatOpen) {
             this.unreadCount = 0;
             localStorage.setItem(storageKey, totalComments.toString());
         } else {
             const savedCount = parseInt(localStorage.getItem(storageKey) || '0', 10);
-            
+
             if (totalComments > savedCount) {
                 // If there are new comments, count the ones NOT from the current user
                 let newUnread = 0;
@@ -323,7 +325,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         if (this.isChatOpen) {
             // Give the view time to render before scrolling to bottom
             setTimeout(() => this.scrollToBottom(), 100);
-            
+
             // Re-calculate and reset unread counts when chat is opened
             this.calculateUnreadMessages(this.ticket.idTicket);
         }
@@ -423,6 +425,10 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 this.modalData.title = 'Cerrar Ticket';
                 this.modalData.confirmText = 'Cerrar permanentemente';
                 break;
+            case 'REPROGRAMADA':
+                this.modalData.title = 'Reprogramar Incidencia';
+                this.modalData.confirmText = 'Reprogramar ticket';
+                break;
         }
 
         this.showConfirmModal = true;
@@ -460,14 +466,15 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         this.openConfirmModal(statusCode);
     }
 
-    getStatusBadgeClass(status: string): string {
-        switch (status?.toUpperCase()) {
+    getStatusBadgeClass(statusCode: string): string {
+        switch (statusCode?.toUpperCase()) {
             case 'ABIERTO': return 'bg-info-subtle text-info';
             case 'ASIGNADO': return 'bg-primary-subtle text-primary';
             case 'EN_PROCESO': return 'bg-warning-subtle text-warning';
-            case 'RESUELTO':
+            case 'RESUELTO': return 'bg-success-subtle text-success';
             case 'CERRADO': return 'bg-success-subtle text-success';
             case 'REQUIERE_VISITA': return 'bg-danger-subtle text-danger';
+            case 'REPROGRAMADA': return 'bg-dark-subtle text-dark';
             default: return 'bg-secondary-subtle text-secondary';
         }
     }
@@ -503,23 +510,10 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         }
 
         const index = list.indexOf(value);
-
-        // For critical categories, we usually want only ONE selection to avoid confusing reports
-        // unless it's 'Pruebas' which can be multiple.
-        if (category === 'problemas' || category === 'soluciones' || category === 'implementos') {
-            if (index > -1) {
-                list.splice(index, 1);
-            } else {
-                list.length = 0; // Clear previous
-                list.push(value);
-            }
+        if (index > -1) {
+            list.splice(index, 1);
         } else {
-            // Multiple selection for others (like Pruebas)
-            if (index > -1) {
-                list.splice(index, 1);
-            } else {
-                list.push(value);
-            }
+            list.push(value);
         }
     }
 
@@ -550,11 +544,6 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 this.techFormSuccess = true;
                 this.informeTecnico = res;
                 this.loadTicket(this.ticket.idTicket);
-
-                // Automatically download PDF if it was resolved
-                if (this.techFormTab === 'RESUELTO') {
-                    this.downloadPdf();
-                }
             },
             error: (err) => {
                 this.techFormSubmitting = false;
