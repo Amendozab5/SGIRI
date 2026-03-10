@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ReporteService } from '../../_services/reporte.service';
 import { ConfiguracionReporte, TicketResumenReporte, SlaTecnicoReporte, CsatAnalisisReporte, CsatDetalleReporte } from '../../models/reporte.model';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, finalize, of, Observable } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -110,34 +110,29 @@ export class ReportsBoardComponent implements OnInit {
     }
 
     exportToExcel(): void {
-        let dataToExport: any[] = [];
+        let obs$: Observable<Blob> | null = null;
         let fileName = 'reporte';
 
         if (this.selectedReport === 'TICKET_GESTION' || this.selectedReport === 'TICKETS_RESUMEN') {
-            dataToExport = this.ticketsData;
+            obs$ = this.reporteService.exportTicketsExcel(this.statusFilter, this.searchTerm);
             fileName = 'gestion_tickets';
         } else if (this.selectedReport === 'SLA_TECNICO') {
-            dataToExport = this.slaData;
+            obs$ = this.reporteService.exportSlaExcel();
             fileName = 'sla_tecnico';
         } else if (this.selectedReport === 'CSAT_ANALISIS') {
-            dataToExport = this.csatDetalle;
+            obs$ = this.reporteService.exportCsatExcel();
             fileName = 'satisfaccion_cliente';
         }
 
-        if (dataToExport.length > 0) {
-            const replacer = (key: any, value: any) => value === null ? '' : value;
-            const header = Object.keys(dataToExport[0]);
-            let csv = dataToExport.map(row => header.map(fieldName => JSON.stringify(row[fieldName as keyof any], replacer)).join(','));
-            csv.unshift(header.join(','));
-            let csvArray = csv.join('\r\n');
-
-            var blob = new Blob([csvArray], { type: 'text/csv' });
-            var url = window.URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url;
-            a.download = fileName + ".csv";
-            a.click();
-            window.URL.revokeObjectURL(url);
+        if (obs$) {
+            obs$.subscribe(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${fileName}.xlsx`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
         }
     }
 

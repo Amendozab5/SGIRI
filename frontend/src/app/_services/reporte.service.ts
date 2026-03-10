@@ -48,6 +48,22 @@ export class ReporteService {
         return this.http.get(`${API_URL}/export/tickets/pdf`, { responseType: 'blob', params });
     }
 
+    exportTicketsExcel(status?: string, search?: string): Observable<Blob> {
+        let params = new HttpParams();
+        if (status && status !== 'TODOS') params = params.set('status', status);
+        if (search) params = params.set('search', search);
+
+        return this.http.get(`${API_URL}/export/tickets/excel`, { responseType: 'blob', params });
+    }
+
+    exportSlaExcel(): Observable<Blob> {
+        return this.http.get(`${API_URL}/export/sla/excel`, { responseType: 'blob' });
+    }
+
+    exportCsatExcel(): Observable<Blob> {
+        return this.http.get(`${API_URL}/export/csat/excel`, { responseType: 'blob' });
+    }
+
     getCsatDetalle(): Observable<CsatDetalleReporte[]> {
         return this.http.get<CsatDetalleReporte[]>(`${API_URL}/data/csat-detalle`);
     }
