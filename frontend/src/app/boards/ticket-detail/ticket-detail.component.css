@@ -1053,39 +1053,68 @@
     letter-spacing: 0;
 }
 
-/* Chip selector */
+/* Advanced Chip Design */
 .chip-selector {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.6rem;
 }
 
 .chip-option {
-    padding: 6px 14px;
-    border-radius: 100px;
-    font-size: 0.8rem;
+    padding: 8px 16px;
+    border-radius: 12px; /* Slightly squarer modern pill */
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    border: 1.5px solid var(--border);
-    background: white;
-    color: var(--text-main);
-    transition: all 0.18s ease;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* The 'Aura' effect on hover */
+.chip-option::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    z-index: 1;
+}
+
+.chip-option:hover::before {
+    width: 150px;
+    height: 150px;
 }
 
 .chip-option:hover {
-    border-color: var(--primary);
-    background: var(--primary-light);
-    color: var(--primary);
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.04);
 }
 
+/* Primary Selection (Implementos / Pruebas) */
 .chip-option.chip-selected {
     border-color: var(--primary);
     background: var(--primary);
     color: white;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    transform: translateY(-2px);
 }
 
+/* Danger Selection (Problemas) */
 .chip-danger-option:hover {
     border-color: var(--danger);
     background: #fef2f2;
@@ -1096,9 +1125,11 @@
     border-color: var(--danger);
     background: var(--danger);
     color: white;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    transform: translateY(-2px);
 }
 
+/* Success Selection (Soluciones) */
 .chip-success-option:hover {
     border-color: var(--success);
     background: #ecfdf5;
@@ -1109,9 +1140,11 @@
     border-color: var(--success);
     background: var(--success);
     color: white;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    transform: translateY(-2px);
 }
 
+/* Warning Selection (Motivos) */
 .chip-warning-option:hover {
     border-color: #f59e0b;
     background: #fffbeb;
@@ -1122,7 +1155,8 @@
     border-color: #f59e0b;
     background: #f59e0b;
     color: white;
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    transform: translateY(-2px);
 }
 
 /* Inline inputs */
