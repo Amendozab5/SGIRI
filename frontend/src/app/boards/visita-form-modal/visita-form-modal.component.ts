@@ -19,6 +19,7 @@ import { UserAdminView } from '../../models/user-admin-view.model';
 export class VisitaFormModalComponent implements OnInit {
     @Input() tickets: Ticket[] = [];
     @Input() tecnicos: UserAdminView[] = [];
+    @Input() allVisitas: VisitaTecnica[] = [];
 
     @Output() save = new EventEmitter<{ request: VisitaRequest, id: number | null }>();
 
@@ -30,6 +31,9 @@ export class VisitaFormModalComponent implements OnInit {
     currentVisitaId: number | null = null;
     isLocked = false;
     isTechnicianAutoSelected = false;
+    conflictInfo: any = null;
+    isTechnician = false;
+    currentTicket: Ticket | null = null;
 
     constructor(
         private fb: FormBuilder,
@@ -60,12 +64,55 @@ export class VisitaFormModalComponent implements OnInit {
             }
             // Siempre deshabilitado: el técnico NO es seleccionable manualmente
             this.visitaForm.get('idTecnico')?.disable();
+            this.checkConflicts();
         });
+
+        this.visitaForm.valueChanges.subscribe(() => {
+            this.checkConflicts();
+        });
+    }
+
+    checkConflicts(): void {
+        const { idTecnico, fechaVisita, horaInicio, horaFin } = this.visitaForm.getRawValue();
+        if (!idTecnico || !fechaVisita || !horaInicio) {
+            this.conflictInfo = null;
+            return;
+        }
+
+        const start = this.timeToMinutes(horaInicio);
+        const end = horaFin ? this.timeToMinutes(horaFin) : start + 60;
+
+        const conflict = this.allVisitas.find(v => {
+            if (this.isEditMode && v.idVisita === this.currentVisitaId) return false;
+            if (v.tecnico.id != idTecnico || v.fechaVisita !== fechaVisita) return false;
+            if (['CANCELADA'].includes(v.estado.codigo)) return false;
+
+            const vStart = this.timeToMinutes(v.horaInicio);
+            const vEnd = v.horaFin ? this.timeToMinutes(v.horaFin) : vStart + 60;
+
+            return (start < vEnd) && (end > vStart);
+        });
+
+        this.conflictInfo = conflict ? {
+            ticket: conflict.ticket.idTicket,
+            time: conflict.horaInicio.substring(0, 5),
+            endTime: conflict.horaFin?.substring(0, 5) || '??'
+        } : null;
+    }
+
+    private timeToMinutes(time: string): number {
+        const [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
     }
 
     getAutoSelectedTechnicianName(): string {
         const idTicket = this.visitaForm.get('idTicket')?.value;
-        const ticket = this.tickets.find(t => t.idTicket == idTicket);
+        let ticket = this.tickets.find(t => t.idTicket == idTicket);
+
+        // Fallback al ticket de la visita actual si no está en la lista de pendientes
+        if (!ticket && this.currentTicket && this.currentTicket.idTicket == idTicket) {
+            ticket = this.currentTicket;
+        }
 
         if (ticket && ticket.usuarioAsignado) {
             const u = ticket.usuarioAsignado;
@@ -86,10 +133,14 @@ export class VisitaFormModalComponent implements OnInit {
         this.modalInstance = new Modal(this.modalElement.nativeElement);
     }
 
-    open(visita?: VisitaTecnica, initialDate?: string): void {
+    open(visita?: VisitaTecnica, initialDate?: string, idTicket?: number): void {
         this.visitaForm.reset({ codigoEstado: 'PROGRAMADA' });
         this.isLocked = false;
         this.isTechnicianAutoSelected = false;
+
+        const user = this.tokenService.getUser();
+        this.isTechnician = user?.roles.includes('ROLE_TECNICO') || false;
+
         this.visitaForm.get('idTecnico')?.disable(); // Siempre deshabilitado para el usuario
         this.visitaForm.enable();
         // Pero el técnico se mantiene deshabilitado incluso si el resto del form se habilita
@@ -105,11 +156,16 @@ export class VisitaFormModalComponent implements OnInit {
                 fechaVisita: visita.fechaVisita,
                 horaInicio: visita.horaInicio,
                 horaFin: visita.horaFin,
+                idEmpresa: visita.empresa.id,
                 codigoEstado: visita.estado.codigo,
                 reporteVisita: visita.reporteVisita
             });
 
-            if (['FINALIZADA', 'CANCELADA'].includes(visita.estado.codigo)) {
+            this.currentTicket = visita.ticket;
+
+            const ticketStatus = visita.ticket.estadoItem?.codigo;
+            if (['FINALIZADA', 'CANCELADA'].includes(visita.estado.codigo) ||
+                ['CERRADO', 'RESUELTO'].includes(ticketStatus || '')) {
                 this.isLocked = true;
                 this.visitaForm.disable();
             }
@@ -119,6 +175,14 @@ export class VisitaFormModalComponent implements OnInit {
             if (initialDate) {
                 this.visitaForm.patchValue({ fechaVisita: initialDate });
             }
+            if (idTicket) {
+                this.visitaForm.patchValue({ idTicket: idTicket });
+            }
+        }
+
+        if (this.isTechnician) {
+            this.isLocked = true;
+            this.visitaForm.disable();
         }
 
         this.modalInstance?.show();
@@ -130,7 +194,14 @@ export class VisitaFormModalComponent implements OnInit {
 
     getSelectedTicket(): Ticket | undefined {
         const id = this.visitaForm.get('idTicket')?.value;
-        return this.tickets.find(t => t.idTicket == id);
+        const ticketFromList = this.tickets.find(t => t.idTicket == id);
+        if (ticketFromList) return ticketFromList;
+
+        // Si no está en la lista de pendientes (ej: ya tiene visita), usar el guardado al abrir el modal
+        if (this.currentTicket && this.currentTicket.idTicket == id) {
+            return this.currentTicket;
+        }
+        return undefined;
     }
 
     getGoogleMapsUrl(address: string | undefined): string {

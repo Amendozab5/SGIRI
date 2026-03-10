@@ -8,7 +8,6 @@ import com.apweb.backend.services.notificaciones.MailTemplateService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.apweb.backend.service.AuditService;
 import com.apweb.backend.util.AuditAccion;
 import com.apweb.backend.util.AuditModulo;
 
@@ -112,25 +111,23 @@ public class VisitaTecnicaService {
                                                         ? tecnico.getPersona().getNombre() + " "
                                                                         + tecnico.getPersona().getApellido()
                                                         : tecnico.getUsername()),
-                                        "http://localhost:4200/cliente/tickets/detalle/" + ticket.getIdTicket());
+                                        "http://localhost:4200/home/user/ticket/" + ticket.getIdTicket());
 
                         notificacionServiceApp.encolarCorreo(ticket, emailCliente, subject, body);
                 }
 
                 // ── AUDITORÍA: Programación de Visita ───────────────────────────────
                 auditService.registrarEventoContextual(
-                        AuditModulo.VISITAS,
-                        "soporte", "visita_tecnica",
-                        savedVisita.getIdVisita(),
-                        AuditAccion.INSERT,
-                        "Programación de visita técnica para el ticket: #" + ticket.getIdTicket(),
-                        null,
-                        java.util.Map.of(
-                            "id_ticket", ticket.getIdTicket(),
-                            "id_tecnico", tecnico.getId(),
-                            "fecha", visita.getFechaVisita().toString()
-                        )
-                );
+                                AuditModulo.VISITAS,
+                                "soporte", "visita_tecnica",
+                                savedVisita.getIdVisita(),
+                                AuditAccion.INSERT,
+                                "Programación de visita técnica para el ticket: #" + ticket.getIdTicket(),
+                                null,
+                                java.util.Map.of(
+                                                "id_ticket", ticket.getIdTicket(),
+                                                "id_tecnico", tecnico.getId(),
+                                                "fecha", visita.getFechaVisita().toString()));
                 // ────────────────────────────────────────────────────────────────────
 
                 return savedVisita;
@@ -187,36 +184,49 @@ public class VisitaTecnicaService {
                                                                         + savedVisita.getTecnico().getPersona()
                                                                                         .getApellido()
                                                         : savedVisita.getTecnico().getUsername()),
-                                        "http://localhost:4200/cliente/tickets/detalle/" + ticket.getIdTicket());
+                                        "http://localhost:4200/home/user/ticket/" + ticket.getIdTicket());
 
                         notificacionServiceApp.encolarCorreo(ticket, emailCliente, subject, body);
                 }
 
                 // ── AUDITORÍA: Actualización/Reprogramación de Visita ───────────────
                 boolean esReprogramacion = !visita.getFechaVisita().equals(request.getFechaVisita()) ||
-                                         !visita.getHoraInicio().equals(request.getHoraInicio()) ||
-                                         (visita.getHoraFin() != null && !visita.getHoraFin().equals(request.getHoraFin()));
-                
-                String obsAudit = esReprogramacion ? "Reprogramación de visita técnica" : "Actualización de visita técnica";
+                                !visita.getHoraInicio().equals(request.getHoraInicio()) ||
+                                (visita.getHoraFin() != null && !visita.getHoraFin().equals(request.getHoraFin()));
+
+                String obsAudit = esReprogramacion ? "Reprogramación de visita técnica"
+                                : "Actualización de visita técnica";
 
                 auditService.registrarEventoContextual(
-                        AuditModulo.VISITAS,
-                        "soporte", "visita_tecnica",
-                        savedVisita.getIdVisita(),
-                        AuditAccion.UPDATE,
-                        obsAudit,
-                        java.util.Map.of(
-                            "fecha_ant", visita.getFechaVisita().toString(),
-                            "hora_ant", visita.getHoraInicio().toString()
-                        ),
-                        java.util.Map.of(
-                            "fecha_nueva", request.getFechaVisita().toString(),
-                            "hora_nueva", request.getHoraInicio().toString(),
-                            "id_tecnico", request.getIdTecnico()
-                        )
-                );
+                                AuditModulo.VISITAS,
+                                "soporte", "visita_tecnica",
+                                savedVisita.getIdVisita(),
+                                AuditAccion.UPDATE,
+                                obsAudit,
+                                java.util.Map.of(
+                                                "fecha_ant", visita.getFechaVisita().toString(),
+                                                "hora_ant", visita.getHoraInicio().toString()),
+                                java.util.Map.of(
+                                                "fecha_nueva", request.getFechaVisita().toString(),
+                                                "hora_nueva", request.getHoraInicio().toString(),
+                                                "id_tecnico", request.getIdTecnico()));
                 // ────────────────────────────────────────────────────────────────────
 
                 return savedVisita;
+        }
+
+        @Transactional
+        public List<VisitaTecnica> getVisitasByCliente(Integer userId) {
+                return visitaTecnicaRepository.findByTicket_UsuarioCreador_IdWithAssociations(userId);
+        }
+
+        @Transactional
+        public List<VisitaTecnica> getVisitasByTicket(Integer idTicket) {
+                return visitaTecnicaRepository.findByTicket_IdTicketOrderByFechaVisitaDesc(idTicket);
+        }
+
+        @Transactional
+        public List<VisitaTecnica> getVisitasByTecnico(Integer tecnicoId) {
+                return visitaTecnicaRepository.findByTecnico_IdWithAssociations(tecnicoId);
         }
 }

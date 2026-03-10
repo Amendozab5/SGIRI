@@ -36,7 +36,8 @@ public class VisitaTecnicaController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_ADMIN_MASTER") || a.getAuthority().equals("ROLE_ADMIN_TECNICOS"));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_ADMIN_MASTER")
+                        || a.getAuthority().equals("ROLE_ADMIN_TECNICOS"));
 
         // Angular envía ISO string completo (ej: 2026-03-08T05:00:00.000Z)
         LocalDate start = LocalDate.parse(startStr.substring(0, 10));
@@ -48,7 +49,8 @@ public class VisitaTecnicaController {
             // Si es técnico (y no admin), solo ve sus propias visitas
             User currentUser = userRepository.findByUsername(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("Error: Usuario no encontrado"));
-            return ResponseEntity.ok(visitaTecnicaService.getVisitasByDateRangeAndTecnico(start, end, currentUser.getId()));
+            return ResponseEntity
+                    .ok(visitaTecnicaService.getVisitasByDateRangeAndTecnico(start, end, currentUser.getId()));
         }
     }
 
@@ -78,5 +80,28 @@ public class VisitaTecnicaController {
 
         visitaTecnicaService.updateVisita(id, request, currentUser);
         return ResponseEntity.ok(new MessageResponse("Visita actualizada exitosamente"));
+    }
+
+    @GetMapping("/my-visits")
+    @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
+    public ResponseEntity<List<VisitaTecnica>> getMyVisits() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Error: Usuario no encontrado"));
+
+        boolean isTechnician = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_TECNICO"));
+
+        if (isTechnician) {
+            return ResponseEntity.ok(visitaTecnicaService.getVisitasByTecnico(currentUser.getId()));
+        } else {
+            return ResponseEntity.ok(visitaTecnicaService.getVisitasByCliente(currentUser.getId()));
+        }
+    }
+
+    @GetMapping("/ticket/{id}/history")
+    @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_MASTER')")
+    public ResponseEntity<List<VisitaTecnica>> getTicketHistory(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(visitaTecnicaService.getVisitasByTicket(id));
     }
 }

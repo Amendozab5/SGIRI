@@ -84,4 +84,8 @@ export class TicketService {
   getInventarioUsado(ticketId: number): Observable<any[]> {
     return this.http.get<any[]>(`${API_URL}/${ticketId}/inventario-usado`);
   }
+
+  getTicketsPendingVisit(): Observable<Ticket[]> {
+    return this.http.get<Ticket[]>(API_URL + '/pending-visit');
+  }
 }

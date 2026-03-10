@@ -78,7 +78,8 @@
       </a>
 
       <!-- Agenda Access -->
-      <a class="menu-item" routerLink="/home/agenda" routerLinkActive="active" *ngIf="showAdminBoard">
+      <a class="menu-item" routerLink="/home/agenda" routerLinkActive="active"
+        *ngIf="showAdminBoard || showTechnicianBoard">
         <i class="bi bi-calendar3"></i>
         <span>Agenda de Visitas</span>
       </a>

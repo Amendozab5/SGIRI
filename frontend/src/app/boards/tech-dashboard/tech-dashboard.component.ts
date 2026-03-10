@@ -29,10 +29,12 @@ interface PersonalTicket {
 }
 
 interface Visit {
+  date: string;
   time: string;
   title: string;
   client: string;
   address: string;
+  isOverdue: boolean;
 }
 
 interface NetStatus {
@@ -88,7 +90,7 @@ export class TechDashboardComponent implements OnInit {
     forkJoin({
       tickets: this.ticketService.getAssignedTickets().pipe(catchError(() => of([]))),
       companies: this.companyService.getISPs().pipe(catchError(() => of([]))),
-      visitas: this.visitaService.getVisitas(startStr, endStr).pipe(catchError(() => of([]))),
+      visitas: this.visitaService.getMyVisits().pipe(catchError(() => of([]))),
       network: this.networkService.getNetworkMap('PROVINCIA').pipe(catchError(() => of([])))
     }).subscribe({
       next: (res) => {
@@ -101,10 +103,23 @@ export class TechDashboardComponent implements OnInit {
           idEmpresa: t.idEmpresa || t.sucursal?.idEmpresa
         }));
 
+        const todayObj = new Date();
+        const y = todayObj.getFullYear();
+        const m = String(todayObj.getMonth() + 1).padStart(2, '0');
+        const d = String(todayObj.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
+
+        const todayVisits = (res.visitas || []).filter(v => {
+          const isToday = v.fechaVisita === todayStr;
+          const ticketStatus = v.ticket?.estadoItem?.codigo;
+          const isTicketClosed = ['CERRADO', 'RESUELTO'].includes(ticketStatus || '');
+          return isToday && !isTicketClosed;
+        });
+
         this.processTickets(processedTickets);
         this.processVisitas(res.visitas);
         this.processNetwork(res.network);
-        this.calculateKPIs(processedTickets, res.visitas);
+        this.calculateKPIs(processedTickets, todayVisits);
 
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -133,12 +148,42 @@ export class TechDashboardComponent implements OnInit {
   }
 
   private processVisitas(visitas: any[]): void {
-    this.visitasHoy = visitas.slice(0, 3).map(v => ({
-      time: new Date(v.fechaProgramada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      title: v.motivo || 'Visita Técnica',
-      client: v.ticket?.cliente?.persona?.nombre || 'Cliente Final',
-      address: v.ticket?.sucursal?.nombre || 'Dirección'
-    }));
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+
+    const activeStatuses = ['PROGRAMADA', 'REPROGRAMADA', 'CONFIRMADA'];
+
+    this.visitasHoy = visitas
+      .filter(v => {
+        const isVisitActive = activeStatuses.includes(v.estado?.codigo);
+        const ticketStatus = v.ticket?.estadoItem?.codigo;
+        const isTicketClosed = ['CERRADO', 'RESUELTO'].includes(ticketStatus);
+        return isVisitActive && !isTicketClosed;
+      })
+      .sort((a, b) => {
+        const dateTimeA = a.fechaVisita + ' ' + (a.horaInicio || '00:00');
+        const dateTimeB = b.fechaVisita + ' ' + (b.horaInicio || '00:00');
+        return dateTimeA.localeCompare(dateTimeB);
+      })
+      .map(v => {
+        const dateObj = new Date(v.fechaVisita + 'T12:00:00');
+        const day = dateObj.getDate();
+        const month = dateObj.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase().replace('.', '');
+        const isOverdue = v.fechaVisita < todayStr;
+
+        return {
+          date: `${day} ${month}`,
+          time: (v.horaInicio || '').substring(0, 5),
+          title: v.ticket?.asunto || 'Visita Técnica',
+          client: (v.ticket?.cliente?.persona?.nombre || '') + ' ' + (v.ticket?.cliente?.persona?.apellido || ''),
+          address: v.ticket?.sucursal?.nombre || 'Sucursal',
+          isOverdue: isOverdue
+        };
+      })
+      .slice(0, 6);
   }
 
   private processNetwork(nodes: NetworkMapData[]): void {

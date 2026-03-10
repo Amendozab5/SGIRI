@@ -5,6 +5,7 @@ import { TicketService } from '../../_services/ticket.service';
 import { FormsModule } from '@angular/forms';
 import { TokenStorageService } from '../../_services/token-storage.service';
 import { HttpClient } from '@angular/common/http';
+import { VisitaService } from '../../_services/visita.service';
 
 import { MasterDataService } from '../../_services/master-data.service';
 
@@ -29,6 +30,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     isCliente = false;
     isTecnico = false;
     backRoute = '/home/user';
+    visits: any[] = [];
 
     // Rating state
     ratingValue = 0;
@@ -95,6 +97,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     constructor(
         private route: ActivatedRoute,
         private ticketService: TicketService,
+        private visitaService: VisitaService,
         private tokenService: TokenStorageService,
         private masterDataService: MasterDataService,
         private cdr: ChangeDetectorRef,
@@ -120,12 +123,23 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.loadTicket(+id);
+            this.loadVisitHistory(+id);
         }
         if (this.isTecnico || (this.currentUser && this.currentUser.roles?.includes('ROLE_ADMIN_MASTER'))) {
             this.loadFrecuencias();
             this.loadAvailableInventario();
             this.loadCatalogos();
         }
+    }
+
+    loadVisitHistory(ticketId: number) {
+        this.visitaService.getVisitaHistory(ticketId).subscribe({
+            next: (data) => {
+                this.visits = data;
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error('Error loading visit history', err)
+        });
     }
 
     loadCatalogos() {

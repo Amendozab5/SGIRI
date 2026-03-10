@@ -423,11 +423,13 @@
 
 .visits-timeline {
     border-left: 2px solid #e2e8f0;
-    margin-left: 0.5rem;
+    margin-left: 4rem;
+    /* Espacio para la fecha a la izquierda */
     padding-left: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
+    position: relative;
 }
 
 .visit-entry {
@@ -438,20 +440,57 @@
     content: '';
     position: absolute;
     left: -1.9rem;
-    top: 4px;
+    top: 10px;
     width: 12px;
     height: 12px;
     background: var(--primary);
     border: 3px solid white;
     border-radius: 50%;
     box-shadow: 0 0 0 2px var(--primary);
+    z-index: 2;
+}
+
+.visit-entry.is-overdue::before {
+    background: var(--urgent);
+    box-shadow: 0 0 0 2px var(--urgent);
 }
 
 .visit-time {
-    font-size: 0.75rem;
+    position: absolute;
+    left: -5.8rem;
+    /* Posiciona la fecha a la izquierda de la línea */
+    width: 60px;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.visit-time .date-badge {
+    background: #0d6efd;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 0.65rem;
     font-weight: 800;
-    color: var(--primary);
-    margin-bottom: 0.25rem;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+}
+
+.visit-entry.is-overdue .date-badge {
+    background: var(--urgent);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.visit-time .time-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.visit-entry.is-overdue .visit-time .time-label {
+    color: var(--urgent);
 }
 
 .visit-detail strong {

@@ -14,6 +14,42 @@
     </div>
   </header>
 
+  <section class="scheduled-visits-section animate__animated animate__fadeInDown" *ngIf="myVisits.length > 0">
+    <div class="visit-alert-premium" *ngFor="let visit of myVisits">
+      <!-- Calendar Part -->
+      <div class="date-calendar-block">
+        <div class="cal-header">{{ visit.fechaVisita | date:'MMMM':'':'es' | uppercase }}</div>
+        <div class="cal-body">
+          <span class="cal-day">{{ visit.fechaVisita | date:'d' }}</span>
+          <span class="cal-time">{{ visit.horaInicio.substring(0, 5) }}</span>
+        </div>
+      </div>
+
+      <!-- Content Part -->
+      <div class="visit-content-info">
+        <div class="meta-status">
+          <span class="ticket-ref">#{{visit.ticket.idTicket}}</span>
+          <span class="pill-type">Visita Técnica de Mantenimiento</span>
+        </div>
+        <h3 class="visit-title">Servicio Programado</h3>
+        <div class="tech-info-row mt-2">
+          <i class="bi bi-person-check-fill text-primary"></i>
+          <span class="label-tech">Técnico Asignado:</span>
+          <span class="name-tech">{{ visit.tecnico.persona?.nombre || visit.tecnico.fullName }} {{
+            visit.tecnico.persona?.apellido || '' }}</span>
+        </div>
+      </div>
+
+      <!-- Action Part -->
+      <div class="visit-action-container">
+        <button [routerLink]="['/home/user/ticket', visit.ticket.idTicket]" class="btn-detail-luxury">
+          Ver Detalles
+          <i class="bi bi-arrow-right-short"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- KPI Dashboard Belt -->
   <section class="kpi-belt">
     <div class="kpi-item" [ngClass]="{'loading': isLoadingIncidents}">
@@ -54,7 +90,8 @@
     <div class="filter-toolbar">
       <div class="search-box">
         <i class="bi bi-search"></i>
-        <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Buscar por código o asunto...">
+        <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="onSearch()"
+          placeholder="Buscar por código o asunto...">
       </div>
       <div class="filter-group">
         <select [(ngModel)]="selectedStatusId" (change)="onFilterChange()" class="filter-select">
@@ -136,12 +173,10 @@
         <button class="btn-page" [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">
           <i class="bi bi-chevron-left"></i> Anterior
         </button>
-        
+
         <div class="page-numbers">
-          <button *ngFor="let p of getPagesArray()" 
-                  class="btn-page-num" 
-                  [class.active]="p === currentPage"
-                  (click)="changePage(p)">
+          <button *ngFor="let p of getPagesArray()" class="btn-page-num" [class.active]="p === currentPage"
+            (click)="changePage(p)">
             {{ p + 1 }}
           </button>
         </div>
