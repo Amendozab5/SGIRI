@@ -154,6 +154,7 @@ export class BoardUserComponent implements OnInit, OnDestroy {
   getProgressValue(status: string | undefined): number {
     switch (status?.toUpperCase()) {
       case 'ABIERTO': return 15;
+      case 'REPROGRAMADA': return 25;
       case 'ASIGNADO': return 40;
       case 'EN_PROCESO': return 70;
       case 'RESUELTO': return 100;
@@ -165,6 +166,7 @@ export class BoardUserComponent implements OnInit, OnDestroy {
   getStatusBadgeClass(status: string | undefined): string {
     switch (status?.toUpperCase()) {
       case 'ABIERTO': return 'badge-open';
+      case 'REPROGRAMADA': return 'badge-reprogramada';
       case 'ASIGNADO': return 'badge-assigned';
       case 'EN_PROCESO': return 'badge-progress';
       case 'RESUELTO':
@@ -176,6 +178,7 @@ export class BoardUserComponent implements OnInit, OnDestroy {
   getStatusColor(status: string | undefined): string {
     switch (status?.toUpperCase()) {
       case 'ABIERTO': return '#0ea5e9';
+      case 'REPROGRAMADA': return '#64748b';
       case 'ASIGNADO': return '#6366f1';
       case 'EN_PROCESO': return '#f59e0b';
       case 'RESUELTO':

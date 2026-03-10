@@ -36,37 +36,40 @@
                         </div>
                     </div>
 
-                    <div class="action-buttons">
-                        <!-- PDF Download Button: shown for RESUELTO or CERRADO tickets -->
-                        <button type="button"
-                            *ngIf="ticket.estadoItem?.codigo === 'RESUELTO' || ticket.estadoItem?.codigo === 'CERRADO'"
-                            (click)="downloadPdf()" class="btn-action btn-pdf" [disabled]="loading">
-                            <i class="bi bi-file-earmark-pdf"></i> Reporte PDF
-                        </button>
+                    <!-- PDF Download Button: Shown when TICKET is in a finalized or reportable state -->
+                    <button type="button"
+                        *ngIf="ticket.estadoItem?.codigo === 'CERRADO' || ticket.estadoItem?.codigo === 'REPROGRAMADA' || ticket.estadoItem?.codigo === 'RESUELTO'"
+                        (click)="downloadPdf()" class="btn-action btn-pdf" [disabled]="loading">
+                        <i class="bi bi-file-earmark-pdf"></i> Reporte PDF
+                    </button>
 
-                        <!-- ATENDER TICKET: shown when status is ABIERTO or ASIGNADO -->
-                        <button type="button"
-                            *ngIf="showStatusUpdate && (ticket.estadoItem?.codigo === 'ABIERTO' || ticket.estadoItem?.codigo === 'ASIGNADO')"
-                            (click)="changeStatus('EN_PROCESO')" class="btn-action btn-resolve" [disabled]="loading">
-                            <i class="bi bi-play-fill"></i> Atender
-                        </button>
+                    <!-- ATENDER TICKET: strictly shown when status is ABIERTO or ASIGNADO AND NO informe exists -->
+                    <button type="button"
+                        *ngIf="showStatusUpdate && (ticket.estadoItem?.codigo === 'ABIERTO' || ticket.estadoItem?.codigo === 'ASIGNADO') && !informeTecnico"
+                        (click)="changeStatus('EN_PROCESO')" class="btn-action btn-resolve" [disabled]="loading">
+                        <i class="bi bi-play-fill"></i> Atender
+                    </button>
 
-                        <!-- Only show Resolver/Visita quick buttons for non-tecnico roles -->
-                        <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo === 'EN_PROCESO' && !isTecnico"
-                            (click)="changeStatus('RESUELTO')" class="btn-action btn-resolve" [disabled]="loading">
-                            <i class="bi bi-check-lg"></i> Resolver
-                        </button>
+                    <!-- Only show Resolver/Visita quick buttons for non-tecnico roles -->
+                    <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo === 'EN_PROCESO' && !isTecnico"
+                        (click)="changeStatus('RESUELTO')" class="btn-action btn-resolve" [disabled]="loading">
+                        <i class="bi bi-check-lg"></i> Resolver
+                    </button>
 
-                        <button type="button" *ngIf="showStatusUpdate && ticket.estadoItem?.codigo === 'EN_PROCESO'"
-                            (click)="changeStatus('REQUIERE_VISITA')" class="btn-action btn-visit" [disabled]="loading">
-                            <i class="bi bi-calendar-plus"></i> Solicitar Visita
-                        </button>
+                    <button type="button" *ngIf="showStatusUpdate && ticket.estadoItem?.codigo === 'EN_PROCESO'"
+                        (click)="changeStatus('REQUIERE_VISITA')" class="btn-action btn-visit" [disabled]="loading">
+                        <i class="bi bi-calendar-plus"></i> Solicitar Visita
+                    </button>
 
-                        <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo !== 'CERRADO'"
-                            (click)="changeStatus('CERRADO')" class="btn-action btn-close-ticket" [disabled]="loading">
-                            <i class="bi bi-x-circle"></i> Cerrar
-                        </button>
-                    </div>
+                    <!-- Action Button: 'Cerrar' for normal statuses, 'Reprogramar' for REPROGRAMADA status -->
+                    <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo !== 'CERRADO'"
+                        [hidden]="ticket.estadoItem?.codigo === 'REPROGRAMADA' && isOnlyTecnico"
+                        (click)="changeStatus(ticket.estadoItem?.codigo === 'REPROGRAMADA' ? 'REPROGRAMADA' : 'CERRADO')"
+                        class="btn-action btn-close-ticket" [disabled]="loading">
+                        <i class="bi"
+                            [ngClass]="ticket.estadoItem?.codigo === 'REPROGRAMADA' ? 'bi-calendar-event' : 'bi-x-circle'"></i>
+                        {{ ticket.estadoItem?.codigo === 'REPROGRAMADA' ? 'Reprogramar' : 'Cerrar' }}
+                    </button>
                 </div>
             </header>
 
@@ -625,10 +628,10 @@
                 <!-- Circular FAB button -->
                 <button class="fab-chat position-relative" (click)="toggleChat()">
                     <i class="bi" [ngClass]="isChatOpen ? 'bi-x-lg' : 'bi-chat-dots-fill'"></i>
-                    
+
                     <!-- Notification Badge -->
-                    <span *ngIf="unreadCount > 0 && !isChatOpen" 
-                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-pop">
+                    <span *ngIf="unreadCount > 0 && !isChatOpen"
+                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-pop">
                         {{ unreadCount }}
                     </span>
                 </button>
@@ -670,7 +673,8 @@
                                 </div>
                             </div>
                             <div class="chat-avatar" *ngIf="comment.usuario?.role?.codigo !== 'CLIENTE'">
-                                <i class="bi bi-shield-check" *ngIf="comment.usuario?.roles?.includes('ROLE_TECNICO')"></i>
+                                <i class="bi bi-shield-check"
+                                    *ngIf="comment.usuario?.roles?.includes('ROLE_TECNICO')"></i>
                                 {{ comment.usuario?.username.slice(0, 2).toUpperCase() }}
                             </div>
                         </div>
@@ -685,8 +689,8 @@
 
                     <!-- Composer -->
                     <div class="chat-composer-floating border-top">
-                        <textarea class="composer-input-floating" rows="1" placeholder="Aa"
-                            [(ngModel)]="commentText" (keydown.enter)="onKeyEnter($event)"></textarea>
+                        <textarea class="composer-input-floating" rows="1" placeholder="Aa" [(ngModel)]="commentText"
+                            (keydown.enter)="onKeyEnter($event)"></textarea>
                         <button type="button" class="btn-send-floating text-primary" (click)="addComment()"
                             [disabled]="!commentText.trim() || isSubmitting">
                             <i class="bi bi-send-fill fs-5" *ngIf="!isSubmitting"></i>
