@@ -40,6 +40,10 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     ratingError = '';
     ratingSuccess = false;
 
+    // Chat modal and unread notification state
+    isChatOpen = false;
+    unreadCount = 0;
+
     // Status modal state
     showConfirmModal = false;
     modalData = {
@@ -110,7 +114,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
 
     private scrollToBottom(): void {
         try {
-            if (this.chatFeed) {
+            if (this.chatFeed && this.isChatOpen) {
                 this.chatFeed.nativeElement.scrollTop = this.chatFeed.nativeElement.scrollHeight;
             }
         } catch (err) { }
@@ -187,6 +191,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                     this.loading = false;
                     // checkPermissions already called in ngOnInit, but update just in case roles come from data
                     this.loadInformeTecnico(id);
+                    this.calculateUnreadMessages(id);
                     this.cdr.detectChanges();
                 });
             },
@@ -282,6 +287,46 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 });
             }
         });
+    }
+
+    // ─── Chat Notifications Logic ──────────────────────────────────────────
+
+    calculateUnreadMessages(ticketId: number): void {
+        const totalComments = this.ticket?.comentarios?.length || 0;
+        const userKey = this.currentUser?.username || 'guest';
+        const storageKey = `ticket_${ticketId}_read_count_${userKey}`;
+        
+        if (this.isChatOpen) {
+            this.unreadCount = 0;
+            localStorage.setItem(storageKey, totalComments.toString());
+        } else {
+            const savedCount = parseInt(localStorage.getItem(storageKey) || '0', 10);
+            
+            if (totalComments > savedCount) {
+                // If there are new comments, count the ones NOT from the current user
+                let newUnread = 0;
+                for (let i = savedCount; i < totalComments; i++) {
+                    const comment = this.ticket.comentarios[i];
+                    if (comment.usuario?.username !== this.currentUser?.username) {
+                        newUnread++;
+                    }
+                }
+                this.unreadCount = newUnread;
+            } else {
+                this.unreadCount = 0;
+            }
+        }
+    }
+
+    toggleChat(): void {
+        this.isChatOpen = !this.isChatOpen;
+        if (this.isChatOpen) {
+            // Give the view time to render before scrolling to bottom
+            setTimeout(() => this.scrollToBottom(), 100);
+            
+            // Re-calculate and reset unread counts when chat is opened
+            this.calculateUnreadMessages(this.ticket.idTicket);
+        }
     }
 
     onKeyEnter(event: any): void {

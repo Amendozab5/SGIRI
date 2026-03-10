@@ -209,7 +209,7 @@
                     </section>
 
                     <!-- TECH WORK FORM (active when EN_PROCESO + is tecnico + no informe yet) -->
-                    <section class="section-card informe-card" *ngIf="showTechWorkForm && !informeTecnico">
+                    <section class="informe-card" *ngIf="showTechWorkForm && !informeTecnico">
                         <div class="informe-header">
                             <h2 class="section-title mb-0">
                                 <i class="bi bi-clipboard2-pulse"></i> Registrar Trabajo Técnico
@@ -317,7 +317,7 @@
 
                             <!-- Next Step Button -->
                             <div class="informe-submit-row mt-4">
-                                <button class="btn-action btn-resolve w-100 py-3 rounded-4 fw-bold shadow-sm"
+                                <button class="btn-action btn-resolve w-100 fw-bold shadow-sm"
                                     (click)="confirmStage1()">
                                     CONTINUAR A RESULTADOS Y REPUESTOS <i class="bi bi-arrow-right ms-2"></i>
                                 </button>
@@ -444,51 +444,6 @@
                                     </span>
                                 </button>
                             </div>
-                        </div>
-                    </section>
-
-                    <!-- Conversation Section -->
-                    <section class="section-card conversation-section p-0">
-                        <div class="p-4 border-bottom">
-                            <h2 class="section-title mb-0"><i class="bi bi-chat-left-text"></i> Conversación</h2>
-                        </div>
-
-                        <div class="chat-feed" #chatFeed>
-                            <div *ngFor="let comment of ticket.comentarios" class="chat-bubble"
-                                [ngClass]="comment.usuario?.role?.codigo === 'CLIENTE' ? 'bubble-left' : 'bubble-right'">
-
-                                <div class="chat-avatar">
-                                    {{ comment.usuario?.username.slice(0, 2).toUpperCase() }}
-                                </div>
-
-                                <div class="bubble-wrapper">
-                                    <div class="bubble-content">
-                                        {{ comment.comentario }}
-                                    </div>
-                                    <div class="bubble-info">
-                                        <span class="fw-bold">{{ comment.usuario?.username }}</span>
-                                        <span>•</span>
-                                        <span>{{ comment.fechaCreacion | date:'shortTime' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Empty State -->
-                            <div *ngIf="!ticket.comentarios?.length" class="text-center py-5 opacity-50">
-                                <i class="bi bi-chat-dots display-4 mb-3"></i>
-                                <p class="fw-bold">Aún no hay mensajes. Inicia la conversación.</p>
-                            </div>
-                        </div>
-
-                        <!-- Composer -->
-                        <div class="chat-composer">
-                            <textarea class="composer-input" rows="2" placeholder="Escribe un mensaje de seguimiento..."
-                                [(ngModel)]="commentText" (keydown.enter)="onKeyEnter($event)"></textarea>
-                            <button type="button" class="btn-send" (click)="addComment()"
-                                [disabled]="!commentText.trim() || isSubmitting">
-                                <i class="bi bi-send-fill" *ngIf="!isSubmitting"></i>
-                                <span class="spinner-border spinner-border-sm" *ngIf="isSubmitting"></span>
-                            </button>
                         </div>
                     </section>
 
@@ -660,6 +615,82 @@
                         <button class="btn btn-primary rounded-pill px-4" (click)="onConfirmAction()"
                             [disabled]="loading">
                             {{ modalData.confirmText }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Chat UI (Facebook-Style) -->
+            <div class="floating-chat-container">
+                <!-- Circular FAB button -->
+                <button class="fab-chat position-relative" (click)="toggleChat()">
+                    <i class="bi" [ngClass]="isChatOpen ? 'bi-x-lg' : 'bi-chat-dots-fill'"></i>
+                    
+                    <!-- Notification Badge -->
+                    <span *ngIf="unreadCount > 0 && !isChatOpen" 
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-pop">
+                        {{ unreadCount }}
+                    </span>
+                </button>
+
+                <!-- Floating Chat Window -->
+                <div class="chat-window-floating" [class.chat-open]="isChatOpen">
+                    <div class="chat-header-floating">
+                        <div class="chat-header-info">
+                            <div class="chat-header-avatar">
+                                <i class="bi bi-headset"></i>
+                            </div>
+                            <div>
+                                <h3 class="chat-header-title">Soporte SS.FF</h3>
+                                <p class="chat-header-subtitle">Ticket #{{ ticket.idTicket }}</p>
+                            </div>
+                        </div>
+                        <button class="chat-header-close" (click)="toggleChat()">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                    </div>
+
+                    <div class="chat-feed bg-white" #chatFeed>
+                        <!-- Timeline Notice -->
+                        <div class="chat-system-msg">
+                            <small>Ticket abierto el {{ ticket.fechaCreacion | date:'short' }}</small>
+                        </div>
+
+                        <div *ngFor="let comment of ticket.comentarios" class="chat-bubble"
+                            [ngClass]="comment.usuario?.role?.codigo === 'CLIENTE' ? 'bubble-left' : 'bubble-right'">
+                            <div class="chat-avatar" *ngIf="comment.usuario?.role?.codigo === 'CLIENTE'">
+                                {{ comment.usuario?.username.slice(0, 2).toUpperCase() }}
+                            </div>
+                            <div class="bubble-wrapper">
+                                <div class="bubble-content shadow-sm">
+                                    {{ comment.comentario }}
+                                </div>
+                                <div class="bubble-info">
+                                    <span>{{ comment.fechaCreacion | date:'shortTime' }}</span>
+                                </div>
+                            </div>
+                            <div class="chat-avatar" *ngIf="comment.usuario?.role?.codigo !== 'CLIENTE'">
+                                <i class="bi bi-shield-check" *ngIf="comment.usuario?.roles?.includes('ROLE_TECNICO')"></i>
+                                {{ comment.usuario?.username.slice(0, 2).toUpperCase() }}
+                            </div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div *ngIf="!ticket.comentarios?.length" class="text-center py-5 opacity-50 empty-chat">
+                            <i class="bi bi-chat-dots display-4 mb-2"></i>
+                            <p class="fw-bold mb-0">Aún no hay mensajes.</p>
+                            <small>Escribe abajo para iniciar.</small>
+                        </div>
+                    </div>
+
+                    <!-- Composer -->
+                    <div class="chat-composer-floating border-top">
+                        <textarea class="composer-input-floating" rows="1" placeholder="Aa"
+                            [(ngModel)]="commentText" (keydown.enter)="onKeyEnter($event)"></textarea>
+                        <button type="button" class="btn-send-floating text-primary" (click)="addComment()"
+                            [disabled]="!commentText.trim() || isSubmitting">
+                            <i class="bi bi-send-fill fs-5" *ngIf="!isSubmitting"></i>
+                            <span class="spinner-border spinner-border-sm text-primary" *ngIf="isSubmitting"></span>
                         </button>
                     </div>
                 </div>
