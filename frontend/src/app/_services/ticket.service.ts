@@ -88,4 +88,20 @@ export class TicketService {
   getTicketsPendingVisit(): Observable<Ticket[]> {
     return this.http.get<Ticket[]>(API_URL + '/pending-visit');
   }
+
+  getDetailedTechnicians(): Observable<any[]> {
+    return this.http.get<any[]>(API_URL + '/tecnicos');
+  }
+
+  getTechnicianDocuments(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(API_URL + `/tecnicos/${userId}/documentos`);
+  }
+
+  assignTicketMultiple(id: number, userIds: number[], groupCode?: string): Observable<any> {
+    return this.http.post(API_URL + `/${id}/assign-multiple`, { userIds, groupCode });
+  }
+
+  reassignTicket(id: number, userId: number, notaReasignacion: string): Observable<any> {
+    return this.http.post(API_URL + `/${id}/reassign`, { userId, notaReasignacion });
+  }
 }

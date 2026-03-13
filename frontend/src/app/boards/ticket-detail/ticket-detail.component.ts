@@ -54,6 +54,16 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         confirmText: ''
     };
 
+    // Reassign modal state
+    showReassignModal = false;
+    reassignData = {
+        userId: 0,
+        notaReasignacion: ''
+    };
+    technicians: any[] = [];
+    reassignSearchTerm: string = '';
+    selectedTechForPreview: any = null;
+
     // ─── Tech Work Form State ──────────────────────────────────────────────────
     formStep: number = 1; // 1: selections, 2: result/comments
     searchTerm: string = '';
@@ -345,6 +355,21 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         return code === 'CERRADO' || code === 'RESUELTO';
     }
 
+    get canAssign(): boolean {
+        if (!this.currentUser || !this.ticket) return false;
+        const roles = this.currentUser.roles || [];
+        return (roles.includes('ROLE_ADMIN_MASTER') || roles.includes('ROLE_ADMIN_TECNICOS') || roles.includes('ROLE_ADMIN')) && 
+               (this.ticket.estadoItem?.codigo === 'ABIERTO' || this.ticket.estadoItem?.codigo === 'ASIGNADO');
+    }
+
+    get canReassign(): boolean {
+        if (!this.currentUser || !this.ticket) return false;
+        const roles = this.currentUser.roles || [];
+        const status = this.ticket.estadoItem?.codigo;
+        return roles.includes('ROLE_ADMIN_MASTER') && 
+               (status === 'ASIGNADO' || status === 'EN_PROCESO' || status === 'REPROGRAMADA' || status === 'REQUIERE_VISITA');
+    }
+
     get canRate(): boolean {
         return this.isCliente &&
             (this.ticket?.estadoItem?.codigo === 'CERRADO' || this.ticket?.estadoItem?.codigo === 'RESUELTO') &&
@@ -425,10 +450,6 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 this.modalData.title = 'Cerrar Ticket';
                 this.modalData.confirmText = 'Cerrar permanentemente';
                 break;
-            case 'REPROGRAMADA':
-                this.modalData.title = 'Reprogramar Incidencia';
-                this.modalData.confirmText = 'Reprogramar ticket';
-                break;
         }
 
         this.showConfirmModal = true;
@@ -455,6 +476,76 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
             error: () => {
                 this.zone.run(() => {
                     this.error = 'Error al actualizar el estado.';
+                    this.loading = false;
+                    this.cdr.detectChanges();
+                });
+            }
+        });
+    }
+
+    openReassignModal(): void {
+        this.reassignData.userId = this.ticket.usuarioAsignado?.id || this.ticket.usuarioAsignado?.userId || 0;
+        this.reassignData.notaReasignacion = '';
+        this.reassignSearchTerm = '';
+        this.selectedTechForPreview = null;
+        
+        // Load technicians for the list
+        this.ticketService.getDetailedTechnicians().subscribe({
+            next: (data) => {
+                this.technicians = data;
+                // Pre-select current if possible
+                if (this.reassignData.userId) {
+                    this.selectedTechForPreview = this.technicians.find(t => t.userId === this.reassignData.userId);
+                }
+            },
+            error: (err) => console.error('Error loading technicians', err)
+        });
+        
+        this.showReassignModal = true;
+    }
+
+    get filteredTechnicians(): any[] {
+        if (!this.reassignSearchTerm) return this.technicians;
+        const term = this.reassignSearchTerm.toLowerCase();
+        return this.technicians.filter(t => 
+            t.nombre?.toLowerCase().includes(term) || 
+            t.apellido?.toLowerCase().includes(term) || 
+            t.cedula?.includes(term) ||
+            t.cargo?.toLowerCase().includes(term)
+        );
+    }
+
+    selectTech(tech: any): void {
+        this.reassignData.userId = tech.userId;
+        this.selectedTechForPreview = tech;
+    }
+
+    onConfirmReassign(): void {
+        if (!this.reassignData.userId || !this.reassignData.notaReasignacion.trim()) {
+            alert('Por favor seleccione un técnico y escriba una nota de reasignación.');
+            return;
+        }
+
+        this.showReassignModal = false;
+        this.loading = true;
+        this.cdr.detectChanges();
+
+        this.ticketService.reassignTicket(
+            this.ticket.idTicket,
+            this.reassignData.userId,
+            this.reassignData.notaReasignacion
+        ).subscribe({
+            next: () => {
+                this.zone.run(() => {
+                    this.successMessage = 'Ticket reasignado exitosamente.';
+                    setTimeout(() => this.successMessage = '', 4000);
+                    this.loadTicket(this.ticket.idTicket);
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.zone.run(() => {
+                    this.error = err.error?.message || 'Error al reasignar el ticket.';
                     this.loading = false;
                     this.cdr.detectChanges();
                 });

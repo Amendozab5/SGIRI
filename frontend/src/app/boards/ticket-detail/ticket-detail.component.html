@@ -22,7 +22,9 @@
                 <div class="action-bar-content">
                     <div class="ticket-info-header">
                         <div class="status-badge"
-                            [ngClass]="'status-' + ticket.estadoItem?.codigo.toLowerCase().replace('_', '-')">
+                            [ngClass]="'status-' + (ticket.estadoItem?.codigo === 'REPROGRAMADA' ? 'reprogramada' : ticket.estadoItem?.codigo.toLowerCase().replace('_', '-'))">
+                            <span *ngIf="ticket.estadoItem?.codigo === 'REPROGRAMADA'"
+                                class="status-dot dot-reprogramada"></span>
                             {{ ticket.estadoItem?.nombre }}
                         </div>
                         <div class="ticket-title-group">
@@ -61,14 +63,23 @@
                         <i class="bi bi-calendar-plus"></i> Solicitar Visita
                     </button>
 
-                    <!-- Action Button: 'Cerrar' for normal statuses, 'Reprogramar' for REPROGRAMADA status -->
+                    <!-- Simplified Close Button (Removed Reprogramar) -->
                     <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo !== 'CERRADO'"
-                        [hidden]="ticket.estadoItem?.codigo === 'REPROGRAMADA' && isOnlyTecnico"
-                        (click)="changeStatus(ticket.estadoItem?.codigo === 'REPROGRAMADA' ? 'REPROGRAMADA' : 'CERRADO')"
+                        (click)="changeStatus('CERRADO')"
                         class="btn-action btn-close-ticket" [disabled]="loading">
-                        <i class="bi"
-                            [ngClass]="ticket.estadoItem?.codigo === 'REPROGRAMADA' ? 'bi-calendar-event' : 'bi-x-circle'"></i>
-                        {{ ticket.estadoItem?.codigo === 'REPROGRAMADA' ? 'Reprogramar' : 'Cerrar' }}
+                        <i class="bi bi-x-circle"></i> Cerrar
+                    </button>
+
+                    <!-- ASIGNAR TICKET: For Admins when ABIERTO or ASIGNADO -->
+                    <button type="button" *ngIf="canAssign" [routerLink]="['/home/admin/tickets/asignar', ticket.idTicket]"
+                        class="btn-action btn-assign" [disabled]="loading">
+                        <i class="bi bi-person-plus-fill"></i> ASIGNAR
+                    </button>
+
+                    <!-- REASIGNAR TICKET: For Master Admin when REPROGRAMADA -->
+                    <button type="button" *ngIf="canReassign" (click)="openReassignModal()" class="btn-action btn-reassign"
+                        [disabled]="loading">
+                        <i class="bi bi-arrow-left-right"></i> REASIGNAR
                     </button>
                 </div>
             </header>
@@ -618,6 +629,115 @@
                         <button class="btn btn-primary rounded-pill px-4" (click)="onConfirmAction()"
                             [disabled]="loading">
                             {{ modalData.confirmText }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reassign Modal (Enhanced with Search and Preview) -->
+            <div class="modal-overlay animate-fade-in" *ngIf="showReassignModal" (click)="showReassignModal = false">
+                <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+                    <div class="modal-header-custom">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-arrow-left-right me-2 text-primary"></i> Reasignar Ticket</h5>
+                        <button type="button" class="btn-close border-0 bg-transparent" (click)="showReassignModal = false">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body-custom p-0">
+                        <div class="reassign-grid">
+                            <!-- Left: Tech List & Search -->
+                            <div class="reassign-list-panel">
+                                <div class="p-3 border-bottom">
+                                    <div class="position-relative">
+                                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                        <input type="text" [(ngModel)]="reassignSearchTerm" 
+                                            class="form-control ps-5 rounded-pill border-light bg-light" 
+                                            placeholder="Buscar por nombre, cédula o cargo...">
+                                    </div>
+                                </div>
+                                <div class="tech-scroll-list">
+                                    <div *ngFor="let tech of filteredTechnicians" 
+                                         class="tech-item-row" 
+                                         [class.active]="reassignData.userId === tech.userId"
+                                         (click)="selectTech(tech)">
+                                        <div class="tech-avatar-sm">
+                                            <i class="bi bi-person-badge"></i>
+                                        </div>
+                                        <div class="tech-item-info">
+                                            <div class="fw-bold text-dark">{{ tech.nombre }} {{ tech.apellido }}</div>
+                                            <div class="small text-muted">{{ tech.cargo }} • {{ tech.especialidad }}</div>
+                                        </div>
+                                        <div class="check-mark" *ngIf="reassignData.userId === tech.userId">
+                                            <i class="bi bi-check-circle-fill text-primary"></i>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="filteredTechnicians.length === 0" class="p-4 text-center text-muted">
+                                        <i class="bi bi-search display-6 d-block mb-2 opacity-25"></i>
+                                        No se encontraron técnicos
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Preview & Notes -->
+                            <div class="reassign-preview-panel">
+                                <div class="preview-header p-3 bg-light-subtle border-bottom">
+                                    <h6 class="mb-0 fw-bold text-muted small uppercase">Vista Previa del Técnico</h6>
+                                </div>
+                                
+                                <div class="preview-content p-4" *ngIf="selectedTechForPreview; else noSelection">
+                                    <div class="d-flex align-items-center gap-3 mb-4">
+                                        <div class="preview-avatar">
+                                            <i class="bi bi-person-vcard text-primary display-6"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-1 fw-bold">{{ selectedTechForPreview.nombre }} {{ selectedTechForPreview.apellido }}</h5>
+                                            <span class="badge rounded-pill" [ngClass]="selectedTechForPreview.estado === 'Activo' ? 'bg-success' : 'bg-secondary'">
+                                                {{ selectedTechForPreview.estado }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="preview-stats-grid mb-4">
+                                        <div class="stat-mini">
+                                            <label>Activos</label>
+                                            <div class="value">{{ selectedTechForPreview.ticketsActivos }}</div>
+                                        </div>
+                                        <div class="stat-mini">
+                                            <label>Comp.</label>
+                                            <div class="value">{{ selectedTechForPreview.porcentajeResolucion }}%</div>
+                                        </div>
+                                        <div class="stat-mini">
+                                            <label>Rnd.</label>
+                                            <div class="value">{{ selectedTechForPreview.nivelRendimiento }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tech-history-mini mb-4">
+                                        <label class="text-muted small fw-bold mb-2 d-block">Resumen de Historial</label>
+                                        <p class="small text-muted mb-0">{{ selectedTechForPreview.historialResumido }}</p>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-bold">Nota de Reasignación <span class="text-danger">*</span></label>
+                                        <textarea [(ngModel)]="reassignData.notaReasignacion" class="form-control rounded-3 border-light bg-light" 
+                                            rows="3" placeholder="Motivo del cambio de técnico..."></textarea>
+                                    </div>
+                                </div>
+                                
+                                <ng-template #noSelection>
+                                    <div class="preview-empty">
+                                        <i class="bi bi-person-plus display-1 opacity-10 mb-3"></i>
+                                        <p class="text-muted">Seleccione un técnico para ver sus detalles y confirmar la reasignación.</p>
+                                    </div>
+                                </ng-template>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer-custom bg-white">
+                        <button (click)="showReassignModal = false" class="btn btn-link text-secondary text-decoration-none me-3">Cancelar</button>
+                        <button (click)="onConfirmReassign()" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm"
+                            [disabled]="!reassignData.userId || !reassignData.notaReasignacion.trim()">
+                            Asignar y Confirmar
                         </button>
                     </div>
                 </div>

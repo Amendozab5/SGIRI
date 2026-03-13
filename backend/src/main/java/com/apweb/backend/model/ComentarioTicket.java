@@ -3,7 +3,9 @@ package com.apweb.backend.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +25,8 @@ public class ComentarioTicket {
     @com.fasterxml.jackson.annotation.JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_ticket", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Ticket ticket;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AsignacionRepository extends JpaRepository<Asignacion, Integer> {
+    java.util.List<Asignacion> findByUsuarioAndActivoTrue(com.apweb.backend.model.User user);
+
+    java.util.List<Asignacion> findByTicket(com.apweb.backend.model.Ticket ticket);
 }

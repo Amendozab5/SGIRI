@@ -3,7 +3,9 @@ package com.apweb.backend.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -30,5 +32,7 @@ public class Catalogo {
 
     @com.fasterxml.jackson.annotation.JsonManagedReference
     @OneToMany(mappedBy = "catalogo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<CatalogoItem> items;
 }

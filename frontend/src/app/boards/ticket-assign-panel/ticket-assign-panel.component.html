@@ -1,0 +1,197 @@
+<div class="container-fluid pt-4">
+    <div class="mb-4">
+        <button (click)="goBack()" class="btn btn-link text-decoration-none text-secondary p-0">
+            <i class="bi bi-arrow-left me-1"></i> Volver al Ticket #{{ ticketId }}
+        </button>
+    </div>
+
+    <div class="assignment-layout">
+        <!-- Main Panel: Technician Selection -->
+        <div class="technician-list-container">
+            <div class="panel-header">
+                <div>
+                    <h1 class="panel-title">Asignar Personal Técnico</h1>
+                    <p class="panel-subtitle">Seleccione uno o más técnicos para atender el ticket #{{ ticketId }}</p>
+                </div>
+                <div class="selection-counter" [class.active]="selectedTechId">
+                    <i class="bi bi-people-fill me-2"></i>
+                    <span>{{ selectedTechId ? '1 Técnico seleccionado' : 'Sin selección' }}</span>
+                </div>
+            </div>
+
+            <div class="search-bar-container">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()" 
+                    placeholder="Buscar por nombre, cédula, cargo o área..." class="search-input">
+            </div>
+
+            <div class="technician-grid" *ngIf="!loading">
+                <ng-container *ngFor="let group of groupedTechnicians | keyvalue">
+                    <div class="col-12 mt-4 mb-2">
+                        <h4 class="text-primary border-bottom pb-2">
+                            <i class="bi bi-briefcase me-2"></i>{{ group.key }}
+                            <span class="badge bg-secondary ms-2">{{ group.value.length }}</span>
+                        </h4>
+                    </div>
+
+                    <div *ngFor="let tech of group.value" class="tech-card"
+                        [class.selected]="isSelected(tech.userId)"
+                        (click)="toggleSelection(tech.userId)">
+                        
+                        <div class="selection-indicator">
+                            <i class="bi" [ngClass]="isSelected(tech.userId) ? 'bi-check-circle-fill' : 'bi-circle'"></i>
+                        </div>
+
+                        <div class="tech-main-info">
+                            <div class="tech-avatar-large">
+                                {{ tech.nombre.charAt(0) }}{{ tech.apellido.charAt(0) }}
+                            </div>
+                            <div class="tech-text">
+                                <h3 class="tech-name">{{ tech.nombre }} {{ tech.apellido }}</h3>
+                                <span class="tech-tag area-tag">{{ tech.area }}</span>
+                            </div>
+                        </div>
+
+                        <div class="tech-stats-compact">
+                            <div class="stat-item">
+                                <span class="stat-value">{{ tech.ticketsAsignados || 0 }}</span>
+                                <span class="stat-label">Asignados</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-item">
+                                <span class="stat-value">{{ tech.ticketsResueltosHoy || 0 }}</span>
+                                <span class="stat-label">Resueltos Hoy</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-item">
+                                <span class="stat-value text-primary">
+                                    {{ tech.nivelRendimiento || 'N/A' }}
+                                </span>
+                                <span class="stat-label">Nivel</span>
+                            </div>
+                        </div>
+
+                        <button class="btn-detail-overlay" (click)="$event.stopPropagation(); selectForDetail(tech)">
+                            <i class="bi bi-info-circle"></i> Ver Detalles
+                        </button>
+                    </div>
+                </ng-container>
+
+                <!-- Empty state -->
+                <div *ngIf="filteredTechnicians.length === 0" class="empty-results py-5 text-center">
+                    <i class="bi bi-person-x display-4 text-muted"></i>
+                    <p class="mt-3 fw-bold text-muted">No se encontraron técnicos con ese criterio.</p>
+                </div>
+            </div>
+
+            <div *ngIf="loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Cargando técnicos autorizados...</p>
+            </div>
+        </div>
+
+        <!-- Sidebar: Detail & Assignment Summary -->
+        <div class="assignment-sidebar">
+            <!-- Technician Detail Card (appears when clicking "Ver Detalles") -->
+            <div class="detail-card animate-slide-in" *ngIf="selectedTechForDetail">
+                <div class="detail-header">
+                    <button class="btn-close-detail" (click)="selectedTechForDetail = null">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <div class="detail-avatar">
+                        {{ selectedTechForDetail.nombre.charAt(0) }}{{ selectedTechForDetail.apellido.charAt(0) }}
+                    </div>
+                    <h2 class="detail-name">{{ selectedTechForDetail.nombre }} {{ selectedTechForDetail.apellido }}</h2>
+                    <p class="detail-subtitle">{{ selectedTechForDetail.cargo }} • {{ selectedTechForDetail.area }}</p>
+                </div>
+
+                <div class="detail-body">
+                    <div class="detail-section">
+                        <h4 class="section-label">Estadísticas e Información</h4>
+                        <div class="contact-item">
+                            <i class="bi bi-person-vcard"></i> <span>Cédula: {{ selectedTechForDetail.cedula }}</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="bi bi-patch-check"></i> <span>Estado: {{ selectedTechForDetail.estado }}</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="bi bi-journal-text"></i> <span>Activos: {{ selectedTechForDetail.ticketsActivos || 0 }}</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="bi bi-tools"></i> <span>Especialidad: {{ selectedTechForDetail.especialidad }}</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="bi bi-graph-up"></i> <span>Resolución: {{ selectedTechForDetail.porcentajeResolucion || 0 }}%</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="bi bi-clock-history"></i> <span>Historial: {{ selectedTechForDetail.historialResumido }}</span>
+                        </div>
+                        <div class="contact-item mt-2">
+                            <i class="bi bi-envelope"></i> <span>{{ selectedTechForDetail.correo }}</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="bi bi-telephone"></i> <span>{{ selectedTechForDetail.celular || 'Sin celular' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4 class="section-label">Documentación Técnica</h4>
+                        <div *ngIf="loadingDocs" class="text-center py-2">
+                            <span class="spinner-border spinner-border-sm text-primary"></span>
+                        </div>
+                        <div *ngIf="!loadingDocs && techDocuments.length === 0" class="text-muted small italic">
+                            No hay documentos registrados.
+                        </div>
+                        <div class="doc-list" *ngIf="!loadingDocs && techDocuments.length > 0">
+                            <div *ngFor="let doc of techDocuments" class="doc-item">
+                                <i class="bi bi-file-earmark-check text-success"></i>
+                                <div class="doc-info">
+                                    <span class="doc-name">{{ doc.codigoTipoDocumento }}</span>
+                                    <span class="doc-meta">{{ doc.numeroDocumento }} • {{ doc.fechaSubida | date:'shortDate' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Action Card -->
+            <div class="action-card sticky-sidebar">
+                <h3 class="action-title">Resumen de Asignación</h3>
+                
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span>Ticket seleccionado:</span>
+                        <span class="fw-bold">#{{ ticketId }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Técnico a asignar:</span>
+                        <span class="fw-bold">{{ selectedTechId ? 1 : 0 }}</span>
+                    </div>
+                </div>
+
+                <div class="selected-techs-preview" *ngIf="selectedTechId">
+                    <p class="small text-muted mb-2 fw-bold uppercase">Personal seleccionado:</p>
+                    <div class="mini-tech-list">
+                        <div class="mini-tech-chip">
+                            {{ getSelectedTech()?.nombre }} {{ getSelectedTech()?.apellido }}
+                            <i class="bi bi-x-circle-fill ms-2 pointer" (click)="selectedTechId = null"></i>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <button class="btn btn-primary w-100 rounded-pill py-3 fw-bold mt-3 shadow-sm btn-assign-main"
+                    [disabled]="!selectedTechId || submitting"
+                    (click)="assign()">
+                    <span *ngIf="!submitting">
+                        <i class="bi bi-person-check-fill me-2"></i>
+                        Asignar Técnico
+                    </span>
+                    <span *ngIf="submitting" class="spinner-border spinner-border-sm"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

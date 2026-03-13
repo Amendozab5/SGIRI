@@ -1,5 +1,10 @@
 package com.apweb.backend.controller;
 
+import com.apweb.backend.dto.TechnicianDTO;
+import com.apweb.backend.dto.DocumentoEmpleadoDTO;
+import com.apweb.backend.dto.AssignMultipleRequest;
+import com.apweb.backend.dto.ReassignRequest;
+
 import com.apweb.backend.model.*;
 import com.apweb.backend.payload.request.CommentRequest;
 import com.apweb.backend.payload.request.InformeTrabajoTecnicoRequest;
@@ -23,7 +28,6 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/tickets")
 public class TicketController {
@@ -72,6 +76,61 @@ public class TicketController {
 
                 ticketService.assignTicket(id, userId, currentUser);
                 return ResponseEntity.ok(new MessageResponse("Ticket asignado exitosamente"));
+        }
+
+        @PostMapping("/{id:[0-9]+}/assign-multiple")
+        @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<?> assignTicketMultiple(@PathVariable("id") Integer id,
+                        @RequestBody AssignMultipleRequest payload) {
+                List<Integer> userIds = payload.getUserIds();
+                String groupCode = payload.getGroupCode();
+
+                if (userIds == null || userIds.isEmpty()) {
+                        return ResponseEntity.badRequest().body(new MessageResponse("Error: userIds is required"));
+                }
+
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentUserName = authentication.getName();
+                User currentUser = userRepository.findByUsername(currentUserName)
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                ticketService.assignTicketMultiple(id, userIds, currentUser, groupCode);
+                return ResponseEntity.ok(new MessageResponse("Ticket asignado al grupo exitosamente"));
+        }
+
+        @PostMapping("/{id:[0-9]+}/reassign")
+        @PreAuthorize("hasRole('ADMIN_MASTER')")
+        public ResponseEntity<?> reassignTicket(@PathVariable("id") Integer id,
+                        @RequestBody ReassignRequest payload) {
+                Integer userId = payload.getUserId();
+                String notaReasignacion = payload.getNotaReasignacion();
+
+                if (userId == null) {
+                        return ResponseEntity.badRequest().body(new MessageResponse("Error: userId is required"));
+                }
+                if (notaReasignacion == null || notaReasignacion.trim().isEmpty()) {
+                        return ResponseEntity.badRequest().body(new MessageResponse("Error: notaReasignacion is required"));
+                }
+
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentUserName = authentication.getName();
+                User currentUser = userRepository.findByUsername(currentUserName)
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                ticketService.reassignTicket(id, userId, currentUser, notaReasignacion);
+                return ResponseEntity.ok(new MessageResponse("Ticket reasignado exitosamente"));
+        }
+
+        @GetMapping("/tecnicos")
+        @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<List<TechnicianDTO>> getAllTechniciansDetailed() {
+                return ResponseEntity.ok(ticketService.getAllTechniciansDetailed());
+        }
+
+        @GetMapping("/tecnicos/{userId}/documentos")
+        @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<List<DocumentoEmpleadoDTO>> getTechnicianDocuments(@PathVariable("userId") Integer userId) {
+                return ResponseEntity.ok(ticketService.getTechnicianDocuments(userId));
         }
 
         @GetMapping("/my-tickets")
