@@ -172,10 +172,20 @@
 
                 <div class="selected-techs-preview" *ngIf="selectedTechId">
                     <p class="small text-muted mb-2 fw-bold uppercase">Personal seleccionado:</p>
-                    <div class="mini-tech-list">
+                    <div class="mini-tech-list mb-3">
                         <div class="mini-tech-chip">
                             {{ getSelectedTech()?.nombre }} {{ getSelectedTech()?.apellido }}
                             <i class="bi bi-x-circle-fill ms-2 pointer" (click)="selectedTechId = null"></i>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Visit toggle during assignment -->
+                    <div class="mb-3">
+                        <div class="form-check form-switch custom-switch">
+                            <input class="form-check-input" type="checkbox" id="visitAssignSwitch" [(ngModel)]="programarVisita">
+                            <label class="form-check-label fw-bold ms-2 text-primary small" for="visitAssignSwitch" style="cursor: pointer;">
+                                <i class="bi bi-calendar-check me-1"></i> Programar Visita Técnica
+                            </label>
                         </div>
                     </div>
                 </div>

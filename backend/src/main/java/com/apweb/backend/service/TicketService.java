@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 import java.time.LocalDateTime;
 import com.apweb.backend.util.AuditAccion;
 import com.apweb.backend.util.AuditModulo;
@@ -205,13 +204,15 @@ public class TicketService {
                 Ticket savedTicket = ticketRepository.save(ticket);
 
                 // --- NUEVO SISTEMA DE NOTIFICACIONES ---
+                boolean isReassignment = previousAssignee != null;
+                String typePrefix = isReassignment ? "REASIGNACIÓN: " : "";
 
                 // 1. Notificar al Técnico (Solo Web + Interactiva)
                 String rutaTecnico = "/home/user/ticket/" + savedTicket.getIdTicket();
                 notificacionServiceApp.crearNotificacionWeb(
                                 technician,
-                                "Nuevo Ticket Asignado: #" + savedTicket.getIdTicket(),
-                                "Se le ha asignado el ticket: " + savedTicket.getAsunto(),
+                                typePrefix + "Ticket Assigned #" + savedTicket.getIdTicket(),
+                                (isReassignment ? "Se le ha reasignado el ticket: " : "Se le ha asignado el ticket: ") + savedTicket.getAsunto(),
                                 rutaTecnico,
                                 savedTicket);
 
@@ -219,21 +220,24 @@ public class TicketService {
                 User usuarioReportante = savedTicket.getUsuarioCreador();
                 if (usuarioReportante != null) {
                         String rutaUsuario = "/home/user/ticket/" + savedTicket.getIdTicket();
-
-                        // Notificación Web (Segura contra Null)
                         String nombreTecnico = getNombreCompleto(technician);
+                        
+                        String tituloWeb = isReassignment ? "Su ticket #" + savedTicket.getIdTicket() + " ha sido REASIGNADO" 
+                                                         : "Su ticket #" + savedTicket.getIdTicket() + " ha sido asignado";
+                        String msjWeb = isReassignment ? "Su ticket ha sido reasignado al técnico " + nombreTecnico 
+                                                       : "Su ticket ahora está siendo atendido por " + nombreTecnico;
+
                         notificacionServiceApp.crearNotificacionWeb(
                                         usuarioReportante,
-                                        "Su ticket #" + savedTicket.getIdTicket() + " ha sido asignado",
-                                        "Su ticket ahora está siendo atendido por " + nombreTecnico,
+                                        tituloWeb,
+                                        msjWeb,
                                         rutaUsuario,
                                         savedTicket);
 
-                        // Encolar Correo (Seguro contra Null)
+                        // Encolar Correo
                         String emailDestino = getEmailSeguro(usuarioReportante);
                         if (emailDestino != null) {
-                                String urlFront = "http://localhost:4200/home/user/ticket/"
-                                                + savedTicket.getIdTicket();
+                                String urlFront = "http://localhost:4200/home/user/ticket/" + savedTicket.getIdTicket();
                                 String cuerpoMail = mailTemplateService.formatTicketAssignment(
                                                 getNombreCompleto(usuarioReportante),
                                                 savedTicket.getIdTicket(),
@@ -241,10 +245,13 @@ public class TicketService {
                                                 nombreTecnico,
                                                 urlFront);
 
+                                String subjectMail = isReassignment ? "Ticket #" + savedTicket.getIdTicket() + " - REASIGNADO" 
+                                                                    : "Ticket #" + savedTicket.getIdTicket() + " - Técnico Asignado";
+
                                 notificacionServiceApp.encolarCorreo(
                                                 savedTicket,
                                                 emailDestino,
-                                                "Ticket #" + savedTicket.getIdTicket() + " - Técnico Asignado",
+                                                subjectMail,
                                                 cuerpoMail);
                         }
                 }
@@ -625,14 +632,23 @@ public class TicketService {
                 }
 
                 // Logic: Only admin can change status if it is currently REPROGRAMADA
+                boolean isAdmin = user.getRole() != null &&
+                                ("ADMIN_MASTER".equals(user.getRole().getCodigo()) ||
+                                                "ADMIN".equals(user.getRole().getCodigo()) ||
+                                                "ADMIN_TECNICOS".equals(user.getRole().getCodigo()));
+
                 if ("REPROGRAMADA".equals(estadoAnterior.getCodigo())) {
-                        boolean isAdmin = user.getRole() != null &&
-                                        ("ADMIN_MASTER".equals(user.getRole().getCodigo()) ||
-                                                        "ADMIN".equals(user.getRole().getCodigo()) ||
-                                                        "ADMIN_TECNICOS".equals(user.getRole().getCodigo()));
                         if (!isAdmin) {
                                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                                                 "Solo un administrador puede permitir continuar un ticket despuès de ser REPROGRAMADA.");
+                        }
+                }
+
+                // Logic: ONLY Admin can close tickets (CERRADO)
+                if ("CERRADO".equals(statusCode)) {
+                        if (!isAdmin) {
+                                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                                "Solo un administrador puede CERRAR oficialmente un ticket.");
                         }
                 }
 
@@ -800,11 +816,11 @@ public class TicketService {
 
                 Ticket ticket = getTicketById(idTicket);
 
-                // 1. Verify ticket is in EN_PROCESO state
+                // 1. Verify ticket is in EN_PROCESO or ASIGNADO state
                 String estadoActual = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
-                if (!"EN_PROCESO".equals(estadoActual)) {
+                if (!"EN_PROCESO".equals(estadoActual) && !"ASIGNADO".equals(estadoActual)) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                        "El ticket debe estar en estado EN_PROCESO para registrar el informe técnico.");
+                                        "El ticket debe estar en estado ASIGNADO o EN_PROCESO para registrar el informe técnico.");
                 }
 
                 // 2. Verify this technician is the assigned one
@@ -819,13 +835,9 @@ public class TicketService {
                         }
                 }
 
-                // 3. Check if an informe already exists for this ticket
-                Optional<InformeTrabajoTecnico> existente = informeTrabajoTecnicoRepository
-                                .findByTicket_IdTicket(idTicket);
-                if (existente.isPresent()) {
-                        throw new ResponseStatusException(HttpStatus.CONFLICT,
-                                        "Ya existe un informe técnico registrado para este ticket.");
-                }
+                // 3. Check for existing informe (Allow multiple but handle the current one)
+                // We remove the hard-blocking search to allow new reports if it's a new assignment attempt
+                // Optional<InformeTrabajoTecnico> existente = ...
 
                 // 4. Validate required fields based on resultado
                 String resultado = req.getResultado();
@@ -887,11 +899,12 @@ public class TicketService {
                 // 6. Update ticket status based on resultado
                 if ("RESUELTO".equals(resultado)) {
                         updateTicketStatus(idTicket, tecnico, "RESUELTO",
-                                        "Informe técnico registrado. Ticket resuelto.");
+                                        "Ya apliqué la solución, por favor valida si funciona correctamente.");
                 } else {
                         // NO_RESUELTO: updateTicketStatus will now find REPROGRAMADA correctly
                         // including specifically checking ID 42
-                        updateTicketStatus(idTicket, tecnico, "REPROGRAMADA", "Técnico registró NO resolutivo.");
+                        updateTicketStatus(idTicket, tecnico, "REPROGRAMADA", 
+                                        "Incidencia registrada como No Resuelta. Pasa a Reprogramación.");
                 }
 
                 // 7. Audit
@@ -942,9 +955,8 @@ public class TicketService {
                 return counts;
         }
 
-        @Transactional
-        public Optional<InformeTrabajoTecnico> getInformeTecnico(Integer idTicket) {
-                return informeTrabajoTecnicoRepository.findByTicket_IdTicket(idTicket);
+        public List<InformeTrabajoTecnico> getInformeTecnico(Integer idTicket) {
+                return informeTrabajoTecnicoRepository.findByTicket_IdTicketOrderByIdInformeDesc(idTicket);
         }
 
         public List<InventarioUsadoTicket> getInventarioUsado(Integer idTicket) {
@@ -967,7 +979,7 @@ public class TicketService {
                                         "El reporte PDF solo está disponible cuando el ticket ha sido resuelto o reprogramado.");
                 }
 
-                InformeTrabajoTecnico informe = getInformeTecnico(idTicket).orElse(null);
+                List<InformeTrabajoTecnico> informes = getInformeTecnico(idTicket);
                 List<HistorialEstado> historial = historialEstadoRepository
                                 .findByTicket_IdTicketOrderByFechaCambioDesc(idTicket);
                 List<ComentarioTicket> comentarios = comentarioTicketRepository
@@ -975,7 +987,7 @@ public class TicketService {
                 List<InventarioUsadoTicket> inventarioUsado = inventarioUsadoTicketRepository
                                 .findByTicket_IdTicket(idTicket);
 
-                return pdfReporteService.generateTicketDetailReport(ticket, informe, historial, comentarios,
+                return pdfReporteService.generateTicketDetailReport(ticket, informes, historial, comentarios,
                                 inventarioUsado);
         }
 

@@ -12,157 +12,201 @@
   --glass: rgba(255, 255, 255, 0.85);
 }
 
-.scheduled-visits-section {
-  margin-top: -30px;
-  margin-bottom: 3.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.visit-alert-premium {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  color: white;
-  border-radius: 30px;
-  padding: 1.5rem 2rem;
-  display: flex;
-  align-items: center;
-  gap: 2.5rem;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Compact Visits Area */
+.compact-visits-area {
+  margin-top: -3.5rem;
   margin-bottom: 2.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.visit-alert-premium:hover {
-  transform: translateY(-5px);
-  border-color: rgba(37, 99, 235, 0.4);
-}
-
-/* Calendar Card */
-.date-calendar-block {
-  min-width: 100px;
-  background: white;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  text-align: center;
-}
-
-.cal-header {
-  background: #ef4444;
-  /* Rojo calendario */
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 4px 0;
-  letter-spacing: 0.1em;
-}
-
-.cal-body {
   display: flex;
   flex-direction: column;
-  padding: 8px 0;
-  color: #1e293b;
+  gap: 0.75rem;
 }
 
-.cal-day {
-  font-size: 2rem;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.cal-time {
-  font-size: 0.75rem;
-  font-weight: 700;
-  opacity: 0.6;
-}
-
-/* Content */
-.visit-content-info {
-  flex-grow: 1;
-}
-
-.meta-status {
+.visit-notification-bar {
+  background: white;
+  border-radius: 16px;
+  padding: 0.85rem 1.5rem;
   display: flex;
-  gap: 1rem;
   align-items: center;
-  margin-bottom: 0.5rem;
+  gap: 1.25rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid var(--primary);
 }
 
-.ticket-ref {
-  background: rgba(37, 99, 235, 0.2);
-  color: #60a5fa;
-  padding: 2px 10px;
-  border-radius: 8px;
-  font-family: monospace;
-  font-weight: 700;
-  font-size: 0.85rem;
+.visit-notification-bar:hover {
+  transform: translateX(8px);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.1);
 }
 
-.pill-type {
+.v-bar-icon {
+  width: 38px;
+  height: 38px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.v-bar-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.v-bar-label {
   font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #94a3b8;
-  font-weight: 700;
-}
-
-.visit-title {
-  font-size: 1.5rem;
   font-weight: 800;
-  margin: 0;
-  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--primary);
+  letter-spacing: 0.05em;
 }
 
-.tech-info-row {
+.v-bar-details {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.v-bar-item {
   font-size: 0.95rem;
-}
-
-.label-tech {
-  color: #94a3b8;
   font-weight: 600;
+  color: var(--text-main);
 }
 
-.name-tech {
-  color: white;
-  font-weight: 700;
+.v-bar-divider {
+  color: var(--border);
+  font-weight: 300;
 }
 
-/* Action Button */
-.visit-action-container {
-  margin-left: auto;
-}
-
-.btn-detail-luxury {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 0.9rem 1.8rem;
-  border-radius: 16px;
-  font-weight: 800;
-  font-size: 0.9rem;
+.v-bar-tech {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.5);
-  cursor: pointer;
+  padding: 0.4rem 1rem;
+  background: var(--bg-portal);
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
-.btn-detail-luxury:hover {
-  background: #3b82f6;
-  transform: scale(1.05);
-  box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.6);
-}
-
-.btn-detail-luxury i {
+.v-bar-arrow {
+  color: var(--border);
   font-size: 1.25rem;
+  transition: transform 0.2s;
+}
+
+.visit-notification-bar:hover .v-bar-arrow {
+  color: var(--primary);
+  transform: translateX(3px);
+}
+
+/* Visit Details Modal */
+.visit-details-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1.5rem;
+}
+
+.visit-modal-card {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 28px;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  position: relative;
+}
+
+.modal-header-accent {
+  height: 8px;
+  background: linear-gradient(90deg, var(--primary), #3b82f6);
+}
+
+.modal-v-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.btn-close-modal {
+  background: var(--bg-portal);
+  border: 1px solid var(--border);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.btn-close-modal:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.modal-v-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.info-label.smallest {
+  font-size: 0.65rem;
+}
+
+.info-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.tech-avatar-mini {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .support-portal {

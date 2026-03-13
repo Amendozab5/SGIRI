@@ -292,9 +292,11 @@ public class TicketController {
         @GetMapping("/{id:[0-9]+}/informe")
         @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> getInforme(@PathVariable("id") Integer id) {
-                return ticketService.getInformeTecnico(id)
-                                .map(informe -> ResponseEntity.ok((Object) informe))
-                                .orElse(ResponseEntity.noContent().build());
+                List<InformeTrabajoTecnico> informes = ticketService.getInformeTecnico(id);
+                if (informes == null || informes.isEmpty()) {
+                        return ResponseEntity.noContent().build();
+                }
+                return ResponseEntity.ok(informes);
         }
 
         @GetMapping("/{id:[0-9]+}/inventario-usado")

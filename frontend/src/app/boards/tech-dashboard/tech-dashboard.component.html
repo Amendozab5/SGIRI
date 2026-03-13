@@ -78,7 +78,7 @@
                             </span>
                             <button class="btn-action-round" [routerLink]="['/home/user/ticket', ticket.id]">
                                 <i class="bi bi-play-fill"
-                                    *ngIf="ticket.status === 'ASIGNADO' || ticket.status === 'ABIERTO'"></i>
+                                    *ngIf="ticket.status === 'ASIGNADO' || ticket.status === 'ABIERTO' || ticket.status === 'REQUIERE_VISITA'"></i>
                                 <i class="bi bi-arrow-right" *ngIf="ticket.status === 'EN_PROCESO'"></i>
                                 <i class="bi bi-check-lg" *ngIf="ticket.status === 'RESUELTO'"></i>
                             </button>

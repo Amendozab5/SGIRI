@@ -32,6 +32,7 @@ export class TicketAssignPanelComponent implements OnInit {
   selectedTechForDetail: any = null;
   techDocuments: any[] = [];
   loadingDocs = false;
+  programarVisita = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -136,11 +137,22 @@ export class TicketAssignPanelComponent implements OnInit {
     
     this.submitting = true;
     
+    const visit = this.programarVisita;
+    
     // Single assignment only
     this.ticketService.assignTicket(this.ticketId, this.selectedTechId).subscribe({
       next: () => {
-        this.submitting = false;
-        this.router.navigate(['/home/user/ticket', this.ticketId]);
+        if (visit) {
+          this.ticketService.updateStatus(this.ticketId, 'REQUIERE_VISITA', 'Visita programada por el administrador durante la asignación inicial.').subscribe({
+            next: () => {
+              this.submitting = false;
+              this.router.navigate(['/home/user/ticket', this.ticketId]);
+            }
+          });
+        } else {
+          this.submitting = false;
+          this.router.navigate(['/home/user/ticket', this.ticketId]);
+        }
       },
       error: (err) => {
         this.submitting = false;

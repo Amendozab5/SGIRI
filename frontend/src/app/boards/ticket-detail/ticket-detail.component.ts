@@ -1,6 +1,6 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone, ViewChild, ElementRef, AfterViewChecked, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TicketService } from '../../_services/ticket.service';
 import { FormsModule } from '@angular/forms';
 import { TokenStorageService } from '../../_services/token-storage.service';
@@ -16,7 +16,7 @@ import { MasterDataService } from '../../_services/master-data.service';
     templateUrl: './ticket-detail.component.html',
     styleUrls: ['./ticket-detail.component.css']
 })
-export class TicketDetailComponent implements OnInit, AfterViewChecked {
+export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestroy {
     @ViewChild('chatFeed') private chatFeed!: ElementRef;
 
     ticket: any = null;
@@ -58,11 +58,13 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     showReassignModal = false;
     reassignData = {
         userId: 0,
-        notaReasignacion: ''
+        notaReasignacion: '',
+        programarVisita: false
     };
     technicians: any[] = [];
     reassignSearchTerm: string = '';
     selectedTechForPreview: any = null;
+    loadingTechnicians = false;
 
     // ─── Tech Work Form State ──────────────────────────────────────────────────
     formStep: number = 1; // 1: selections, 2: result/comments
@@ -79,7 +81,8 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     selectedInventario: any[] = []; // { idItemInventario, nombre, cantidad }
 
     // Existing informe (loaded from backend)
-    informeTecnico: any = null;
+    informeTecnico: any = null; // Latest report
+    historialInformes: any[] = []; // All reports
     inventarioUsado: any[] = [];
     loadingInforme = false;
 
@@ -108,6 +111,8 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     motivosNoResolucion: string[] = [];
 
     starsArray = [1, 2, 3, 4, 5];
+    private timerInterval: any;
+    elapsedTimeDisplay: string = '00:00:00';
 
     constructor(
         private route: ActivatedRoute,
@@ -115,6 +120,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         private visitaService: VisitaService,
         private tokenService: TokenStorageService,
         private masterDataService: MasterDataService,
+        private router: Router,
         private cdr: ChangeDetectorRef,
         private zone: NgZone
     ) { }
@@ -134,6 +140,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         this.currentUser = this.tokenService.getUser();
         this.checkPermissions(); // Set showStatusUpdate, isTecnico, etc. BEFORE loading data
+        this.resetTechForm();
 
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
@@ -145,6 +152,10 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
             this.loadAvailableInventario();
             this.loadCatalogos();
         }
+    }
+
+    ngOnDestroy(): void {
+        this.stopTimer();
     }
 
     loadVisitHistory(ticketId: number) {
@@ -203,6 +214,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                     // checkPermissions already called in ngOnInit, but update just in case roles come from data
                     this.loadInformeTecnico(id);
                     this.calculateUnreadMessages(id);
+                    this.handleTimerLogic();
                     this.cdr.detectChanges();
                 });
             },
@@ -218,14 +230,19 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     }
 
     loadInformeTecnico(ticketId: number): void {
-        if (!this.isTecnico && !this.showStatusUpdate) return;
         this.loadingInforme = true;
 
-        // Load main informe
+        // Load all reports
         this.ticketService.getInforme(ticketId).subscribe({
-            next: (informe) => {
+            next: (data) => {
                 this.zone.run(() => {
-                    this.informeTecnico = informe;
+                    if (Array.isArray(data)) {
+                        this.historialInformes = data;
+                        this.informeTecnico = data.length > 0 ? data[0] : null;
+                    } else {
+                        this.informeTecnico = data;
+                        this.historialInformes = data ? [data] : [];
+                    }
                     this.loadingInforme = false;
                     this.cdr.detectChanges();
                 });
@@ -233,6 +250,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
             error: (err) => {
                 this.zone.run(() => {
                     this.informeTecnico = null;
+                    this.historialInformes = [];
                     this.loadingInforme = false;
                     this.cdr.detectChanges();
                 });
@@ -260,7 +278,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 roles.includes('ROLE_ADMIN_MASTER') ||
                 roles.includes('ROLE_ADMIN_TECNICOS');
 
-            this.isTecnico = roles.includes('ROLE_TECNICO') || roles.includes('ROLE_ADMIN_MASTER');
+            this.isTecnico = roles.includes('ROLE_TECNICO');
             this.isOnlyTecnico = roles.includes('ROLE_TECNICO') && !roles.includes('ROLE_ADMIN_MASTER') && !roles.includes('ROLE_ADMIN');
 
             this.isCliente = roles.includes('ROLE_CLIENTE');
@@ -276,6 +294,18 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
 
             this.cdr.detectChanges();
         });
+    }
+
+    get isAdmin(): boolean {
+        if (!this.currentUser) return false;
+        const roles = this.currentUser.roles || [];
+        return roles.includes('ROLE_ADMIN_MASTER') || 
+               roles.includes('ROLE_ADMIN_TECNICOS') || 
+               roles.includes('ROLE_ADMIN');
+    }
+
+    get isAdminMaster(): boolean {
+        return !!this.currentUser?.roles?.includes('ROLE_ADMIN_MASTER');
     }
 
     addComment(): void {
@@ -357,17 +387,49 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
 
     get canAssign(): boolean {
         if (!this.currentUser || !this.ticket) return false;
-        const roles = this.currentUser.roles || [];
-        return (roles.includes('ROLE_ADMIN_MASTER') || roles.includes('ROLE_ADMIN_TECNICOS') || roles.includes('ROLE_ADMIN')) && 
-               (this.ticket.estadoItem?.codigo === 'ABIERTO' || this.ticket.estadoItem?.codigo === 'ASIGNADO');
+        const status = this.ticket.estadoItem?.codigo;
+        // Administrator can: Assign tickets (usually ABIERTO or specifically REPROGRAMADA)
+        return this.isAdmin && (status === 'ABIERTO');
     }
 
     get canReassign(): boolean {
-        if (!this.currentUser || !this.ticket) return false;
-        const roles = this.currentUser.roles || [];
+        if (!this.isAdmin || !this.ticket) return false;
         const status = this.ticket.estadoItem?.codigo;
-        return roles.includes('ROLE_ADMIN_MASTER') && 
-               (status === 'ASIGNADO' || status === 'EN_PROCESO' || status === 'REPROGRAMADA' || status === 'REQUIERE_VISITA');
+        return status === 'ASIGNADO' || status === 'REPROGRAMADA' || status === 'REQUIERE_VISITA';
+    }
+
+    get canClose(): boolean {
+        if (!this.isAdmin || !this.ticket) return false;
+        const status = this.ticket.estadoItem?.codigo;
+        // Administrator verification required -> only if status = RESUELTO
+        return status === 'RESUELTO';
+    }
+
+    get isAssignedToMe(): boolean {
+        if (!this.ticket || !this.currentUser) return false;
+        const userId = this.currentUser.id || this.currentUser.userId;
+        const assignedId = this.ticket.idUsuarioAsignado || this.ticket.usuarioAsignado?.id;
+        return userId === assignedId;
+    }
+
+    get canAttend(): boolean {
+        if (!this.ticket || !this.currentUser) return false;
+        const status = this.ticket.estadoItem?.codigo;
+        
+        // 3. ADMIN MUST NOT SEE "ATENDER" (includes Master Admin)
+        if (this.isAdmin || this.isAdminMaster) return false;
+
+        if (this.isOnlyTecnico || this.currentUser.roles?.includes('ROLE_TECNICO')) {
+            return ((status === 'ASIGNADO' || status === 'REQUIERE_VISITA') && this.isAssignedToMe) || (status === 'ABIERTO');
+        }
+        return false;
+    }
+
+    get canSolicitarVisita(): boolean {
+        if (!this.isAdmin || !this.ticket) return false;
+        const status = this.ticket.estadoItem?.codigo;
+        // Allowed for: ABIERTO, ASIGNADO, REPROGRAMADA, REQUIERE_VISITA
+        return status === 'ABIERTO' || status === 'ASIGNADO' || status === 'REPROGRAMADA' || status === 'REQUIERE_VISITA';
     }
 
     get canRate(): boolean {
@@ -439,16 +501,16 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 this.modalData.confirmText = 'Comenzar a atender';
                 break;
             case 'RESUELTO':
-                this.modalData.title = 'Resolver Incidencia';
-                this.modalData.confirmText = 'Marcar como resuelto';
+                this.modalData.title = 'Marcar como Resuelto';
+                this.modalData.confirmText = 'Ya apliqué la solución, por favor valida si funciona correctamente.';
                 break;
             case 'REQUIERE_VISITA':
                 this.modalData.title = 'Solicitar Visita Técnica';
                 this.modalData.confirmText = 'Solicitar visita';
                 break;
             case 'CERRADO':
-                this.modalData.title = 'Cerrar Ticket';
-                this.modalData.confirmText = 'Cerrar permanentemente';
+                this.modalData.title = 'Cerrar Ticket (Verificado)';
+                this.modalData.confirmText = 'Se validó que la solución funciona; el caso está terminado y archivado.';
                 break;
         }
 
@@ -483,25 +545,41 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
         });
     }
 
+    agendarVisitaDirect(): void {
+        const ticketId = this.ticket.idTicket;
+        this.zone.run(() => {
+            this.router.navigate(['/home/agenda'], { queryParams: { ticketId: ticketId } });
+        });
+    }
+
     openReassignModal(): void {
         this.reassignData.userId = this.ticket.usuarioAsignado?.id || this.ticket.usuarioAsignado?.userId || 0;
         this.reassignData.notaReasignacion = '';
         this.reassignSearchTerm = '';
         this.selectedTechForPreview = null;
+        this.reassignData.programarVisita = false;
         
-        // Load technicians for the list
+        // UX Fix: Open modal instantly
+        this.showReassignModal = true;
+        this.loadingTechnicians = true;
+        
+        // Load technicians for the list asynchronously
         this.ticketService.getDetailedTechnicians().subscribe({
             next: (data) => {
                 this.technicians = data;
+                this.loadingTechnicians = false;
                 // Pre-select current if possible
                 if (this.reassignData.userId) {
                     this.selectedTechForPreview = this.technicians.find(t => t.userId === this.reassignData.userId);
                 }
+                this.cdr.detectChanges();
             },
-            error: (err) => console.error('Error loading technicians', err)
+            error: (err) => {
+                console.error('Error loading technicians', err);
+                this.loadingTechnicians = false;
+                this.cdr.detectChanges();
+            }
         });
-        
-        this.showReassignModal = true;
     }
 
     get filteredTechnicians(): any[] {
@@ -526,6 +604,9 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
             return;
         }
 
+        const wasRequiresVisit = this.ticket.estadoItem?.codigo === 'REQUIERE_VISITA';
+        const programarVisita = this.reassignData.programarVisita;
+
         this.showReassignModal = false;
         this.loading = true;
         this.cdr.detectChanges();
@@ -536,12 +617,33 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
             this.reassignData.notaReasignacion
         ).subscribe({
             next: () => {
-                this.zone.run(() => {
-                    this.successMessage = 'Ticket reasignado exitosamente.';
-                    setTimeout(() => this.successMessage = '', 4000);
-                    this.loadTicket(this.ticket.idTicket);
-                    this.cdr.detectChanges();
-                });
+                if (wasRequiresVisit) {
+                    this.ticketService.updateStatus(this.ticket.idTicket, 'REQUIERE_VISITA', 'Reasignación de técnico manteniendo solicitud de visita.').subscribe({
+                        next: () => {
+                            this.zone.run(() => {
+                                if (programarVisita) {
+                                    this.router.navigate(['/home/agenda'], { queryParams: { ticketId: this.ticket.idTicket } });
+                                } else {
+                                    this.successMessage = 'Ticket reasignado manteniendo estado de visita.';
+                                    setTimeout(() => this.successMessage = '', 4000);
+                                    this.loadTicket(this.ticket.idTicket);
+                                    this.cdr.detectChanges();
+                                }
+                            });
+                        }
+                    });
+                } else if (programarVisita) {
+                    this.zone.run(() => {
+                        this.router.navigate(['/home/agenda'], { queryParams: { ticketId: this.ticket.idTicket } });
+                    });
+                } else {
+                    this.zone.run(() => {
+                        this.successMessage = 'Ticket reasignado exitosamente.';
+                        setTimeout(() => this.successMessage = '', 4000);
+                        this.loadTicket(this.ticket.idTicket);
+                        this.cdr.detectChanges();
+                    });
+                }
             },
             error: (err) => {
                 this.zone.run(() => {
@@ -574,12 +676,21 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
 
     /** Whether the tech work form panel should be shown */
     get showTechWorkForm(): boolean {
-        return this.isTecnico && this.ticket?.estadoItem?.codigo === 'EN_PROCESO';
+        // Point 4: Admin is not a technician. Admin must not see tech form.
+        if (this.isOnlyTecnico || this.isAdminMaster) {
+             // Only actual technician (or Master if acting as one) can see it in EN_PROCESO
+             if (this.isAdminMaster && !this.isAssignedToMe) return false;
+             
+             const status = this.ticket?.estadoItem?.codigo;
+             return status === 'EN_PROCESO' && this.isAssignedToMe;
+        }
+        return false;
     }
 
     /** Whether to show the existing informe summary (read-only) */
     get showInformeSummary(): boolean {
-        return this.isTecnico && !!this.informeTecnico;
+        // Show history if it exists, regardless of current state
+        return this.historialInformes.length > 0;
     }
 
     isChipSelected(list: string[], value: string): boolean {
@@ -628,15 +739,15 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
                 cantidad: item.cantidad
             }))
         };
-
         this.ticketService.submitInforme(this.ticket.idTicket, payload).subscribe({
-            next: (res) => {
+            next: (res: any) => {
                 this.techFormSubmitting = false;
                 this.techFormSuccess = true;
                 this.informeTecnico = res;
+                this.resetTechForm();
                 this.loadTicket(this.ticket.idTicket);
             },
-            error: (err) => {
+            error: (err: any) => {
                 this.techFormSubmitting = false;
                 this.techFormError = err.error?.message || 'Error al guardar el informe';
             }
@@ -774,5 +885,70 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked {
     listFromText(text: string | null): string[] {
         if (!text) return [];
         return text.split(',').map(s => s.trim()).filter(s => !!s);
+    }
+
+    // ─── Timer Logic (Work Time Counter) ───────────────────────────────────────
+
+    private handleTimerLogic(): void {
+        if (this.ticket?.estadoItem?.codigo === 'EN_PROCESO') {
+            this.startTimer();
+        } else {
+            this.stopTimer();
+            // If already resolved, maybe show the final time from informe but keep default for form
+            if (this.informeTecnico?.tiempoTrabajoMinutos) {
+                this.tiempoTrabajo = this.informeTecnico.tiempoTrabajoMinutos;
+            }
+        }
+    }
+
+    private startTimer(): void {
+        this.stopTimer(); // Clear existing
+        
+        // Find when it entered EN_PROCESO state
+        const history = this.ticket?.historialEstados || [];
+        const lastInProcess = [...history].reverse().find((h: any) => h.estadoNuevo?.codigo === 'EN_PROCESO');
+        
+        if (!lastInProcess) return;
+
+        const startTime = new Date(lastInProcess.fechaCambio).getTime();
+        
+        this.timerInterval = setInterval(() => {
+            const now = new Date().getTime();
+            const diff = now - startTime;
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            this.elapsedTimeDisplay = 
+                (hours < 10 ? '0' + hours : hours) + ':' + 
+                (minutes < 10 ? '0' + minutes : minutes) + ':' + 
+                (seconds < 10 ? '0' + seconds : seconds);
+            
+            // Auto-calculate the minutes for the submission form
+            this.tiempoTrabajo = Math.max(1, Math.round(diff / (1000 * 60)));
+            this.cdr.detectChanges();
+        }, 1000);
+    }
+
+    private stopTimer(): void {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
+
+    private resetTechForm(): void {
+        this.formStep = 1;
+        this.selectedImplementos = [];
+        this.selectedProblemas = [];
+        this.selectedSoluciones = [];
+        this.selectedPruebas = [];
+        this.selectedMotivo = '';
+        this.comentarioTecnico = '';
+        this.selectedInventario = [];
+        this.techFormTab = 'RESUELTO';
+        this.techFormError = '';
+        this.techFormSuccess = false;
     }
 }

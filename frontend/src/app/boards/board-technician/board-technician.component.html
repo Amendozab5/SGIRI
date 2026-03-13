@@ -21,7 +21,7 @@
       </div>
       <div class="stat-info">
         <h3>Total Asignadas</h3>
-        <span>{{ tickets.length }}</span>
+        <span>{{ stats.totalAsignadas }}</span>
       </div>
     </div>
     <div class="stat-card">
@@ -30,7 +30,7 @@
       </div>
       <div class="stat-info">
         <h3>En Progreso</h3>
-        <span>{{ getCountByStatus('EN_PROCESO') }}</span>
+        <span>{{ stats.enProgreso }}</span>
       </div>
     </div>
     <div class="stat-card">
@@ -38,8 +38,8 @@
         <i class="bi bi-check2-circle"></i>
       </div>
       <div class="stat-info">
-        <h3>Resueltas</h3>
-        <span>{{ getCountByStatus('RESUELTO') }}</span>
+        <h3>Resueltas / Cerradas</h3>
+        <span>{{ stats.resueltas }}</span>
       </div>
     </div>
     <div class="stat-card">
@@ -47,8 +47,8 @@
         <i class="bi bi-exclamation-triangle"></i>
       </div>
       <div class="stat-info">
-        <h3>Urgentes / Visita</h3>
-        <span>{{ getCountByStatus('REQUIERE_VISITA') }}</span>
+        <h3>Requiere Visita</h3>
+        <span>{{ stats.requiereVisita }}</span>
       </div>
     </div>
   </section>
@@ -60,12 +60,14 @@
       <div class="search-box">
         <i class="bi bi-search"></i>
         <input type="text" class="form-control border-0 bg-transparent"
-          placeholder="Buscar incidencia por ID o Asunto...">
+          placeholder="Buscar incidencia por ID o Asunto..."
+          [(ngModel)]="searchTerm" (input)="applyFilters()">
       </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-light border-0" style="font-size: 0.8rem; font-weight: 600;">
-          <i class="bi bi-filter me-1"></i> Filtrar
-        </button>
+      <div class="filter-group-tech">
+        <button class="filter-btn" [class.active]="statusFilter === 'ASIGNADOS'" (click)="statusFilter = 'ASIGNADOS'; applyFilters()">Asignados</button>
+        <button class="filter-btn" [class.active]="statusFilter === 'EN_PROCESO'" (click)="statusFilter = 'EN_PROCESO'; applyFilters()">En Proceso</button>
+        <button class="filter-btn" [class.active]="statusFilter === 'CERRADOS'" (click)="statusFilter = 'CERRADOS'; applyFilters()">Cerrados</button>
+        <button class="filter-btn" [class.active]="statusFilter === 'REASIGNADOS'" (click)="statusFilter = 'REASIGNADOS'; applyFilters()">Reasignados</button>
       </div>
     </div>
 
@@ -101,6 +103,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let ticket of tickets" class="clickable-row animate-in"
+            [ngClass]="{'row-reprogramada': ticket.estadoItem?.codigo === 'REPROGRAMADA'}"
             [routerLink]="['/home/user/ticket', ticket.idTicket]">
             <td class="col-id">#{{ ticket.idTicket }}</td>
             <td>

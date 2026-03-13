@@ -56,14 +56,11 @@ export class VisitaFormModalComponent implements OnInit {
         this.visitaForm.get('idTicket')?.valueChanges.subscribe(id => {
             const selectedTicket = this.tickets.find(t => t.idTicket == id);
             if (selectedTicket && selectedTicket.usuarioAsignado) {
-                this.visitaForm.patchValue({ idTecnico: selectedTicket.usuarioAsignado.id }, { emitEvent: false });
+                this.visitaForm.patchValue({ idTecnico: selectedTicket.usuarioAsignado.id }, { emitEvent: true });
                 this.isTechnicianAutoSelected = true;
             } else {
-                this.visitaForm.patchValue({ idTecnico: null }, { emitEvent: false });
                 this.isTechnicianAutoSelected = false;
             }
-            // Siempre deshabilitado: el técnico NO es seleccionable manualmente
-            this.visitaForm.get('idTecnico')?.disable();
             this.checkConflicts();
         });
 
@@ -141,10 +138,14 @@ export class VisitaFormModalComponent implements OnInit {
         const user = this.tokenService.getUser();
         this.isTechnician = user?.roles.includes('ROLE_TECNICO') || false;
 
-        this.visitaForm.get('idTecnico')?.disable(); // Siempre deshabilitado para el usuario
         this.visitaForm.enable();
-        // Pero el técnico se mantiene deshabilitado incluso si el resto del form se habilita
-        this.visitaForm.get('idTecnico')?.disable();
+
+        // Controlamos el estado del campo técnico
+        if (this.isTechnician || this.isLocked) {
+            this.visitaForm.get('idTecnico')?.disable();
+        } else {
+            this.visitaForm.get('idTecnico')?.enable();
+        }
 
         if (visita) {
             this.isEditMode = true;

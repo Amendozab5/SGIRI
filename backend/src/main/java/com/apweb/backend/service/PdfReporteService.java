@@ -244,7 +244,7 @@ public class PdfReporteService {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    public ByteArrayInputStream generateTicketDetailReport(Ticket ticket, InformeTrabajoTecnico informe,
+    public ByteArrayInputStream generateTicketDetailReport(Ticket ticket, List<InformeTrabajoTecnico> informes,
             List<HistorialEstado> historial, List<ComentarioTicket> comentarios,
             List<InventarioUsadoTicket> inventarioUsado) {
         Document document = new Document(PageSize.A4);
@@ -302,38 +302,50 @@ public class PdfReporteService {
             desc.setSpacingAfter(15);
             document.add(desc);
 
-            // --- SECCIÓN 3: INFORME TÉCNICO ---
-            if (informe != null) {
-                document.add(new Paragraph("INFORME DE TRABAJO TÉCNICO", sectionFont));
-                PdfPTable infoTable = new PdfPTable(1);
-                infoTable.setWidthPercentage(100);
-                infoTable.setSpacingBefore(10);
-                infoTable.setSpacingAfter(15);
+            // --- SECCIÓN 3: HISTORIAL DE INFORMES TÉCNICOS ---
+            if (informes != null && !informes.isEmpty()) {
+                document.add(new Paragraph("HISTORIAL DE INFORMES TÉCNICOS", sectionFont));
+                
+                for (InformeTrabajoTecnico informe : informes) {
+                    PdfPTable infoTable = new PdfPTable(1);
+                    infoTable.setWidthPercentage(100);
+                    infoTable.setSpacingBefore(10);
+                    infoTable.setSpacingAfter(5);
+                    infoTable.getDefaultCell().setBorderColor(new Color(200, 200, 200));
 
-                infoTable.addCell(createLabelValueCell("Técnico Responsable:",
-                        getUserNombre(informe.getTecnico()), labelFont, valueFont));
-                infoTable.addCell(createLabelValueCell("Resultado:", informe.getResultado(), labelFont, valueFont));
-                infoTable.addCell(createLabelValueCell("Tiempo de Trabajo:",
-                        informe.getTiempoTrabajoMinutos() != null ? informe.getTiempoTrabajoMinutos() + " min" : "-",
-                        labelFont, valueFont));
-                infoTable.addCell(createLabelValueCell("Problemas Encontrados:", informe.getProblemasEncontrados(),
-                        labelFont, valueFont));
-                infoTable.addCell(createLabelValueCell("Solución Aplicada:", informe.getSolucionAplicada(), labelFont,
-                        valueFont));
-                infoTable.addCell(createLabelValueCell("Implementos Utilizados:", informe.getImplementosUsados(),
-                        labelFont, valueFont));
-                infoTable.addCell(
-                        createLabelValueCell("Pruebas Realizadas:", informe.getPruebasRealizadas(), labelFont,
-                                valueFont));
+                    String headerText = "Informe #" + informe.getIdInforme() + " - " + 
+                                       (informe.getFechaRegistro() != null ? informe.getFechaRegistro().format(formatter) : "S/F");
+                    PdfPCell hCell = new PdfPCell(new Phrase(headerText, labelFont));
+                    hCell.setBackgroundColor(ALTERNATE_ROW);
+                    hCell.setPadding(5);
+                    infoTable.addCell(hCell);
 
-                if ("NO_RESUELTO".equals(informe.getResultado())) {
-                    infoTable.addCell(createLabelValueCell("Motivo No Resolución:", informe.getMotivoNoResolucion(),
+                    infoTable.addCell(createLabelValueCell("Técnico Responsable:",
+                            getUserNombre(informe.getTecnico()), labelFont, valueFont));
+                    infoTable.addCell(createLabelValueCell("Resultado:", informe.getResultado(), labelFont, valueFont));
+                    infoTable.addCell(createLabelValueCell("Tiempo de Trabajo:",
+                            informe.getTiempoTrabajoMinutos() != null ? informe.getTiempoTrabajoMinutos() + " min" : "-",
                             labelFont, valueFont));
-                }
+                    infoTable.addCell(createLabelValueCell("Problemas Encontrados:", informe.getProblemasEncontrados(),
+                            labelFont, valueFont));
+                    infoTable.addCell(createLabelValueCell("Solución Aplicada:", informe.getSolucionAplicada(), labelFont,
+                            valueFont));
+                    infoTable.addCell(createLabelValueCell("Implementos Utilizados:", informe.getImplementosUsados(),
+                            labelFont, valueFont));
+                    infoTable.addCell(
+                            createLabelValueCell("Pruebas Realizadas:", informe.getPruebasRealizadas(), labelFont,
+                                    valueFont));
 
-                infoTable.addCell(createLabelValueCell("Comentario Técnico:", informe.getComentarioTecnico(), labelFont,
-                        valueFont));
-                document.add(infoTable);
+                    if ("NO_RESUELTO".equals(informe.getResultado())) {
+                        infoTable.addCell(createLabelValueCell("Motivo No Resolución:", informe.getMotivoNoResolucion(),
+                                labelFont, valueFont));
+                    }
+
+                    infoTable.addCell(createLabelValueCell("Comentario Técnico:", informe.getComentarioTecnico(), labelFont,
+                            valueFont));
+                    document.add(infoTable);
+                }
+                document.add(new Paragraph(" ", valueFont));
             }
 
             // --- SECCIÓN 4: HISTORIAL DE ESTADOS ---

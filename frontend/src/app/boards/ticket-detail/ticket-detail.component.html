@@ -45,30 +45,24 @@
                         <i class="bi bi-file-earmark-pdf"></i> Reporte PDF
                     </button>
 
-                    <!-- ATENDER TICKET: strictly shown when status is ABIERTO or ASIGNADO AND NO informe exists -->
+                    <!-- ATENDER TICKET: strictly for assigned technician -->
                     <button type="button"
-                        *ngIf="showStatusUpdate && (ticket.estadoItem?.codigo === 'ABIERTO' || ticket.estadoItem?.codigo === 'ASIGNADO') && !informeTecnico"
+                        *ngIf="canAttend"
                         (click)="changeStatus('EN_PROCESO')" class="btn-action btn-resolve" [disabled]="loading">
                         <i class="bi bi-play-fill"></i> Atender
                     </button>
-
-                    <!-- Only show Resolver/Visita quick buttons for non-tecnico roles -->
-                    <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo === 'EN_PROCESO' && !isTecnico"
-                        (click)="changeStatus('RESUELTO')" class="btn-action btn-resolve" [disabled]="loading">
-                        <i class="bi bi-check-lg"></i> Resolver
-                    </button>
-
-                    <button type="button" *ngIf="showStatusUpdate && ticket.estadoItem?.codigo === 'EN_PROCESO'"
-                        (click)="changeStatus('REQUIERE_VISITA')" class="btn-action btn-visit" [disabled]="loading">
-                        <i class="bi bi-calendar-plus"></i> Solicitar Visita
-                    </button>
-
-                    <!-- Simplified Close Button (Removed Reprogramar) -->
-                    <button *ngIf="showStatusUpdate && ticket.estadoItem?.codigo !== 'CERRADO'"
-                        (click)="changeStatus('CERRADO')"
+                    
+                    <!-- ADMIN: Close Ticket only if RESUELTO (verification flow) -->
+                    <button *ngIf="canClose" (click)="changeStatus('CERRADO')"
                         class="btn-action btn-close-ticket" [disabled]="loading">
-                        <i class="bi bi-x-circle"></i> Cerrar
+                        <i class="bi bi-patch-check-fill"></i> CERRAR TICKET (Validado)
                     </button>
+
+                    <!-- NEW: Real-time Work Counter Display -->
+                    <div class="timer-display-compact" *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'">
+                        <i class="bi bi-stopwatch-fill animate-pulse text-warning"></i>
+                        <span class="timer-text">{{ elapsedTimeDisplay }}</span>
+                    </div>
 
                     <!-- ASIGNAR TICKET: For Admins when ABIERTO or ASIGNADO -->
                     <button type="button" *ngIf="canAssign" [routerLink]="['/home/admin/tickets/asignar', ticket.idTicket]"
@@ -80,6 +74,12 @@
                     <button type="button" *ngIf="canReassign" (click)="openReassignModal()" class="btn-action btn-reassign"
                         [disabled]="loading">
                         <i class="bi bi-arrow-left-right"></i> REASIGNAR
+                    </button>
+
+                    <!-- AGENDAR VISITA: Direct action for Admin to request a field visit -->
+                    <button type="button" *ngIf="canSolicitarVisita" (click)="agendarVisitaDirect()" 
+                        class="btn-action btn-visit" [disabled]="loading">
+                        <i class="bi bi-calendar-check-fill"></i> AGENDAR VISITA
                     </button>
                 </div>
             </header>
@@ -151,79 +151,78 @@
                     <!-- Tech Work Form: shown when EN_PROCESO + user is tecnico   -->
                     <!-- ══════════════════════════════════════════════════════════ -->
 
-                    <!-- EXISTING INFORME SUMMARY (read-only, shown after submit) -->
-                    <section class="section-card informe-card informe-done" *ngIf="showInformeSummary">
-                        <h2 class="section-title">
-                            <i class="bi bi-clipboard2-check-fill"></i> Informe Técnico Registrado
-                            <span class="badge-resultado badge-{{ informeTecnico.resultado.toLowerCase() }} ms-auto">
-                                {{ informeTecnico.resultado === 'RESUELTO' ? '✅ RESUELTO' : '⚠️ NO RESUELTO' }}
-                            </span>
-                        </h2>
-
-                        <div class="informe-grid">
-                            <div class="informe-field" *ngIf="informeTecnico.implementosUsados">
-                                <span class="informe-label"><i class="bi bi-tools"></i> Implementos Usados</span>
-                                <div class="chip-display-row">
-                                    <span class="chip-display"
-                                        *ngFor="let item of listFromText(informeTecnico.implementosUsados)">{{ item
-                                        }}</span>
-                                </div>
-                            </div>
-                            <div class="informe-field" *ngIf="informeTecnico.problemasEncontrados">
-                                <span class="informe-label"><i class="bi bi-bug"></i> Problemas Encontrados</span>
-                                <div class="chip-display-row">
-                                    <span class="chip-display chip-danger"
-                                        *ngFor="let item of listFromText(informeTecnico.problemasEncontrados)">{{ item
-                                        }}</span>
-                                </div>
-                            </div>
-                            <div class="informe-field" *ngIf="informeTecnico.solucionAplicada">
-                                <span class="informe-label"><i class="bi bi-check2-all"></i> Solución Aplicada</span>
-                                <div class="chip-display-row">
-                                    <span class="chip-display chip-success"
-                                        *ngFor="let item of listFromText(informeTecnico.solucionAplicada)">{{ item
-                                        }}</span>
-                                </div>
-                            </div>
-                            <div class="informe-field" *ngIf="informeTecnico.pruebasRealizadas">
-                                <span class="informe-label"><i class="bi bi-speedometer2"></i> Pruebas Realizadas</span>
-                                <div class="chip-display-row">
-                                    <span class="chip-display"
-                                        *ngFor="let item of listFromText(informeTecnico.pruebasRealizadas)">{{ item
-                                        }}</span>
-                                </div>
-                            </div>
-                            <div class="informe-field" *ngIf="inventarioUsado.length">
-                                <span class="informe-label"><i class="bi bi-box-seam"></i> Repuestos / Materiales</span>
-                                <div class="chip-display-row">
-                                    <span class="chip-display" *ngFor="let u of inventarioUsado">
-                                        {{ u.inventario?.nombre }} (x{{ u.cantidad }})
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="informe-field" *ngIf="informeTecnico.motivoNoResolucion">
-                                <span class="informe-label"><i class="bi bi-exclamation-octagon"></i> Motivo No
-                                    Resolución</span>
-                                <span class="chip-display chip-warning">{{ informeTecnico.motivoNoResolucion }}</span>
-                            </div>
-                            <div class="informe-field" *ngIf="informeTecnico.comentarioTecnico">
-                                <span class="informe-label"><i class="bi bi-chat-text"></i> Comentario del
-                                    Técnico</span>
-                                <p class="informe-text">{{ informeTecnico.comentarioTecnico }}</p>
-                            </div>
-                            <div class="informe-field" *ngIf="informeTecnico.tiempoTrabajoMinutos">
-                                <span class="informe-label"><i class="bi bi-clock-history"></i> Tiempo de Trabajo</span>
-                                <span class="chip-display">{{ informeTecnico.tiempoTrabajoMinutos }} minutos</span>
-                            </div>
-                            <div class="informe-field">
-                                <span class="informe-label"><i class="bi bi-calendar-event"></i> Registrado</span>
-                                <span class="text-muted small">{{ informeTecnico.fechaRegistro | date:'medium' }}</span>
-                            </div>
+                    <!-- EXISTING INFORME SUMMARY -->
+                    <div *ngIf="showInformeSummary" class="informe-history-container mb-4">
+                        <div class="governance-header mb-3" *ngIf="isAdmin" 
+                             style="color: var(--primary-color); font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; border-left: 4px solid var(--primary-color); padding-left: 12px;">
+                            <i class="bi bi-shield-check me-2"></i> AUDITORÍA DE GOBERNANZA: Historial de Informes Técnicos
                         </div>
-                    </section>
+                        <section class="section-card informe-card informe-done mb-3 animate-fade-in" 
+                                 *ngFor="let inf of historialInformes; let i = index">
+                            <h2 class="section-title">
+                                <i class="bi bi-clipboard2-check-fill"></i> Informe Técnico #{{ historialInformes.length - i }}
+                                <span class="badge-resultado badge-{{ inf.resultado.toLowerCase() }} ms-auto">
+                                    {{ inf.resultado === 'RESUELTO' ? '✅ RESUELTO' : '⚠️ NO RESUELTO' }}
+                                </span>
+                            </h2>
 
-                    <!-- TECH WORK FORM (active when EN_PROCESO + is tecnico + no informe yet) -->
-                    <section class="informe-card" *ngIf="showTechWorkForm && !informeTecnico">
+                            <div class="informe-grid">
+                                <div class="informe-field" *ngIf="inf.implementosUsados">
+                                    <span class="informe-label"><i class="bi bi-tools"></i> Implementos Usados</span>
+                                    <div class="chip-display-row">
+                                        <span class="chip-display"
+                                            *ngFor="let item of listFromText(inf.implementosUsados)">{{ item }}</span>
+                                    </div>
+                                </div>
+                                <div class="informe-field" *ngIf="inf.problemasEncontrados">
+                                    <span class="informe-label"><i class="bi bi-bug"></i> Problemas Encontrados</span>
+                                    <div class="chip-display-row">
+                                        <span class="chip-display chip-danger"
+                                            *ngFor="let item of listFromText(inf.problemasEncontrados)">{{ item }}</span>
+                                    </div>
+                                </div>
+                                <div class="informe-field" *ngIf="inf.solucionAplicada">
+                                    <span class="informe-label"><i class="bi bi-check2-all"></i> Solución Aplicada</span>
+                                    <div class="chip-display-row">
+                                        <span class="chip-display chip-success"
+                                            *ngFor="let item of listFromText(inf.solucionAplicada)">{{ item }}</span>
+                                    </div>
+                                </div>
+                                <div class="informe-field" *ngIf="inf.pruebasRealizadas">
+                                    <span class="informe-label"><i class="bi bi-speedometer2"></i> Pruebas Realizadas</span>
+                                    <div class="chip-display-row">
+                                        <span class="chip-display"
+                                            *ngFor="let item of listFromText(inf.pruebasRealizadas)">{{ item }}</span>
+                                    </div>
+                                </div>
+                                <div class="informe-field" *ngIf="inf.motivoNoResolucion">
+                                    <span class="informe-label"><i class="bi bi-exclamation-octagon"></i> Motivo No Resolución</span>
+                                    <span class="chip-display chip-warning">{{ inf.motivoNoResolucion }}</span>
+                                </div>
+                                <div class="informe-field" *ngIf="inf.comentarioTecnico">
+                                    <span class="informe-label"><i class="bi bi-chat-text"></i> Comentario del Técnico</span>
+                                    <p class="informe-text">{{ inf.comentarioTecnico }}</p>
+                                </div>
+                                <div class="informe-field" *ngIf="inf.tiempoTrabajoMinutos">
+                                    <span class="informe-label"><i class="bi bi-clock-history"></i> Tiempo de Trabajo</span>
+                                    <span class="chip-display">{{ inf.tiempoTrabajoMinutos }} minutos</span>
+                                </div>
+                                <div class="informe-field">
+                                    <span class="informe-label"><i class="bi bi-calendar-event"></i> Registrado</span>
+                                    <span class="text-muted small">{{ inf.fechaRegistro | date:'medium' }}</span>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- NEW ATTEMPT SECTION (shown if ASIGNADO or EN_PROCESO) -->
+                    <div class="new-attempt-separator" *ngIf="showTechWorkForm && showInformeSummary">
+                        <div class="separator-line"></div>
+                        <span class="separator-text">NUEVO INTENTO DE ATENCIÓN</span>
+                        <div class="separator-line"></div>
+                    </div>
+
+                    <section class="informe-card" [class.new-attempt-card]="showInformeSummary" *ngIf="showTechWorkForm">
                         <div class="informe-header">
                             <h2 class="section-title mb-0">
                                 <i class="bi bi-clipboard2-pulse"></i> Registrar Trabajo Técnico
@@ -656,25 +655,34 @@
                                     </div>
                                 </div>
                                 <div class="tech-scroll-list">
-                                    <div *ngFor="let tech of filteredTechnicians" 
-                                         class="tech-item-row" 
-                                         [class.active]="reassignData.userId === tech.userId"
-                                         (click)="selectTech(tech)">
-                                        <div class="tech-avatar-sm">
-                                            <i class="bi bi-person-badge"></i>
+                                    <div *ngIf="loadingTechnicians" class="text-center p-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
                                         </div>
-                                        <div class="tech-item-info">
-                                            <div class="fw-bold text-dark">{{ tech.nombre }} {{ tech.apellido }}</div>
-                                            <div class="small text-muted">{{ tech.cargo }} • {{ tech.especialidad }}</div>
-                                        </div>
-                                        <div class="check-mark" *ngIf="reassignData.userId === tech.userId">
-                                            <i class="bi bi-check-circle-fill text-primary"></i>
-                                        </div>
+                                        <p class="mt-2 text-muted small">Cargando técnicos disponibles...</p>
                                     </div>
-                                    <div *ngIf="filteredTechnicians.length === 0" class="p-4 text-center text-muted">
-                                        <i class="bi bi-search display-6 d-block mb-2 opacity-25"></i>
-                                        No se encontraron técnicos
-                                    </div>
+
+                                    <ng-container *ngIf="!loadingTechnicians">
+                                        <div *ngFor="let tech of filteredTechnicians" 
+                                             class="tech-item-row" 
+                                             [class.active]="reassignData.userId === tech.userId"
+                                             (click)="selectTech(tech)">
+                                            <div class="tech-avatar-sm">
+                                                <i class="bi bi-person-badge"></i>
+                                            </div>
+                                            <div class="tech-item-info">
+                                                <div class="fw-bold text-dark">{{ tech.nombre }} {{ tech.apellido }}</div>
+                                                <div class="small text-muted">{{ tech.cargo }} • {{ tech.especialidad }}</div>
+                                            </div>
+                                            <div class="check-mark" *ngIf="reassignData.userId === tech.userId">
+                                                <i class="bi bi-check-circle-fill text-primary"></i>
+                                            </div>
+                                        </div>
+                                        <div *ngIf="filteredTechnicians.length === 0" class="p-4 text-center text-muted">
+                                            <i class="bi bi-search display-6 d-block mb-2 opacity-25"></i>
+                                            No se encontraron técnicos
+                                        </div>
+                                    </ng-container>
                                 </div>
                             </div>
 
@@ -721,6 +729,15 @@
                                         <label class="form-label text-muted small fw-bold">Nota de Reasignación <span class="text-danger">*</span></label>
                                         <textarea [(ngModel)]="reassignData.notaReasignacion" class="form-control rounded-3 border-light bg-light" 
                                             rows="3" placeholder="Motivo del cambio de técnico..."></textarea>
+                                    </div>
+
+                                    <div class="mb-3 d-flex align-items-center">
+                                        <div class="form-check form-switch custom-switch">
+                                            <input class="form-check-input" type="checkbox" id="visitSwitch" [(ngModel)]="reassignData.programarVisita">
+                                            <label class="form-check-label fw-bold ms-2 text-primary" for="visitSwitch" style="cursor: pointer;">
+                                                <i class="bi bi-calendar-check me-1"></i> Programar Visita Técnica
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 

@@ -23,6 +23,7 @@ export class BoardUserComponent implements OnInit, OnDestroy {
   incidents: any[] = [];
   isLoadingIncidents = true;
   myVisits: any[] = [];
+  selectedVisitForDetails: any = null;
   errorMessage = '';
 
   // Pagination & Filtering
@@ -83,15 +84,42 @@ export class BoardUserComponent implements OnInit, OnDestroy {
 
   loadMyVisits(): void {
     this.visitaService.getMyVisits().subscribe(visits => {
-      // Solo visitas futuras o de hoy que no estén canceladas ni finalizadas
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      this.myVisits = visits.filter((v: any) => {
-        const vDate = new Date(v.fechaVisita + 'T00:00:00');
-        return vDate >= today && v.estado.codigo !== 'CANCELADA' && v.estado.codigo !== 'FINALIZADA';
+
+      // Eliminación de duplicados y filtrado de estados/fechas
+      const uniqueVisits = new Map();
+      
+      visits.forEach((v: any) => {
+        if (!uniqueVisits.has(v.idVisita)) {
+          const vDate = new Date(v.fechaVisita + 'T00:00:00');
+          if (vDate >= today && v.estado.codigo !== 'CANCELADA' && v.estado.codigo !== 'FINALIZADA') {
+            uniqueVisits.set(v.idVisita, v);
+          }
+        }
       });
+
+      this.myVisits = Array.from(uniqueVisits.values());
       this.cdr.detectChanges();
     });
+  }
+
+  showVisitDetails(visit: any): void {
+    // Puntox: Fix 'Empty Day' by creating a robust Date object
+    // Separamos los componentes para evitar problemas de zona horaria (UTC vs Local)
+    const [year, month, day] = visit.fechaVisita.split('-').map(Number);
+    const normalizedDate = new Date(year, month - 1, day);
+
+    this.selectedVisitForDetails = {
+      ...visit,
+      fechaFormateada: normalizedDate
+    };
+    this.cdr.detectChanges();
+  }
+
+  closeVisitDetails(): void {
+    this.selectedVisitForDetails = null;
+    this.cdr.detectChanges();
   }
 
   loadIncidents(): void {

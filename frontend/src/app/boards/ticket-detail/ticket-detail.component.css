@@ -138,6 +138,36 @@
     margin-top: 2px;
 }
 
+/* Real-time Timer Styles */
+.timer-display-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fffbeb;
+    padding: 6px 16px;
+    border-radius: 50px;
+    border: 1px solid #fef3c7;
+    margin: 0 10px;
+}
+
+.timer-text {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-weight: 800;
+    color: #92400e;
+    font-size: 1rem;
+    min-width: 80px;
+}
+
+.animate-pulse {
+    animation: simple-pulse 1.5s infinite;
+}
+
+@keyframes simple-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
 /* Action Buttons */
 .action-buttons {
     display: flex;
@@ -1391,6 +1421,38 @@
 }
 
 /* ─── Tech Enhancements: Wizard, Search, Frequencies ─────────────────────────── */
+
+/* New Attempt UX Styles */
+.new-attempt-separator {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    opacity: 0.8;
+}
+
+.separator-line {
+    flex-grow: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+}
+
+.separator-text {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    background: #f1f5f9;
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.new-attempt-card {
+    border: 2px solid #e0e7ff !important; /* Indigo light border */
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1) !important;
+}
 
 /* Container overrides */
 .informe-card {

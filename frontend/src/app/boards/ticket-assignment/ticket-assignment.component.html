@@ -35,6 +35,10 @@
                 (click)="statusFilter = 'ABIERTO'; applyFilters()">Abiertos</button>
             <button [class.active]="statusFilter === 'EN_PROCESO'"
                 (click)="statusFilter = 'EN_PROCESO'; applyFilters()">Activos</button>
+            <button [class.active]="statusFilter === 'REPROGRAMADA'"
+                (click)="statusFilter = 'REPROGRAMADA'; applyFilters()">Reprogramadas</button>
+            <button [class.active]="statusFilter === 'RESUELTO'"
+                (click)="statusFilter = 'RESUELTO'; applyFilters()">Resueltos</button>
         </div>
 
         <button class="action-refresh" (click)="loadData()" [disabled]="loading" title="Sincronizar">
