@@ -14,39 +14,25 @@
     </div>
   </header>
 
-  <section class="scheduled-visits-section animate__animated animate__fadeInDown" *ngIf="myVisits.length > 0">
-    <div class="visit-alert-premium" *ngFor="let visit of myVisits">
-      <!-- Calendar Part -->
-      <div class="date-calendar-block">
-        <div class="cal-header">{{ visit.fechaVisita | date:'MMMM':'':'es' | uppercase }}</div>
-        <div class="cal-body">
-          <span class="cal-day">{{ visit.fechaVisita | date:'d' }}</span>
-          <span class="cal-time">{{ visit.horaInicio.substring(0, 5) }}</span>
+  <section class="compact-visits-area" *ngIf="myVisits.length > 0">
+    <div class="visit-notification-bar animate__animated animate__fadeInRight" 
+         *ngFor="let visit of myVisits" (click)="showVisitDetails(visit)">
+      <div class="v-bar-icon">
+        <i class="bi bi-calendar-check-fill"></i>
+      </div>
+      <div class="v-bar-content">
+        <span class="v-bar-label">Servicio Programado</span>
+        <div class="v-bar-details">
+          <span class="v-bar-item"><i class="bi bi-calendar-event me-1"></i> {{ visit.fechaVisita | date:'d MMM' }}</span>
+          <span class="v-bar-divider">|</span>
+          <span class="v-bar-item"><i class="bi bi-clock me-1"></i> {{ visit.horaInicio.substring(0, 5) }} - {{ visit.horaFin?.substring(0, 5) || '--:--' }}</span>
         </div>
       </div>
-
-      <!-- Content Part -->
-      <div class="visit-content-info">
-        <div class="meta-status">
-          <span class="ticket-ref">#{{visit.ticket.idTicket}}</span>
-          <span class="pill-type">Visita Técnica de Mantenimiento</span>
-        </div>
-        <h3 class="visit-title">Servicio Programado</h3>
-        <div class="tech-info-row mt-2">
-          <i class="bi bi-person-check-fill text-primary"></i>
-          <span class="label-tech">Técnico Asignado:</span>
-          <span class="name-tech">{{ visit.tecnico.persona?.nombre || visit.tecnico.fullName }} {{
-            visit.tecnico.persona?.apellido || '' }}</span>
-        </div>
+      <div class="v-bar-tech">
+        <i class="bi bi-person-badge me-1"></i>
+        <span>{{ visit.tecnico.persona?.nombre || visit.tecnico.fullName }}</span>
       </div>
-
-      <!-- Action Part -->
-      <div class="visit-action-container">
-        <button [routerLink]="['/home/user/ticket', visit.ticket.idTicket]" class="btn-detail-luxury">
-          Ver Detalles
-          <i class="bi bi-arrow-right-short"></i>
-        </button>
-      </div>
+      <i class="bi bi-chevron-right v-bar-arrow"></i>
     </div>
   </section>
 
@@ -193,4 +179,56 @@
       <p>{{ errorMessage }}</p>
     </div>
   </main>
+
+  <!-- Visit Details Modal Overlay -->
+  <div class="visit-details-overlay" *ngIf="selectedVisitForDetails" (click)="closeVisitDetails()">
+    <div class="visit-modal-card animate__animated animate__zoomIn" (click)="$event.stopPropagation()">
+      <div class="modal-header-accent"></div>
+      <div class="p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h3 class="modal-v-title">Detalles de la Visita</h3>
+          <button class="btn-close-modal" (click)="closeVisitDetails()"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div class="modal-v-body">
+          <div class="info-row">
+            <span class="info-label">ID Ticket</span>
+            <span class="info-value"><i class="bi bi-hash text-primary me-1"></i>{{ selectedVisitForDetails.ticket.idTicket }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Día</span>
+            <span class="info-value">
+              <i class="bi bi-calendar3 text-primary me-2"></i>
+              {{ selectedVisitForDetails.fechaFormateada | date:'d MMMM, y' }}
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Ventana Horaria</span>
+            <span class="info-value">
+              <i class="bi bi-clock-fill text-primary me-2"></i>
+              {{ selectedVisitForDetails.horaInicio.substring(0, 5) }} - {{ selectedVisitForDetails.horaFin?.substring(0, 5) || '--:--' }}
+            </span>
+          </div>
+          <div class="info-row border-0">
+            <span class="info-label">Técnico Asignado</span>
+            <div class="d-flex align-items-center mt-2">
+              <div class="tech-avatar-mini" [style.background-color]="getAvatarColor(selectedVisitForDetails.tecnico.fullName)">
+                {{ getInitials(selectedVisitForDetails.tecnico.fullName) }}
+              </div>
+              <div class="ms-3">
+                <span class="info-value d-block">{{ selectedVisitForDetails.tecnico.persona?.nombre || selectedVisitForDetails.tecnico.fullName }} {{ selectedVisitForDetails.tecnico.persona?.apellido || '' }}</span>
+                <span class="info-label smallest">Personal Técnico Autorizado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100 mt-4 py-2 fw-bold rounded-3" 
+                [routerLink]="['/home/user/ticket', selectedVisitForDetails.ticket.idTicket]"
+                (click)="closeVisitDetails()">
+          Ir al Ticket <i class="bi bi-arrow-right ms-2"></i>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

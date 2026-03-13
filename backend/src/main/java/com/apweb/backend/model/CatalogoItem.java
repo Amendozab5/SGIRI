@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "catalogo_item", schema = "catalogos")
@@ -22,6 +24,8 @@ public class CatalogoItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_catalogo", nullable = false)
     @JsonBackReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Catalogo catalogo;
 
     @Column(length = 50)

@@ -16,6 +16,7 @@ import { TicketDetailComponent } from './boards/ticket-detail/ticket-detail.comp
 import { TicketAssignmentComponent } from './boards/ticket-assignment/ticket-assignment.component'; // Import New Component
 import { EmployeeManagementComponent } from './boards/employee-management/employee-management.component';
 import { TechDashboardComponent } from './boards/tech-dashboard/tech-dashboard.component'; // Import TechDashboardComponent
+import { TicketAssignPanelComponent } from './boards/ticket-assign-panel/ticket-assign-panel.component';
 
 
 import { AuditManagementComponent } from './boards/audit-management/audit-management.component'; // New import
@@ -44,6 +45,7 @@ export const routes: Routes = [
       { path: 'user', component: BoardUserComponent },
       { path: 'user/report-incident', component: ReportIncidentComponent }, // New route for reporting
       { path: 'user/ticket/:id', component: TicketDetailComponent }, // New route for detail
+      { path: 'admin/tickets/asignar/:id', component: TicketAssignPanelComponent },
       { path: 'network-map', loadComponent: () => import('./boards/network-map/network-map.component').then(m => m.NetworkMapComponent) },
       { path: 'agenda', loadComponent: () => import('./boards/scheduler/scheduler.component').then(m => m.SchedulerComponent) },
       { path: '', redirectTo: 'user', pathMatch: 'full' }

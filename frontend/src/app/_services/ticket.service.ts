@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { TicketRequest } from '../models/ticket-request';
 import { Ticket } from '../models/ticket';
 
@@ -10,6 +11,9 @@ const API_URL = 'http://localhost:8081/api/tickets';
   providedIn: 'root'
 })
 export class TicketService {
+  private techniciansCache: any[] | null = null;
+  private lastTechFetch: number = 0;
+  private readonly CACHE_TTL = 300000; // 5 minutes
 
   constructor(private http: HttpClient) { }
 
@@ -87,5 +91,30 @@ export class TicketService {
 
   getTicketsPendingVisit(): Observable<Ticket[]> {
     return this.http.get<Ticket[]>(API_URL + '/pending-visit');
+  }
+
+  getDetailedTechnicians(): Observable<any[]> {
+    const now = Date.now();
+    if (this.techniciansCache && (now - this.lastTechFetch < this.CACHE_TTL)) {
+      return of(this.techniciansCache);
+    }
+    return this.http.get<any[]>(API_URL + '/tecnicos').pipe(
+      tap(data => {
+        this.techniciansCache = data;
+        this.lastTechFetch = now;
+      })
+    );
+  }
+
+  getTechnicianDocuments(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(API_URL + `/tecnicos/${userId}/documentos`);
+  }
+
+  assignTicketMultiple(id: number, userIds: number[], groupCode?: string): Observable<any> {
+    return this.http.post(API_URL + `/${id}/assign-multiple`, { userIds, groupCode });
+  }
+
+  reassignTicket(id: number, userId: number, notaReasignacion: string): Observable<any> {
+    return this.http.post(API_URL + `/${id}/reassign`, { userId, notaReasignacion });
   }
 }

@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { VisitaService } from '../../_services/visita.service';
 import { TicketService } from '../../_services/ticket.service';
@@ -46,6 +47,7 @@ export class SchedulerComponent implements OnInit {
         private ticketService: TicketService,
         private userService: UserService,
         private tokenService: TokenStorageService,
+        private route: ActivatedRoute,
         private cdr: ChangeDetectorRef // Inyectar ChangeDetectorRef
     ) { }
 
@@ -67,6 +69,25 @@ export class SchedulerComponent implements OnInit {
         this.ticketService.getTicketsPendingVisit().subscribe(res => {
             this.tickets = res;
             this.cdr.detectChanges(); // Trigger change detection
+            
+            // Check for ticketId in query params to open modal directly
+            this.route.queryParams.subscribe(params => {
+                const ticketId = params['ticketId'];
+                if (ticketId) {
+                    const ticketToOpen = this.tickets.find(t => t.idTicket === +ticketId);
+                    if (ticketToOpen) {
+                        this.onPendingTicketClick(ticketToOpen);
+                    } else {
+                        // SI el ticket no está en pendientes (ej: viene de detalle sin ser REQUIERE_VISITA aún)
+                        // lo cargamos directamente para poder agendarlo.
+                         this.ticketService.getTicketById(+ticketId).subscribe(t => {
+                             if (t) {
+                                 this.onPendingTicketClick(t);
+                             }
+                         });
+                    }
+                }
+            });
         });
 
         // Cargar técnicos (incluyendo todos los roles operativos de empleados)
@@ -203,9 +224,13 @@ export class SchedulerComponent implements OnInit {
             });
         } else {
             this.visitaService.createVisita(request).subscribe(() => {
-                this.loadVisitas();
-                this.loadInitialData(); // Reload pending list
-                this.visitaFormModal.hide();
+                // Punto 1: Cambiar el estado del ticket a REQUIERE_VISITA al guardar
+                // Esto asegura que el flujo ITSM se respete y el estado refleje el trabajo logístico.
+                this.ticketService.updateStatus(request.idTicket, 'REQUIERE_VISITA', 'Visita agendada oficialmente por el administrador.').subscribe(() => {
+                    this.loadVisitas();
+                    this.loadInitialData(); // Reload pending list
+                    this.visitaFormModal.hide();
+                });
             });
         }
     }

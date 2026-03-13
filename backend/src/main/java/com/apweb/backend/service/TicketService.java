@@ -6,15 +6,16 @@ import com.apweb.backend.payload.request.TicketRequest;
 import com.apweb.backend.repository.*;
 import com.apweb.backend.services.notificaciones.NotificacionServiceApp;
 import com.apweb.backend.services.notificaciones.MailTemplateService;
+import com.apweb.backend.dto.TechnicianDTO;
+import com.apweb.backend.dto.DocumentoEmpleadoDTO;
 import java.io.ByteArrayInputStream;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 import java.time.LocalDateTime;
 import com.apweb.backend.util.AuditAccion;
 import com.apweb.backend.util.AuditModulo;
@@ -24,6 +25,12 @@ public class TicketService {
 
         @Autowired
         private TicketRepository ticketRepository;
+
+        @Autowired
+        private EmpleadoRepository empleadoRepository;
+
+        @Autowired
+        private DocumentoEmpleadoRepository documentoEmpleadoRepository;
 
         @Autowired
         private EmpresaRepository empresaRepository;
@@ -118,7 +125,13 @@ public class TicketService {
         }
 
         public List<Ticket> getTicketsByAssignedUser(User user) {
-                return ticketRepository.findByUsuarioAsignado(user);
+                // Get tickets where user is primary assignee
+                java.util.Set<Ticket> tickets = new java.util.HashSet<>(ticketRepository.findByUsuarioAsignado(user));
+                
+                // Add tickets where user is part of a group assignment
+                asignacionRepository.findByUsuarioAndActivoTrue(user).forEach(a -> tickets.add(a.getTicket()));
+                
+                return new java.util.ArrayList<>(tickets);
         }
 
         @Transactional
@@ -136,6 +149,16 @@ public class TicketService {
                 User previousAssignee = ticket.getUsuarioAsignado();
                 ticket.setUsuarioAsignado(technician);
                 ticket.setEstadoItem(estadoAsignado);
+
+                // Deactivate any currently active assignments for this ticket
+                List<Asignacion> asignacionesActivas = asignacionRepository.findByTicket(ticket);
+                for (Asignacion a : asignacionesActivas) {
+                        if (a.getActivo()) {
+                                a.setActivo(false);
+                                asignacionRepository.save(a);
+                        }
+                }
+                asignacionRepository.flush(); // Ensure the deactivation is completed before new insert
 
                 // Create assignment record
                 Asignacion asignacion = new Asignacion();
@@ -181,13 +204,15 @@ public class TicketService {
                 Ticket savedTicket = ticketRepository.save(ticket);
 
                 // --- NUEVO SISTEMA DE NOTIFICACIONES ---
+                boolean isReassignment = previousAssignee != null;
+                String typePrefix = isReassignment ? "REASIGNACIÓN: " : "";
 
                 // 1. Notificar al Técnico (Solo Web + Interactiva)
                 String rutaTecnico = "/home/user/ticket/" + savedTicket.getIdTicket();
                 notificacionServiceApp.crearNotificacionWeb(
                                 technician,
-                                "Nuevo Ticket Asignado: #" + savedTicket.getIdTicket(),
-                                "Se le ha asignado el ticket: " + savedTicket.getAsunto(),
+                                typePrefix + "Ticket Assigned #" + savedTicket.getIdTicket(),
+                                (isReassignment ? "Se le ha reasignado el ticket: " : "Se le ha asignado el ticket: ") + savedTicket.getAsunto(),
                                 rutaTecnico,
                                 savedTicket);
 
@@ -195,21 +220,24 @@ public class TicketService {
                 User usuarioReportante = savedTicket.getUsuarioCreador();
                 if (usuarioReportante != null) {
                         String rutaUsuario = "/home/user/ticket/" + savedTicket.getIdTicket();
-
-                        // Notificación Web (Segura contra Null)
                         String nombreTecnico = getNombreCompleto(technician);
+                        
+                        String tituloWeb = isReassignment ? "Su ticket #" + savedTicket.getIdTicket() + " ha sido REASIGNADO" 
+                                                         : "Su ticket #" + savedTicket.getIdTicket() + " ha sido asignado";
+                        String msjWeb = isReassignment ? "Su ticket ha sido reasignado al técnico " + nombreTecnico 
+                                                       : "Su ticket ahora está siendo atendido por " + nombreTecnico;
+
                         notificacionServiceApp.crearNotificacionWeb(
                                         usuarioReportante,
-                                        "Su ticket #" + savedTicket.getIdTicket() + " ha sido asignado",
-                                        "Su ticket ahora está siendo atendido por " + nombreTecnico,
+                                        tituloWeb,
+                                        msjWeb,
                                         rutaUsuario,
                                         savedTicket);
 
-                        // Encolar Correo (Seguro contra Null)
+                        // Encolar Correo
                         String emailDestino = getEmailSeguro(usuarioReportante);
                         if (emailDestino != null) {
-                                String urlFront = "http://localhost:4200/home/user/ticket/"
-                                                + savedTicket.getIdTicket();
+                                String urlFront = "http://localhost:4200/home/user/ticket/" + savedTicket.getIdTicket();
                                 String cuerpoMail = mailTemplateService.formatTicketAssignment(
                                                 getNombreCompleto(usuarioReportante),
                                                 savedTicket.getIdTicket(),
@@ -217,15 +245,216 @@ public class TicketService {
                                                 nombreTecnico,
                                                 urlFront);
 
+                                String subjectMail = isReassignment ? "Ticket #" + savedTicket.getIdTicket() + " - REASIGNADO" 
+                                                                    : "Ticket #" + savedTicket.getIdTicket() + " - Técnico Asignado";
+
                                 notificacionServiceApp.encolarCorreo(
                                                 savedTicket,
                                                 emailDestino,
-                                                "Ticket #" + savedTicket.getIdTicket() + " - Técnico Asignado",
+                                                subjectMail,
                                                 cuerpoMail);
                         }
                 }
 
                 return savedTicket;
+        }
+
+        @Transactional
+        public List<Ticket> assignTicketMultiple(Integer idTicket, List<Integer> idUsers, User assigner,
+                        String groupCode) {
+                Ticket ticket = getTicketById(idTicket);
+                if (idUsers == null || idUsers.isEmpty()) {
+                        throw new RuntimeException("Error: No users provided for assignment");
+                }
+
+                CatalogoItem estadoAnterior = ticket.getEstadoItem();
+                CatalogoItem estadoAsignado = catalogoItemRepository
+                                .findByCatalogo_NombreAndCodigo("ESTADO_TICKET", "ASIGNADO")
+                                .orElseThrow(() -> new RuntimeException("Error: Status 'ASIGNADO' not found"));
+
+                // Update ticket to ASIGNADO and set primary assignee (first one)
+                User firstTechnician = userRepository.findById(idUsers.get(0))
+                                .orElseThrow(() -> new RuntimeException("Error: User not found with ID: " + idUsers.get(0)));
+                ticket.setUsuarioAsignado(firstTechnician);
+                ticket.setEstadoItem(estadoAsignado);
+                ticketRepository.save(ticket);
+
+                // Create multiple assignment records
+                for (Integer userId : idUsers) {
+                        User technician = userRepository.findById(userId)
+                                        .orElseThrow(() -> new RuntimeException("Error: User not found with ID: " + userId));
+
+                        Asignacion asignacion = new Asignacion();
+                        asignacion.setTicket(ticket);
+                        asignacion.setUsuario(technician);
+                        asignacion.setActivo(true);
+                        asignacionRepository.save(asignacion);
+
+                        // Record history for each
+                        HistorialEstado historial = new HistorialEstado();
+                        historial.setTicket(ticket);
+                        historial.setEstado(estadoAsignado);
+                        historial.setEstadoAnterior(estadoAnterior);
+                        historial.setEstadoNuevo(estadoAsignado);
+                        historial.setUsuario(assigner);
+                        historial.setUsuarioBd(resolveDbUsername(assigner));
+                        historial.setObservacion("Ticket asignado a " + technician.getUsername()
+                                        + (groupCode != null ? " (Grupo: " + groupCode + ")" : ""));
+                        historialEstadoRepository.save(historial);
+
+                        // Audit
+                        auditService.registrarEvento(
+                                        AuditModulo.TICKETS,
+                                        "soporte", "ticket",
+                                        ticket.getIdTicket(),
+                                        AuditAccion.UPDATE,
+                                        "Ticket asignado al técnico: " + technician.getUsername()
+                                                        + (groupCode != null ? " como parte del grupo " + groupCode : ""),
+                                        null,
+                                        java.util.Map.of("idUsuarioAsignado", technician.getId()),
+                                        assigner.getId());
+
+                        // Notification
+                        notificacionServiceApp.crearNotificacionWeb(
+                                        technician,
+                                        "Nuevo Ticket Asignado: #" + ticket.getIdTicket(),
+                                        "Se le ha asignado el ticket: " + ticket.getAsunto()
+                                                        + (groupCode != null ? " (Grupo: " + groupCode + ")" : ""),
+                                        "/home/user/ticket/" + ticket.getIdTicket(),
+                                        ticket);
+                }
+
+                return List.of(ticket);
+        }
+
+        @Transactional
+        public Ticket reassignTicket(Integer idTicket, Integer idUser, User reassigner, String notaReasignacion) {
+                Ticket ticket = getTicketById(idTicket);
+
+                // Security check: Only ADMIN_MASTER can reassign
+                if (reassigner.getRole() == null || !"ADMIN_MASTER".equals(reassigner.getRole().getCodigo())) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                        "Solo el Administrador Master puede reasignar un ticket reprogramado.");
+                }
+
+                // Allowed states for reassignment: ASIGNADO, EN_PROCESO, REPROGRAMADA, REQUIERE_VISITA
+                String currentStatus = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
+                boolean canReassignStatus = "ASIGNADO".equals(currentStatus) || 
+                                           "EN_PROCESO".equals(currentStatus) || 
+                                           "REPROGRAMADA".equals(currentStatus) ||
+                                           "REQUIERE_VISITA".equals(currentStatus);
+                
+                if (!canReassignStatus) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "El ticket no se encuentra en un estado que permita reasignación.");
+                }
+
+                // Ensure note is provided
+                String finalNote = (notaReasignacion != null && !notaReasignacion.trim().isEmpty()) 
+                    ? notaReasignacion.trim() 
+                    : "Reasignación sin nota específica";
+                // Reassign using the common logic
+                Ticket updatedTicket = assignTicket(idTicket, idUser, reassigner);
+                
+                // Add commentary with the reassign reason
+                addComment(idTicket, reassigner, "NOTA DE REASIGNACIÓN: " + finalNote, true);
+
+                return updatedTicket;
+        }
+
+        @Transactional(readOnly = true)
+        public java.util.List<TechnicianDTO> getAllTechniciansDetailed() {
+                java.util.List<String> roleAllowed = java.util.Arrays.asList("TECNICO", "ADMIN_TECNICOS", "ADMIN_MASTER");
+                java.util.List<Empleado> allEmps = empleadoRepository.findAllWithAllAssociations();
+                
+                if (allEmps == null) return new java.util.ArrayList<>();
+
+                java.util.List<TechnicianDTO> result = new java.util.ArrayList<>();
+                for (Empleado e : allEmps) {
+                    try {
+                        if (e == null) continue;
+                        Persona persona = e.getPersona();
+                        User user = (persona != null) ? persona.getUser() : null;
+                        
+                        // Filter by role manually to be safe against JOIN FETCH complexities in WHERE
+                        if (user == null || user.getRole() == null || !roleAllowed.contains(user.getRole().getCodigo())) {
+                            continue;
+                        }
+
+                        Long ticketsAsignadosTotal = countTicketsByTecnico(user);
+                        if (ticketsAsignadosTotal == null) ticketsAsignadosTotal = 0L;
+
+                        java.util.List<Ticket> activeTicketsList = getTicketsByAssignedUser(user);
+                        Long ticketsActivosEncontrados = (long) (activeTicketsList != null ? activeTicketsList.size() : 0);
+                        
+                        Double promedioCalificacion = getAvgRatingByTecnico(user);
+
+                        // Calculate derived values
+                        Long ticketsResueltos = countRatedTicketsByTecnico(user);
+                        if (ticketsResueltos == null) ticketsResueltos = 0L;
+                        
+                        double porcentaje = ticketsAsignadosTotal > 0 ? ((double) ticketsResueltos / ticketsAsignadosTotal) * 100.0 : 0.0;
+                        
+                        String nivel = "Básico";
+                        if (promedioCalificacion != null) {
+                            if (promedioCalificacion >= 4.0) nivel = "Alto";
+                            else if (promedioCalificacion >= 3.0) nivel = "Medio";
+                        }
+                        
+                        String estadoUser = (user.getEstado() != null) ? user.getEstado().getNombre() : "Activo";
+                        String especialidadArea = (e.getArea() != null) ? e.getArea().getNombre() : "Soporte General";
+                        
+                        String promedioStr = (promedioCalificacion != null) ? String.valueOf(Math.round(promedioCalificacion * 10.0) / 10.0) : "N/A";
+                        String historial = "Promedio: " + promedioStr + " / Tickets Totales: " + ticketsAsignadosTotal;
+
+                        result.add(TechnicianDTO.builder()
+                                .userId(user.getId())
+                                .empleadoId(e.getIdEmpleado())
+                                .username(user.getUsername())
+                                .nombre(persona.getNombre() != null ? persona.getNombre() : "N/A")
+                                .apellido(persona.getApellido() != null ? persona.getApellido() : "N/A")
+                                .cedula(persona.getCedula() != null ? persona.getCedula() : "N/A")
+                                .correo(persona.getCorreo() != null ? persona.getCorreo() : "N/A")
+                                .celular(persona.getCelular() != null ? persona.getCelular() : "N/A")
+                                .cargo(e.getCargo() != null ? e.getCargo().getNombre() : "Sin Cargo")
+                                .area(e.getArea() != null ? e.getArea().getNombre() : "Sin Área")
+                                .tipoContrato(e.getTipoContrato() != null ? e.getTipoContrato().getNombre() : "Desconocido")
+                                .fechaIngreso(e.getFechaIngreso())
+                                .estado(estadoUser)
+                                .ticketsAsignados(ticketsAsignadosTotal)
+                                .ticketsResueltosHoy(0L)
+                                .porcentajeResolucion(Math.round(porcentaje * 10.0) / 10.0)
+                                .nivelRendimiento(nivel)
+                                .ticketsActivos(ticketsActivosEncontrados)
+                                .especialidad(especialidadArea)
+                                .historialResumido(historial)
+                                .build());
+                    } catch (Exception ex) {
+                        // Skip problematic records instead of failing the whole list
+                        continue;
+                    }
+                }
+                return result;
+        }
+
+
+        public List<DocumentoEmpleadoDTO> getTechnicianDocuments(Integer userId) {
+                Empleado empleado = empleadoRepository.findByPersona_User_Id(userId)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Empleado no encontrado para el usuario."));
+
+                List<DocumentoEmpleado> documents = documentoEmpleadoRepository.findByEmpleado_IdEmpleado(empleado.getIdEmpleado());
+                return documents.stream().map(d -> DocumentoEmpleadoDTO.builder()
+                                .idDocumento(d.getIdDocumento())
+                                .numeroDocumento(d.getNumeroDocumento())
+                                .rutaArchivo(d.getRutaArchivo())
+                                .descripcion(d.getDescripcion())
+                                .fechaSubida(d.getFechaSubida())
+                                .idTipoDocumento(d.getTipoDocumento() != null ? d.getTipoDocumento().getId() : null)
+                                .codigoTipoDocumento(d.getTipoDocumento() != null ? d.getTipoDocumento().getCodigo() : null)
+                                .idEstado(d.getEstado() != null ? d.getEstado().getId() : null)
+                                .nombreEstado(d.getEstado() != null ? d.getEstado().getNombre() : null)
+                                .build()).collect(java.util.stream.Collectors.toList());
         }
 
         @Transactional
@@ -403,14 +632,23 @@ public class TicketService {
                 }
 
                 // Logic: Only admin can change status if it is currently REPROGRAMADA
+                boolean isAdmin = user.getRole() != null &&
+                                ("ADMIN_MASTER".equals(user.getRole().getCodigo()) ||
+                                                "ADMIN".equals(user.getRole().getCodigo()) ||
+                                                "ADMIN_TECNICOS".equals(user.getRole().getCodigo()));
+
                 if ("REPROGRAMADA".equals(estadoAnterior.getCodigo())) {
-                        boolean isAdmin = user.getRole() != null &&
-                                        ("ADMIN_MASTER".equals(user.getRole().getCodigo()) ||
-                                                        "ADMIN".equals(user.getRole().getCodigo()) ||
-                                                        "ADMIN_TECNICOS".equals(user.getRole().getCodigo()));
                         if (!isAdmin) {
                                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                                                 "Solo un administrador puede permitir continuar un ticket despuès de ser REPROGRAMADA.");
+                        }
+                }
+
+                // Logic: ONLY Admin can close tickets (CERRADO)
+                if ("CERRADO".equals(statusCode)) {
+                        if (!isAdmin) {
+                                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                                "Solo un administrador puede CERRAR oficialmente un ticket.");
                         }
                 }
 
@@ -578,11 +816,11 @@ public class TicketService {
 
                 Ticket ticket = getTicketById(idTicket);
 
-                // 1. Verify ticket is in EN_PROCESO state
+                // 1. Verify ticket is in EN_PROCESO or ASIGNADO state
                 String estadoActual = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
-                if (!"EN_PROCESO".equals(estadoActual)) {
+                if (!"EN_PROCESO".equals(estadoActual) && !"ASIGNADO".equals(estadoActual)) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                        "El ticket debe estar en estado EN_PROCESO para registrar el informe técnico.");
+                                        "El ticket debe estar en estado ASIGNADO o EN_PROCESO para registrar el informe técnico.");
                 }
 
                 // 2. Verify this technician is the assigned one
@@ -597,13 +835,9 @@ public class TicketService {
                         }
                 }
 
-                // 3. Check if an informe already exists for this ticket
-                Optional<InformeTrabajoTecnico> existente = informeTrabajoTecnicoRepository
-                                .findByTicket_IdTicket(idTicket);
-                if (existente.isPresent()) {
-                        throw new ResponseStatusException(HttpStatus.CONFLICT,
-                                        "Ya existe un informe técnico registrado para este ticket.");
-                }
+                // 3. Check for existing informe (Allow multiple but handle the current one)
+                // We remove the hard-blocking search to allow new reports if it's a new assignment attempt
+                // Optional<InformeTrabajoTecnico> existente = ...
 
                 // 4. Validate required fields based on resultado
                 String resultado = req.getResultado();
@@ -665,11 +899,12 @@ public class TicketService {
                 // 6. Update ticket status based on resultado
                 if ("RESUELTO".equals(resultado)) {
                         updateTicketStatus(idTicket, tecnico, "RESUELTO",
-                                        "Informe técnico registrado. Ticket resuelto.");
+                                        "Ya apliqué la solución, por favor valida si funciona correctamente.");
                 } else {
                         // NO_RESUELTO: updateTicketStatus will now find REPROGRAMADA correctly
                         // including specifically checking ID 42
-                        updateTicketStatus(idTicket, tecnico, "REPROGRAMADA", "Técnico registró NO resolutivo.");
+                        updateTicketStatus(idTicket, tecnico, "REPROGRAMADA", 
+                                        "Incidencia registrada como No Resuelta. Pasa a Reprogramación.");
                 }
 
                 // 7. Audit
@@ -720,9 +955,8 @@ public class TicketService {
                 return counts;
         }
 
-        @Transactional
-        public Optional<InformeTrabajoTecnico> getInformeTecnico(Integer idTicket) {
-                return informeTrabajoTecnicoRepository.findByTicket_IdTicket(idTicket);
+        public List<InformeTrabajoTecnico> getInformeTecnico(Integer idTicket) {
+                return informeTrabajoTecnicoRepository.findByTicket_IdTicketOrderByIdInformeDesc(idTicket);
         }
 
         public List<InventarioUsadoTicket> getInventarioUsado(Integer idTicket) {
@@ -745,7 +979,7 @@ public class TicketService {
                                         "El reporte PDF solo está disponible cuando el ticket ha sido resuelto o reprogramado.");
                 }
 
-                InformeTrabajoTecnico informe = getInformeTecnico(idTicket).orElse(null);
+                List<InformeTrabajoTecnico> informes = getInformeTecnico(idTicket);
                 List<HistorialEstado> historial = historialEstadoRepository
                                 .findByTicket_IdTicketOrderByFechaCambioDesc(idTicket);
                 List<ComentarioTicket> comentarios = comentarioTicketRepository
@@ -753,7 +987,7 @@ public class TicketService {
                 List<InventarioUsadoTicket> inventarioUsado = inventarioUsadoTicketRepository
                                 .findByTicket_IdTicket(idTicket);
 
-                return pdfReporteService.generateTicketDetailReport(ticket, informe, historial, comentarios,
+                return pdfReporteService.generateTicketDetailReport(ticket, informes, historial, comentarios,
                                 inventarioUsado);
         }
 

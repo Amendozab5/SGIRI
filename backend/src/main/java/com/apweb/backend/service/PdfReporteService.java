@@ -286,62 +286,109 @@ public class PdfReporteService {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    public ByteArrayInputStream generateTicketDetailReport(Ticket t, InformeTrabajoTecnico informe, 
-                                                            List<HistorialEstado> historial, 
-                                                            List<ComentarioTicket> comentarios, 
-                                                            List<InventarioUsadoTicket> inventario) {
+    public ByteArrayInputStream generateTicketDetailReport(Ticket ticket, List<InformeTrabajoTecnico> informes,
+            List<HistorialEstado> historial, List<ComentarioTicket> comentarios,
+            List<InventarioUsadoTicket> inventarioUsado) {
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             PdfWriter writer = PdfWriter.getInstance(document, out);
             writer.setPageEvent(new PageFooter());
             document.open();
-            
-            addHeader(document, "Detalle Técnico de Ticket #" + t.getIdTicket(), 1);
+            addHeader(document, "Reporte Detallado de Ticket #" + ticket.getIdTicket(), 1);
 
-            // 1. Información General
-            PdfPTable infoTable = new PdfPTable(2);
-            infoTable.setWidthPercentage(100);
-            infoTable.setSpacingAfter(20);
-            
-            infoTable.addCell(getHeaderCell("Campo"));
-            infoTable.addCell(getHeaderCell("Detalle"));
+            Font sectionFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BLUE_HEADER);
+            Font labelFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Color.DARK_GRAY);
+            Font valueFont = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.BLACK);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-            infoTable.addCell(getDataCell("Asunto", false));
-            infoTable.addCell(getDataCell(t.getAsunto(), false));
-            
-            infoTable.addCell(getDataCell("Estado", true));
-            infoTable.addCell(getBadgeCell(t.getEstadoItem().getNombre(), t.getEstadoItem().getCodigo(), true));
-            
-            infoTable.addCell(getDataCell("Prioridad", false));
-            infoTable.addCell(getBadgeCell(t.getPrioridadItem().getNombre(), t.getPrioridadItem().getCodigo(), false));
+            // --- SECCIÓN 1: INFORMACIÓN DEL CLIENTE ---
+            document.add(new Paragraph("INFORMACIÓN DEL CLIENTE", sectionFont));
+            PdfPTable clientTable = new PdfPTable(2);
+            clientTable.setWidthPercentage(100);
+            clientTable.setSpacingBefore(10);
+            clientTable.setSpacingAfter(15);
+            clientTable.addCell(
+                    createLabelValueCell("Cliente:", getClienteNombre(ticket.getCliente()), labelFont, valueFont));
+            clientTable.addCell(createLabelValueCell("Sucursal:",
+                    ticket.getSucursal() != null ? ticket.getSucursal().getNombre() : "-", labelFont, valueFont));
+            clientTable.addCell(createLabelValueCell("Contacto Email:", getClienteEmail(ticket.getCliente()), labelFont,
+                    valueFont));
+            clientTable.addCell(createLabelValueCell("Contacto Tel:", getClienteTelefono(ticket.getCliente()),
+                    labelFont, valueFont));
+            document.add(clientTable);
 
-            infoTable.addCell(getDataCell("Categoría", true));
-            infoTable.addCell(getDataCell(t.getCategoriaItem().getNombre(), true));
+            // --- SECCIÓN 2: DETALLES DEL TICKET ---
+            document.add(new Paragraph("DETALLES DEL REQUERIMIENTO", sectionFont));
+            PdfPTable ticketTable = new PdfPTable(2);
+            ticketTable.setWidthPercentage(100);
+            ticketTable.setSpacingBefore(10);
+            ticketTable.setSpacingAfter(15);
+            ticketTable.addCell(createLabelValueCell("Asunto:", ticket.getAsunto(), labelFont, valueFont));
+            ticketTable.addCell(createLabelValueCell("Estado:",
+                    ticket.getEstadoItem() != null ? ticket.getEstadoItem().getNombre() : "-", labelFont, valueFont));
+            ticketTable.addCell(createLabelValueCell("Servicio:",
+                    ticket.getServicio() != null ? ticket.getServicio().getNombre() : "-", labelFont, valueFont));
+            ticketTable.addCell(createLabelValueCell("Prioridad:",
+                    ticket.getPrioridadItem() != null ? ticket.getPrioridadItem().getNombre() : "-", labelFont,
+                    valueFont));
+            ticketTable.addCell(createLabelValueCell("Fecha Creación:",
+                    ticket.getFechaCreacion() != null ? ticket.getFechaCreacion().format(formatter) : "-", labelFont,
+                    valueFont));
+            ticketTable.addCell(createLabelValueCell("Fecha Cierre:",
+                    ticket.getFechaCierre() != null ? ticket.getFechaCierre().format(formatter) : "-", labelFont,
+                    valueFont));
+            document.add(ticketTable);
 
-            infoTable.addCell(getDataCell("Descripción", false));
-            infoTable.addCell(getDataCell(t.getDescripcion(), false));
+            document.add(new Phrase("Descripción:", labelFont));
+            Paragraph desc = new Paragraph(ticket.getDescripcion(), valueFont);
+            desc.setSpacingAfter(15);
+            document.add(desc);
 
-            document.add(infoTable);
-
-            // 2. Informe Técnico (si existe)
-            if (informe != null) {
-                document.add(new Paragraph("INFORME DE TRABAJO TÉCNICO", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, DARK_BG)));
-                PdfPTable informeTable = new PdfPTable(2);
-                informeTable.setWidthPercentage(100);
-                informeTable.setSpacingBefore(10);
-                informeTable.setSpacingAfter(20);
-
-                informeTable.addCell(getDataCell("Resultado", false));
-                informeTable.addCell(getBadgeCell(informe.getResultado(), informe.getResultado(), false));
+            // --- SECCIÓN 3: HISTORIAL DE INFORMES TÉCNICOS ---
+            if (informes != null && !informes.isEmpty()) {
+                document.add(new Paragraph("HISTORIAL DE INFORMES TÉCNICOS", sectionFont));
                 
-                informeTable.addCell(getDataCell("Solución Aplicada", true));
-                informeTable.addCell(getDataCell(informe.getSolucionAplicada(), true));
+                for (InformeTrabajoTecnico informe : informes) {
+                    PdfPTable infoTable = new PdfPTable(1);
+                    infoTable.setWidthPercentage(100);
+                    infoTable.setSpacingBefore(10);
+                    infoTable.setSpacingAfter(5);
+                    infoTable.getDefaultCell().setBorderColor(new Color(200, 200, 200));
 
-                informeTable.addCell(getDataCell("Tiempos", false));
-                informeTable.addCell(getDataCell(informe.getTiempoTrabajoMinutos() + " min", false));
+                    String headerText = "Informe #" + informe.getIdInforme() + " - " + 
+                                       (informe.getFechaRegistro() != null ? informe.getFechaRegistro().format(formatter) : "S/F");
+                    PdfPCell hCell = new PdfPCell(new Phrase(headerText, labelFont));
+                    hCell.setBackgroundColor(ALTERNATE_ROW);
+                    hCell.setPadding(5);
+                    infoTable.addCell(hCell);
 
-                document.add(informeTable);
+                    infoTable.addCell(createLabelValueCell("Técnico Responsable:",
+                            getUserNombre(informe.getTecnico()), labelFont, valueFont));
+                    infoTable.addCell(createLabelValueCell("Resultado:", informe.getResultado(), labelFont, valueFont));
+                    infoTable.addCell(createLabelValueCell("Tiempo de Trabajo:",
+                            informe.getTiempoTrabajoMinutos() != null ? informe.getTiempoTrabajoMinutos() + " min" : "-",
+                            labelFont, valueFont));
+                    infoTable.addCell(createLabelValueCell("Problemas Encontrados:", informe.getProblemasEncontrados(),
+                            labelFont, valueFont));
+                    infoTable.addCell(createLabelValueCell("Solución Aplicada:", informe.getSolucionAplicada(), labelFont,
+                            valueFont));
+                    infoTable.addCell(createLabelValueCell("Implementos Utilizados:", informe.getImplementosUsados(),
+                            labelFont, valueFont));
+                    infoTable.addCell(
+                            createLabelValueCell("Pruebas Realizadas:", informe.getPruebasRealizadas(), labelFont,
+                                    valueFont));
+
+                    if ("NO_RESUELTO".equals(informe.getResultado())) {
+                        infoTable.addCell(createLabelValueCell("Motivo No Resolución:", informe.getMotivoNoResolucion(),
+                                labelFont, valueFont));
+                    }
+
+                    infoTable.addCell(createLabelValueCell("Comentario Técnico:", informe.getComentarioTecnico(), labelFont,
+                            valueFont));
+                    document.add(infoTable);
+                }
+                document.add(new Paragraph(" ", valueFont));
             }
 
             // 3. Historial de Estados

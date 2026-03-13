@@ -57,7 +57,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
                         "LEFT JOIN FETCH t.cliente c " +
                         "LEFT JOIN FETCH c.persona cp " +
                         "LEFT JOIN FETCH t.sucursal s " +
-                        "WHERE ei.codigo = 'REQUIERE_VISITA' " +
-                        "AND NOT EXISTS (SELECT v FROM VisitaTecnica v WHERE v.ticket = t AND v.estado.codigo != 'CANCELADA')")
+                        "WHERE ei.codigo = 'REQUIERE_VISITA'")
         List<Ticket> findTicketsPendingVisit();
 }
