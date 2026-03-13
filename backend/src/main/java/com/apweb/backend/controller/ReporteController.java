@@ -7,6 +7,7 @@ import com.apweb.backend.model.VwCsatAnalisis;
 import com.apweb.backend.model.VwCsatDetalle;
 import com.apweb.backend.service.ReporteService;
 import com.apweb.backend.service.PdfReporteService;
+import com.apweb.backend.service.ExcelReporteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ public class ReporteController {
 
     private final ReporteService reporteService;
     private final PdfReporteService pdfReporteService;
+    private final ExcelReporteService excelReporteService;
 
     /**
      * Lista todos los reportes configurados disponibles para administradores.
@@ -102,6 +104,59 @@ public class ReporteController {
                 .ok()
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(bis));
+    }
+
+    @GetMapping("/export/tickets/excel")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    public ResponseEntity<InputStreamResource> exportTicketsExcel(
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "desde", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
+            @RequestParam(name = "hasta", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta) throws Exception {
+
+        List<VwResumenTickets> data = reporteService.getTicketsData(null, status, search, desde, hasta);
+        ByteArrayInputStream bis = excelReporteService.generateTicketsExcel(data);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=tickets_report.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(bis));
+    }
+
+    @GetMapping("/export/sla/excel")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    public ResponseEntity<InputStreamResource> exportSlaExcel() throws Exception {
+        List<VwSlaTecnico> data = reporteService.getSlaTecnicoData();
+        ByteArrayInputStream bis = excelReporteService.generateSlaExcel(data);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=sla_report.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(bis));
+    }
+
+    @GetMapping("/export/csat/excel")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    public ResponseEntity<InputStreamResource> exportCsatExcel() throws Exception {
+        List<VwCsatDetalle> data = reporteService.getCsatDetalleData();
+        ByteArrayInputStream bis = excelReporteService.generateCsatExcel(data);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=csat_report.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(bis));
     }
 
