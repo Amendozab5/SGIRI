@@ -159,6 +159,9 @@ export class ProfileComponent implements OnInit {
 
   getAvatarUrl(): string {
     if (this.currentUser && this.currentUser.rutaFoto) {
+      if (this.currentUser.rutaFoto.startsWith('http')) {
+        return this.currentUser.rutaFoto;
+      }
       return `http://localhost:8081/uploads/${this.currentUser.rutaFoto}`;
     }
     return '//ssl.gstatic.com/accounts/ui/avatar_2x.png';

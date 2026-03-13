@@ -12,6 +12,7 @@ frontend/.angular/
 # Spring Boot / Java
 # =====================
 backend/target/
+backend/src/main/resources/application.properties
 *.log
 
 # =====================

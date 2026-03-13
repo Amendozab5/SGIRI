@@ -31,6 +31,7 @@ public class DocumentService {
     private final FileStorageService fileStorageService;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final CloudinaryService cloudinaryService;
 
     public DocumentService(EmpleadoRepository empleadoRepository,
             ClienteRepository clienteRepository,
@@ -40,7 +41,8 @@ public class DocumentService {
             CatalogoItemRepository catalogoItemRepository,
             FileStorageService fileStorageService,
             UserRepository userRepository,
-            AuditService auditService) {
+            AuditService auditService,
+            CloudinaryService cloudinaryService) {
         this.empleadoRepository = empleadoRepository;
         this.clienteRepository = clienteRepository;
         this.documentoEmpleadoRepository = documentoEmpleadoRepository;
@@ -50,6 +52,7 @@ public class DocumentService {
         this.fileStorageService = fileStorageService;
         this.userRepository = userRepository;
         this.auditService = auditService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     // ─── Foto de perfil (lógica preexistente intacta) ─────────────────────────
@@ -78,6 +81,11 @@ public class DocumentService {
                     .findByEmpleado_IdEmpleadoAndTipoDocumento_Codigo(empleado.getIdEmpleado(), "FOTO")
                     .orElse(new DocumentoEmpleado());
 
+            // Si ya tiene una foto en Cloudinary, borrarla
+            if (doc.getRutaArchivo() != null) {
+                cloudinaryService.delete(doc.getRutaArchivo());
+            }
+
             doc.setEmpleado(empleado);
             doc.setTipoDocumento(tipoDoc);
             doc.setRutaArchivo(fileName);
@@ -105,6 +113,11 @@ public class DocumentService {
             DocumentoCliente doc = documentoClienteRepository
                     .findByCliente_IdClienteAndTipoDocumento_Codigo(cliente.getIdCliente(), "FOTO")
                     .orElse(new DocumentoCliente());
+
+            // Si ya tiene una foto en Cloudinary, borrarla
+            if (doc.getRutaArchivo() != null) {
+                cloudinaryService.delete(doc.getRutaArchivo());
+            }
 
             doc.setCliente(cliente);
             doc.setTipoDocumento(tipoDoc);

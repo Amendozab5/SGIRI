@@ -118,7 +118,13 @@ export class App implements OnInit, OnDestroy {
       this.roles = user.roles || [];
 
       // Avatar
-      this.avatarUrl = user.rutaFoto ? `http://localhost:8081/uploads/${user.rutaFoto}` : '//ssl.gstatic.com/accounts/ui/avatar_2x.png';
+      if (user.rutaFoto) {
+        this.avatarUrl = user.rutaFoto.startsWith('http') 
+          ? user.rutaFoto 
+          : `http://localhost:8081/uploads/${user.rutaFoto}`;
+      } else {
+        this.avatarUrl = '//ssl.gstatic.com/accounts/ui/avatar_2x.png';
+      }
 
       this.isPasswordChangeRequired = !!user.primerLogin;
       this.startPolling();
