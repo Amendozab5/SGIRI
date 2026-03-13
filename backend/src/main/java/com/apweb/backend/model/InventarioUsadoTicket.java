@@ -31,6 +31,7 @@ public class InventarioUsadoTicket {
     @Column(nullable = false)
     private Integer cantidad;
 
+    @Builder.Default
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro = LocalDateTime.now();
 

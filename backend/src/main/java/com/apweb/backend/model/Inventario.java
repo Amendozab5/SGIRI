@@ -39,6 +39,7 @@ public class Inventario {
     @Column(length = 200)
     private String ubicacion;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
 }

@@ -32,6 +32,9 @@ public class PdfReporteService {
     private static final Color BG_CRITICAL = new Color(255, 199, 206); // #FFC7CE
     private static final Color TEXT_CRITICAL = new Color(156, 0, 6);   // #9C0006
     private static final Color TEXT_BAJA     = new Color(0, 128, 0);   // #008000
+    
+    private static final Color BLUE_HEADER = new Color(0, 51, 153);
+    private static final Color ALTERNATE_ROW = new Color(240, 240, 240);
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm");
 
@@ -416,6 +419,41 @@ public class PdfReporteService {
             document.close();
         } catch (Exception e) { e.printStackTrace(); }
         return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    private PdfPCell createLabelValueCell(String label, String value, Font labelFont, Font valueFont) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setPadding(5);
+        
+        Phrase p = new Phrase();
+        p.add(new Chunk(label + " ", labelFont));
+        p.add(new Chunk(value != null && !value.isEmpty() ? value : "-", valueFont));
+        
+        cell.addElement(p);
+        return cell;
+    }
+
+    private String getClienteNombre(Cliente cliente) {
+        if (cliente == null || cliente.getPersona() == null) return "-";
+        Persona p = cliente.getPersona();
+        return p.getNombre() + " " + p.getApellido();
+    }
+
+    private String getClienteEmail(Cliente cliente) {
+        if (cliente == null || cliente.getPersona() == null) return "-";
+        return cliente.getPersona().getCorreo();
+    }
+
+    private String getClienteTelefono(Cliente cliente) {
+        if (cliente == null || cliente.getPersona() == null) return "-";
+        return cliente.getPersona().getCelular();
+    }
+
+    private String getUserNombre(User user) {
+        if (user == null || user.getPersona() == null) return "-";
+        Persona p = user.getPersona();
+        return p.getNombre() + " " + p.getApellido();
     }
 
     private String formatTiempoResolucion(String raw) {
