@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByPersona_Cedula(String cedula);
 
     Optional<User> findByPersona(Persona persona);
+
+    Optional<User> findByPersona_Correo(String correo);
 }

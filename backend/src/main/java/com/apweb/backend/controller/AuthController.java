@@ -5,7 +5,9 @@ import com.apweb.backend.model.Persona;
 import com.apweb.backend.model.Role;
 import com.apweb.backend.model.User;
 import com.apweb.backend.payload.request.ChangePasswordRequest;
+import com.apweb.backend.payload.request.ForgotPasswordRequest;
 import com.apweb.backend.payload.request.LoginRequest;
+import com.apweb.backend.payload.request.ResetPasswordRequest;
 import com.apweb.backend.payload.response.JwtResponse;
 import com.apweb.backend.payload.response.MessageResponse;
 import com.apweb.backend.repository.ClienteRepository;
@@ -16,6 +18,7 @@ import com.apweb.backend.repository.CatalogoItemRepository;
 import com.apweb.backend.security.jwt.JwtUtils;
 import com.apweb.backend.service.AuditService;
 import com.apweb.backend.service.MailService;
+import com.apweb.backend.service.PasswordResetService;
 import com.apweb.backend.service.UserService;
 import com.apweb.backend.util.AuditAccion;
 import jakarta.transaction.Transactional;
@@ -58,6 +61,7 @@ public class AuthController {
     private final CatalogoItemRepository catalogoItemRepository;
     private final AuditService auditService;
     private final UserService userService;
+    private final PasswordResetService passwordResetService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -72,7 +76,8 @@ public class AuthController {
             PersonaRepository personaRepository,
             CatalogoItemRepository catalogoItemRepository,
             AuditService auditService,
-            UserService userService) {
+            UserService userService,
+            PasswordResetService passwordResetService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -84,6 +89,7 @@ public class AuthController {
         this.catalogoItemRepository = catalogoItemRepository;
         this.auditService = auditService;
         this.userService = userService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/login")
@@ -281,6 +287,29 @@ public class AuthController {
             }
         }
         return ResponseEntity.ok(new MessageResponse("Logout exitoso."));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            passwordResetService.createPasswordResetTokenForUser(request.getEmail());
+            return ResponseEntity.ok(new MessageResponse("Se ha enviado un correo de recuperación si la cuenta existe."));
+        } catch (Exception e) {
+            log.error("Error in forgot-password: {}", e.getMessage());
+            // Por seguridad, devolvemos OK incluso si el correo no existe para evitar enumeración de usuarios
+            // Pero si es un error real de infraestructura, podríamos querer saberlo.
+            return ResponseEntity.ok(new MessageResponse("Si el correo está registrado, recibirás un enlace de recuperación."));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.changeUserPassword(request.getToken(), request.getNewPassword());
+            return ResponseEntity.ok(new MessageResponse("Contraseña actualizada exitosamente."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
     }
 
     private String getEmailForUser(User user) {

@@ -23,12 +23,16 @@ import { TechPerformanceComponent } from './boards/tech-performance/tech-perform
 
 import { AuditManagementComponent } from './boards/audit-management/audit-management.component'; // New import
 import { ReportsBoardComponent } from './boards/reports-board/reports-board.component';
+import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent }, // Add register route
   { path: 'profile', component: ProfileComponent },
   { path: 'change-password', component: ChangePasswordComponent }, // Add change-password route
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   {
     path: 'home',
     component: HomeComponent,

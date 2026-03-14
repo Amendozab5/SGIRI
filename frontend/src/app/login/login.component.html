@@ -43,6 +43,10 @@
         </div>
       </div>
 
+      <div class="form-group options-group">
+        <a routerLink="/forgot-password" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
+      </div>
+
       <div class="form-group">
         <button class="btn btn-primary btn-block" [disabled]="loginForm.invalid || isLoading">
           <span *ngIf="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

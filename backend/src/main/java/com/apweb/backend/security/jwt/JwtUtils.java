@@ -60,4 +60,24 @@ public class JwtUtils {
 
         return false;
     }
+
+    public String generatePasswordResetToken(String username, String currentPasswordHash) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("state", currentPasswordHash) // El token solo sirve si la contraseña no ha cambiado
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + 3600000 * 24)) // 24 horas
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public boolean validatePasswordResetToken(String token, String currentPasswordHash) {
+        try {
+            Claims claims = Jwts.parser().setSigningKey(key()).parseClaimsJws(token).getBody();
+            String tokenState = claims.get("state", String.class);
+            return currentPasswordHash.equals(tokenState);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
