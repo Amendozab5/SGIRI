@@ -73,6 +73,9 @@ public class DocumentService {
 
         String fileName = fileStorageService.save(file, username);
 
+        CatalogoItem estadoActivo = catalogoItemRepository.findFirstByCodigo("ACTIVO")
+                .orElseThrow(() -> new RuntimeException("Estado 'ACTIVO' no encontrado."));
+
         // Check if user is Empleado
         Optional<Empleado> empleadoOpt = empleadoRepository.findByPersona_Cedula(persona.getCedula());
         if (empleadoOpt.isPresent()) {
@@ -90,7 +93,9 @@ public class DocumentService {
             doc.setTipoDocumento(tipoDoc);
             doc.setRutaArchivo(fileName);
             doc.setCedulaEmpleado(persona.getCedula());
+            doc.setNumeroDocumento(persona.getCedula()); // Requerido por la restricción NOT NULL
             doc.setDescripcion("Foto de perfil");
+            doc.setEstado(estadoActivo);
             documentoEmpleadoRepository.save(doc);
 
             // ── AUDITORÍA: Foto Perfil Empleado ──────────────────────────────────
@@ -124,6 +129,7 @@ public class DocumentService {
             doc.setRutaArchivo(fileName);
             doc.setNumeroDocumento(persona.getCedula());
             doc.setDescripcion("Foto de perfil");
+            doc.setEstado(estadoActivo);
             documentoClienteRepository.save(doc);
 
             // ── AUDITORÍA: Foto Perfil Cliente ───────────────────────────────────
