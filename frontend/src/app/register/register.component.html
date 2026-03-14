@@ -1,100 +1,157 @@
-<div class="register-container">
-  <div *ngIf="!isSuccessful" class="register-card">
-    <div class="register-header">
-      <svg xmlns="http://www.w3.org/2000/svg" class="register-logo" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z" />
-        <path d="M9 12l2 2 4-4" />
-      </svg>
-      <h1>Activar mi Cuenta</h1>
-      <p>Si eres cliente de una de nuestras empresas aliadas, activa tu acceso aquí.</p>
-    </div>
-
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
-
-      <div class="form-section">
-        <legend class="section-title">
-          <i class="bi bi-shield-lock-fill"></i>
-          Validación de Identidad
-        </legend>
-
-        <div class="form-group">
-          <label for="idEmpresa" class="form-label">Empresa Proveedora (ISP)</label>
-          <select id="idEmpresa" class="form-control" formControlName="idEmpresa">
-            <option [ngValue]="null" disabled>Selecciona tu empresa de internet</option>
-            <option *ngFor="let emp of empresas" [ngValue]="emp.id">
-              {{ emp.nombreComercial }}
-            </option>
-          </select>
-          <div *ngIf="registerForm.get('idEmpresa')?.touched && registerForm.get('idEmpresa')?.invalid"
-            class="error-text">
-            Debes seleccionar una empresa.
-          </div>
-        </div>
-
-        <div class="form-group mt-3">
-          <label for="cedula" class="form-label">Número de Cédula / Pasaporte / RUC</label>
-          <input type="text" id="cedula" class="form-control" formControlName="cedula" placeholder="Ej: 1712345678">
-          <div *ngIf="registerForm.get('cedula')?.touched && registerForm.get('cedula')?.invalid" class="error-text">
-            Ingresa un número de identificación válido (10-13 dígitos).
-          </div>
-        </div>
-      </div>
-
-      <div class="alert mt-3" [ngClass]="message.includes('activa') ? 'alert-info' : 'alert-danger'"
-        *ngIf="isSignUpFailed">
-        <div class="d-flex align-items-center">
-          <i
-            [class]="message.includes('activa') ? 'bi bi-info-circle-fill me-2' : 'bi bi-exclamation-triangle-fill me-2'"></i>
-          <span>{{ message }}</span>
-        </div>
-        <div *ngIf="message.includes('activa')" class="mt-2">
-          <a routerLink="/login" class="btn btn-sm btn-info text-white w-100">Ir a Iniciar Sesión</a>
-        </div>
-      </div>
-
-      <div class="button-group mt-4">
-        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isProcessing">Cancelar</button>
-        <button type="submit" class="btn btn-primary" [disabled]="registerForm.invalid || isProcessing">
-          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status"
-            aria-hidden="true"></span>
-          <span *ngIf="!isProcessing">Activar Acceso</span>
-        </button>
-      </div>
-
-      <div class="login-link mt-3">
-        ¿Ya activaste tu cuenta? <a routerLink="/login">Inicia Sesión</a>
-      </div>
-    </form>
+<div class="login-wrapper">
+  <!-- Dynamic Background Particles -->
+  <div class="particles">
+    <div class="particle p1"></div>
+    <div class="particle p2"></div>
+    <div class="particle p3"></div>
+    <div class="particle p4"></div>
   </div>
 
-  <div *ngIf="isSuccessful" class="success-card slide-in">
-    <div class="success-header">
-      <div class="success-icon-container">
-        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#28a745"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
+  <div class="main-card">
+    <!-- Left: Interaction & Cyber-Infographic -->
+    <div class="visual-side">
+      <div class="cyber-circle"></div>
+      
+      <div class="mascot-stage">
+        <div class="bit-robot waving">
+          <svg viewBox="0 0 200 200" class="bit-svg">
+            <defs>
+              <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <!-- Shadow -->
+            <ellipse cx="100" cy="175" rx="40" ry="10" fill="rgba(0,0,0,0.15)" class="robot-shadow" />
+
+            <!-- Body -->
+            <path class="robot-body" d="M60,80 Q60,60 80,60 L120,60 Q140,60 140,80 L140,140 Q140,160 120,160 L80,160 Q60,160 60,140 Z" fill="url(#bodyGrad)" stroke="#60a5fa" stroke-width="2"/>
+            
+            <!-- Screen/Face -->
+            <rect x="75" y="85" width="50" height="35" rx="10" fill="#000" />
+            
+            <!-- Eyes -->
+            <g class="eye-group">
+              <circle cx="88" cy="102" r="6" fill="#00f3ff" filter="url(#glow)" class="eye blink-anim" />
+              <circle cx="112" cy="102" r="6" fill="#00f3ff" filter="url(#glow)" class="eye blink-anim" />
+            </g>
+
+            <!-- Antena -->
+            <line x1="100" y1="60" x2="100" y2="40" stroke="#60a5fa" stroke-width="3" />
+            <circle cx="100" cy="35" r="7" fill="#facc15" filter="url(#glow)" class="antenna-light" />
+
+            <!-- Arms/Hands -->
+            <g class="arms">
+              <g class="arm-l-wrapper">
+                <rect x="45" y="100" width="15" height="40" rx="7" fill="#1e3a8a" stroke="#60a5fa" class="arm-l" />
+              </g>
+              <g class="arm-r-wrapper">
+                <rect x="140" y="100" width="15" height="40" rx="7" fill="#1e3a8a" stroke="#60a5fa" class="arm-r" />
+              </g>
+            </g>
+          </svg>
+        </div>
       </div>
-      <h2>¡Solicitud Procesada Exitosamente!</h2>
+
+      <div class="hero-text">
+        <h2 class="title-glitch" data-text="SGIRI">SGIRI</h2>
+        <p class="subtitle">Activación de Acceso Seguro</p>
+      </div>
+
+      <div class="data-stream">
+        <div class="stream-line"></div>
+        <div class="stream-line"></div>
+        <div class="stream-line"></div>
+      </div>
     </div>
 
-    <div class="success-body">
-      <p class="main-message">{{ message }}</p>
-      <div class="instruction-box">
-        <p><i class="bi bi-envelope-check-fill"></i> Hemos enviado tus credenciales de acceso a tu correo electrónico.
-        </p>
-        <p class="small text-muted"><i class="bi bi-info-circle"></i> No olvides revisar tu carpeta de <strong>Correo no
-            deseado/Spam</strong> si no lo visualizas en tu bandeja de entrada principal.</p>
-      </div>
-    </div>
+    <!-- Right: Modern Glass Form -->
+    <div class="form-side">
+      <div class="form-container" *ngIf="!isSuccessful">
+        <header>
+          <h3>Activar Cuenta</h3>
+          <p>Vincula tus servicios de red</p>
+        </header>
 
-    <div class="success-footer mt-4">
-      <a routerLink="/login" class="btn btn-success btn-lg w-100">
-        <i class="bi bi-box-arrow-in-right me-2"></i>
-        Ir al Inicio de Sesión
-      </a>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="cyber-form">
+          <div class="input-field">
+            <span class="label-tag">Empresa Proveedora</span>
+            <div class="control">
+              <i class="fas fa-building"></i>
+              <select id="idEmpresa" formControlName="idEmpresa" required>
+                <option [ngValue]="null" disabled selected>Selecciona tu ISP</option>
+                <option *ngFor="let emp of empresas" [ngValue]="emp.id">
+                  {{ emp.nombreComercial }}
+                </option>
+              </select>
+            </div>
+            <div *ngIf="registerForm.get('idEmpresa')?.touched && registerForm.get('idEmpresa')?.invalid" class="error-hint">
+              Debes seleccionar una empresa.
+            </div>
+          </div>
+
+          <div class="input-field">
+            <span class="label-tag">Identificación (Cédula/RUC)</span>
+            <div class="control">
+              <i class="fas fa-id-card"></i>
+              <input type="text" formControlName="cedula" placeholder="Ej: 1712345678" required>
+            </div>
+            <div *ngIf="registerForm.get('cedula')?.touched && registerForm.get('cedula')?.invalid" class="error-hint">
+              Ingresa un número válido (10-13 dígitos).
+            </div>
+          </div>
+
+          <div class="form-info-box" *ngIf="isSignUpFailed">
+            <div class="error-msg">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>{{ message }}</span>
+            </div>
+            <div *ngIf="message.includes('activa')" class="mt-2">
+              <a routerLink="/login" class="forgot-link">Ir a Iniciar Sesión</a>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button type="button" class="prime-btn outline" (click)="onCancel()" [disabled]="isProcessing">Cancelar</button>
+            <button type="submit" class="prime-btn" [disabled]="registerForm.invalid || isProcessing">
+              <span *ngIf="!isProcessing">ACTIVAR</span>
+              <span *ngIf="isProcessing" class="loader"></span>
+            </button>
+          </div>
+        </form>
+
+        <footer class="form-footer">
+          <p>¿Ya tienes una cuenta activa? <a routerLink="/login">Inicia Sesión</a></p>
+        </footer>
+      </div>
+
+      <!-- Success State -->
+      <div class="form-container" *ngIf="isSuccessful">
+        <div class="success-view slide-in">
+          <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h4>¡Activación Exitosa!</h4>
+          <p class="main-message">{{ message }}</p>
+          
+          <div class="instruction-box">
+            <p><i class="fas fa-envelope-open-text"></i> Revisa tu correo electrónico para obtener tus credenciales.</p>
+            <p class="small text-muted">No olvides revisar la carpeta de Spam.</p>
+          </div>
+
+          <a routerLink="/login" class="prime-btn">
+            <i class="fas fa-sign-in-alt me-2"></i> IR AL LOGIN
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>

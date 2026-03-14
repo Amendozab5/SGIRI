@@ -25,6 +25,7 @@ export class LoginComponent implements OnInit {
   roles: string[] = [];
   verificationError = '';
   isLoading = false;
+  isPasswordFocused = false;
 
   constructor(
     private fb: FormBuilder,

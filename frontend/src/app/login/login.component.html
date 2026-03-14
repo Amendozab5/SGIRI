@@ -1,62 +1,124 @@
-<div class="login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <!-- Embedded SVG Logo -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="login-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z" />
-        <path d="M10.5 8.5l-2 2 2 2" />
-        <path d="M13.5 12.5l2-2-2-2" />
-        <path d="M12 15.5V18" />
-        <path d="M9.5 14l-2 2" />
-        <path d="M14.5 14l2 2" />
-      </svg>
+<div class="login-wrapper">
+  <!-- Dynamic Background Particles -->
+  <div class="particles">
+    <div class="particle p1"></div>
+    <div class="particle p2"></div>
+    <div class="particle p3"></div>
+    <div class="particle p4"></div>
+  </div>
 
-      <h1>Sistema de Gestión de Incidencias y Mantenimiento</h1>
-      <p>Acceso al sistema</p>
+  <div class="main-card">
+    <!-- Left: Interaction & Cyber-Infographic -->
+    <div class="visual-side">
+      <div class="cyber-circle"></div>
+      
+      <div class="mascot-stage">
+        <div class="bit-robot" [class.hiding]="isPasswordFocused">
+          <svg viewBox="0 0 200 200" class="bit-svg">
+            <defs>
+              <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <!-- Shadow -->
+            <ellipse cx="100" cy="175" rx="40" ry="10" fill="rgba(0,0,0,0.15)" class="robot-shadow" />
+
+            <!-- Body -->
+            <path class="robot-body" d="M60,80 Q60,60 80,60 L120,60 Q140,60 140,80 L140,140 Q140,160 120,160 L80,160 Q60,160 60,140 Z" fill="url(#bodyGrad)" stroke="#60a5fa" stroke-width="2"/>
+            
+            <!-- Screen/Face -->
+            <rect x="75" y="85" width="50" height="35" rx="10" fill="#000" />
+            
+            <!-- Eyes -->
+            <g class="eye-group">
+              <circle cx="88" cy="102" r="6" fill="#00f3ff" filter="url(#glow)" class="eye blink-anim" />
+              <circle cx="112" cy="102" r="6" fill="#00f3ff" filter="url(#glow)" class="eye blink-anim" />
+            </g>
+
+            <!-- Antena -->
+            <line x1="100" y1="60" x2="100" y2="40" stroke="#60a5fa" stroke-width="3" />
+            <circle cx="100" cy="35" r="7" fill="#facc15" filter="url(#glow)" class="antenna-light" />
+
+            <!-- Arms/Hands -->
+            <g class="arms">
+              <g class="arm-l-wrapper">
+                <rect x="45" y="100" width="15" height="40" rx="7" fill="#1e3a8a" stroke="#60a5fa" class="arm-l" />
+              </g>
+              <g class="arm-r-wrapper">
+                <rect x="140" y="100" width="15" height="40" rx="7" fill="#1e3a8a" stroke="#60a5fa" class="arm-r" />
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero-text">
+        <h2 class="title-glitch" data-text="SGIRI">SGIRI</h2>
+        <p class="subtitle">Inteligencia en Redes & Gestión de Incidentes</p>
+      </div>
+
+      <div class="data-stream">
+        <div class="stream-line"></div>
+        <div class="stream-line"></div>
+        <div class="stream-line"></div>
+      </div>
     </div>
 
-    <div class="alert alert-danger" *ngIf="verificationError">
-      {{ verificationError }}
+    <!-- Right: Modern Glass Form -->
+    <div class="form-side">
+      <div class="form-container">
+        <header>
+          <h3>Acceso Seguro</h3>
+          <p>Identifícate para continuar</p>
+        </header>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="cyber-form">
+          <div class="input-field">
+            <span class="label-tag">Usuario de Red</span>
+            <div class="control">
+              <i class="fas fa-user"></i>
+              <input type="text" formControlName="username" placeholder="ej. network_master" required>
+              <div class="input-focus-line"></div>
+            </div>
+          </div>
+
+          <div class="input-field">
+            <span class="label-tag">Clave Cifrada</span>
+            <div class="control">
+              <i class="fas fa-lock"></i>
+              <input type="password" formControlName="password" placeholder="••••••••" 
+                     (focus)="isPasswordFocused = true" (blur)="isPasswordFocused = false" required>
+              <div class="input-focus-line"></div>
+            </div>
+          </div>
+
+          <div class="extra-actions">
+            <a routerLink="/forgot-password" class="text-link">¿Problemas con tu acceso?</a>
+          </div>
+
+          <button type="submit" class="prime-btn" [disabled]="isLoading">
+            <span *ngIf="!isLoading">AUTENTICAR</span>
+            <span *ngIf="isLoading" class="loader"></span>
+          </button>
+
+          <div *ngIf="isLoginFailed" class="error-msg">
+            <i class="fas fa-exclamation-triangle"></i> Credenciales no válidas
+          </div>
+        </form>
+
+        <footer>
+          <p>¿Sin credenciales? <a routerLink="/register">Solicitar Registro</a></p>
+        </footer>
+      </div>
     </div>
-
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-      <div class="form-group">
-        <div class="input-group">
-          <i class="bi bi-person input-icon"></i>
-          <input type="text" class="form-control" formControlName="username" placeholder="Nombre de usuario"
-            [ngClass]="{ 'is-invalid': loginForm.get('username')?.touched && loginForm.get('username')?.invalid }" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="input-group">
-          <i class="bi bi-lock input-icon"></i>
-          <input type="password" class="form-control" formControlName="password" placeholder="Contraseña"
-            [ngClass]="{ 'is-invalid': loginForm.get('password')?.touched && loginForm.get('password')?.invalid }" />
-        </div>
-      </div>
-
-      <div class="form-group" *ngIf="isLoginFailed">
-        <div class="alert alert-danger" role="alert">
-          {{ errorMessage }}
-        </div>
-      </div>
-
-      <div class="form-group options-group">
-        <a routerLink="/forgot-password" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
-      </div>
-
-      <div class="form-group">
-        <button class="btn btn-primary btn-block" [disabled]="loginForm.invalid || isLoading">
-          <span *ngIf="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-          <span *ngIf="!isLoading">Iniciar sesión</span>
-        </button>
-      </div>
-
-      <div class="register-link">
-        ¿No tienes una cuenta? <a routerLink="/register">Regístrate aquí</a>
-      </div>
-    </form>
   </div>
 </div>

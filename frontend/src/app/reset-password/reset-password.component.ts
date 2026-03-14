@@ -17,6 +17,7 @@ export class ResetPasswordComponent implements OnInit {
   isSuccess = false;
   errorMessage = '';
   token: string | null = null;
+  isPasswordFocused = false;
 
   constructor(
     private fb: FormBuilder,
