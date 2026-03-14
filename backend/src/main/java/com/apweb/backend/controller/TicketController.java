@@ -171,15 +171,24 @@ public class TicketController {
 
         @GetMapping("/assigned")
         @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
-        public ResponseEntity<List<Ticket>> getAssignedTickets() {
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                String currentUserName = authentication.getName();
+        public ResponseEntity<?> getAssignedTickets() {
+                try {
+                        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                        String currentUserName = authentication.getName();
 
-                User currentUser = userRepository.findByUsername(currentUserName)
-                                .orElseThrow(() -> new RuntimeException(
-                                                "Error: User not found for " + currentUserName));
+                        User currentUser = userRepository.findByUsername(currentUserName)
+                                        .orElseThrow(() -> new RuntimeException(
+                                                        "Error: User not found for " + currentUserName));
 
-                return ResponseEntity.ok(ticketService.getTicketsByAssignedUser(currentUser));
+                        return ResponseEntity.ok(ticketService.getTicketsByAssignedUser(currentUser));
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        String errorMsg = e.getClass().getName() + ": " + e.getMessage();
+                        if (e.getCause() != null) {
+                            errorMsg += " | Caused by: " + e.getCause().getClass().getName() + ": " + e.getCause().getMessage();
+                        }
+                        return ResponseEntity.status(500).body(new MessageResponse("Error Backend: " + errorMsg));
+                }
         }
 
         @PostMapping("/{id:[0-9]+}/comments")

@@ -71,6 +71,18 @@ public class VisitaTecnicaService {
                                 .findByCatalogo_NombreAndCodigo("ESTADO_VISITA", request.getCodigoEstado())
                                 .orElseThrow(() -> new RuntimeException("Error: Estado de visita no encontrado"));
 
+                // Validar que NO exista ya una visita activa para este ticket (PROGRAMADA, CONFIRMADA, etc.)
+                // para evitar duplicidad accidental.
+                List<VisitaTecnica> existingVisitas = visitaTecnicaRepository.findByTicket_IdTicketOrderByFechaVisitaDesc(ticket.getIdTicket());
+                boolean hasActiveVisit = existingVisitas.stream()
+                        .anyMatch(v -> v.getEstado() != null && 
+                                  !v.getEstado().getCodigo().equals("CANCELADA") && 
+                                  !v.getEstado().getCodigo().equals("FINALIZADA"));
+                
+                if (hasActiveVisit) {
+                    throw new RuntimeException("Error: El ticket ya tiene una visita técnica activa programada.");
+                }
+
                 VisitaTecnica visita = VisitaTecnica.builder()
                                 .ticket(ticket)
                                 .tecnico(tecnico)
@@ -227,6 +239,30 @@ public class VisitaTecnicaService {
 
         @Transactional
         public List<VisitaTecnica> getVisitasByTecnico(Integer tecnicoId) {
-                return visitaTecnicaRepository.findByTecnico_IdWithAssociations(tecnicoId);
+                List<VisitaTecnica> visitas = visitaTecnicaRepository.findByTecnico_IdWithAssociations(tecnicoId);
+                for (VisitaTecnica v : visitas) {
+                    loadVisitaDeep(v);
+                }
+                return visitas;
+        }
+
+        private void loadVisitaDeep(VisitaTecnica v) {
+            if (v == null) return;
+            if (v.getEstado() != null) v.getEstado().getNombre();
+            
+            Ticket t = v.getTicket();
+            if (t != null) {
+                if (t.getEstadoItem() != null) t.getEstadoItem().getNombre();
+                if (t.getPrioridadItem() != null) t.getPrioridadItem().getNombre();
+                if (t.getSucursal() != null) t.getSucursal().getNombre();
+                if (t.getCliente() != null && t.getCliente().getPersona() != null) {
+                    t.getCliente().getPersona().getNombre();
+                }
+            }
+            
+            if (v.getTecnico() != null) {
+                v.getTecnico().getUsername();
+                if (v.getTecnico().getPersona() != null) v.getTecnico().getPersona().getNombre();
+            }
         }
 }

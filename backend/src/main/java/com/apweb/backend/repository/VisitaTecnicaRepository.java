@@ -44,9 +44,11 @@ public interface VisitaTecnicaRepository extends JpaRepository<VisitaTecnica, In
 
         @Query("SELECT v FROM VisitaTecnica v " +
                         "JOIN FETCH v.ticket t " +
+                        "LEFT JOIN FETCH t.estadoItem tei " +
                         "LEFT JOIN FETCH t.cliente c " +
                         "LEFT JOIN FETCH c.persona cp " +
                         "JOIN FETCH t.sucursal s " +
+                        "LEFT JOIN FETCH s.empresa semp " +
                         "JOIN FETCH v.tecnico u " +
                         "LEFT JOIN FETCH u.persona p " +
                         "JOIN FETCH v.estado e " +

@@ -80,12 +80,18 @@ public class TicketService {
         @Autowired
         private InventarioUsadoTicketRepository inventarioUsadoTicketRepository;
 
+        @Transactional(readOnly = true)
         public List<Ticket> getAllTickets() {
-                return ticketRepository.findAllWithAssociations();
+                List<Ticket> tickets = ticketRepository.findAllWithAssociations();
+                tickets.forEach(this::loadTicketDeep);
+                return tickets;
         }
 
+        @Transactional(readOnly = true)
         public List<Ticket> getTicketsByUser(User user) {
-                return ticketRepository.findByUsuarioCreador(user);
+                List<Ticket> tickets = ticketRepository.findByUsuarioCreador(user);
+                tickets.forEach(this::loadTicketDeep);
+                return tickets;
         }
 
         @org.springframework.transaction.annotation.Transactional(readOnly = true)
@@ -99,39 +105,124 @@ public class TicketService {
         @Transactional
         public Ticket getTicketById(Integer id) {
                 Ticket ticket = ticketRepository.findById(id)
-                                .orElseThrow(() -> new RuntimeException("Error: Ticket not found with ID: " + id));
-                // Force loading of lazy fields for the controller response
-                if (ticket.getCliente() != null && ticket.getCliente().getPersona() != null) {
-                        ticket.getCliente().getPersona().getNombre();
-                }
-
-                if (ticket.getHistorialEstados() != null) {
-                        ticket.getHistorialEstados().forEach(h -> {
-                                if (h.getEstado() != null)
-                                        h.getEstado().getNombre();
-                                if (h.getEstadoNuevo() != null)
-                                        h.getEstadoNuevo().getNombre();
-                        });
-                }
-
-                if (ticket.getComentarios() != null) {
-                        ticket.getComentarios().forEach(c -> {
-                                if (c.getUsuario() != null)
-                                        c.getUsuario().getUsername();
-                        });
-                }
-
+                                .orElseThrow(() -> new RuntimeException("Error: Ticket no encontrado con ID: " + id));
+                loadTicketDeep(ticket);
                 return ticket;
         }
 
+        @Transactional(readOnly = true)
+        public long getActiveTicketsCountForUser(User user) {
+                java.util.Set<Integer> ticketIds = new java.util.HashSet<>();
+                
+                // Primary assignments
+                ticketRepository.findByUsuarioAsignado(user).forEach(t -> {
+                    if (t != null && t.getEstadoItem() != null && !"CERRADO".equals(t.getEstadoItem().getCodigo())) {
+                        ticketIds.add(t.getIdTicket());
+                    }
+                });
+                
+                // Group assignments
+                asignacionRepository.findByUsuarioAndActivoTrue(user).forEach(a -> {
+                    if (a.getTicket() != null && a.getTicket().getEstadoItem() != null && !"CERRADO".equals(a.getTicket().getEstadoItem().getCodigo())) {
+                        ticketIds.add(a.getTicket().getIdTicket());
+                    }
+                });
+                
+                return ticketIds.size();
+        }
+
+        @Transactional(readOnly = true)
         public List<Ticket> getTicketsByAssignedUser(User user) {
-                // Get tickets where user is primary assignee
-                java.util.Set<Ticket> tickets = new java.util.HashSet<>(ticketRepository.findByUsuarioAsignado(user));
+                // Use a map to deduplicate by ID safely
+                java.util.Map<Integer, Ticket> ticketMap = new java.util.HashMap<>();
                 
-                // Add tickets where user is part of a group assignment
-                asignacionRepository.findByUsuarioAndActivoTrue(user).forEach(a -> tickets.add(a.getTicket()));
+                // Primary assignments
+                ticketRepository.findByUsuarioAsignadoWithAssociations(user).forEach(t -> {
+                    if (t != null) ticketMap.put(t.getIdTicket(), t);
+                });
                 
-                return new java.util.ArrayList<>(tickets);
+                // Group assignments
+                asignacionRepository.findByUsuarioAndActivoTrueWithAssociations(user).forEach(a -> {
+                    if (a.getTicket() != null) {
+                        ticketMap.put(a.getTicket().getIdTicket(), a.getTicket());
+                    }
+                });
+                
+                List<Ticket> result = new java.util.ArrayList<>(ticketMap.values());
+                
+                // Deep loading to prevent LazyInitializationException during serialization
+                for (Ticket t : result) {
+                    loadTicketDeep(t);
+                }
+                
+                return result;
+        }
+
+        private void loadTicketDeep(Ticket t) {
+            if (t == null) return;
+            
+            // Basic associations
+            if (t.getEstadoItem() != null) t.getEstadoItem().getNombre();
+            if (t.getCategoriaItem() != null) t.getCategoriaItem().getNombre();
+            if (t.getPrioridadItem() != null) t.getPrioridadItem().getNombre();
+            if (t.getServicio() != null) t.getServicio().getNombre();
+            if (t.getSucursal() != null) {
+                t.getSucursal().getNombre();
+                if (t.getSucursal().getEmpresa() != null) t.getSucursal().getEmpresa().getNombreComercial();
+            }
+            
+            // Cliente & Persona
+            if (t.getCliente() != null) {
+                if (t.getCliente().getPersona() != null) {
+                    t.getCliente().getPersona().getNombre();
+                    if (t.getCliente().getPersona().getCanton() != null) t.getCliente().getPersona().getCanton().getNombre();
+                }
+            }
+            
+            // Users and their Personas
+            if (t.getUsuarioCreador() != null) {
+                t.getUsuarioCreador().getUsername();
+                if (t.getUsuarioCreador().getPersona() != null) {
+                    t.getUsuarioCreador().getPersona().getNombre();
+                    if (t.getUsuarioCreador().getPersona().getCanton() != null) t.getUsuarioCreador().getPersona().getCanton().getNombre();
+                }
+            }
+            if (t.getUsuarioAsignado() != null) {
+                t.getUsuarioAsignado().getUsername();
+                if (t.getUsuarioAsignado().getPersona() != null) {
+                    t.getUsuarioAsignado().getPersona().getNombre();
+                    if (t.getUsuarioAsignado().getPersona().getCanton() != null) t.getUsuarioAsignado().getPersona().getCanton().getNombre();
+                }
+            }
+
+            // Collections (Managed references are serialized by Jackson)
+            // Using toArray to avoid ConcurrentModification if Hibernate triggers session activity
+            if (t.getHistorialEstados() != null) {
+                Object[] history = t.getHistorialEstados().toArray();
+                for (Object o : history) {
+                    HistorialEstado h = (HistorialEstado) o;
+                    if (h.getEstado() != null) h.getEstado().getNombre();
+                    if (h.getEstadoNuevo() != null) h.getEstadoNuevo().getNombre();
+                    if (h.getEstadoAnterior() != null) h.getEstadoAnterior().getNombre();
+                    if (h.getUsuario() != null) {
+                        h.getUsuario().getUsername();
+                        if (h.getUsuario().getPersona() != null) h.getUsuario().getPersona().getNombre();
+                    }
+                }
+            }
+            
+            if (t.getComentarios() != null) {
+                Object[] comments = t.getComentarios().toArray();
+                for (Object o : comments) {
+                    ComentarioTicket c = (ComentarioTicket) o;
+                    if (c.getUsuario() != null) {
+                        c.getUsuario().getUsername();
+                        if (c.getUsuario().getPersona() != null) c.getUsuario().getPersona().getNombre();
+                    }
+                    if (c.getEstadoItem() != null) c.getEstadoItem().getNombre();
+                    if (c.getEmpresa() != null) c.getEmpresa().getNombreComercial();
+                }
+            }
         }
 
         @Transactional
@@ -384,8 +475,7 @@ public class TicketService {
                         Long ticketsAsignadosTotal = countTicketsByTecnico(user);
                         if (ticketsAsignadosTotal == null) ticketsAsignadosTotal = 0L;
 
-                        java.util.List<Ticket> activeTicketsList = getTicketsByAssignedUser(user);
-                        Long ticketsActivosEncontrados = (long) (activeTicketsList != null ? activeTicketsList.size() : 0);
+                        Long ticketsActivosEncontrados = getActiveTicketsCountForUser(user);
                         
                         Double promedioCalificacion = getAvgRatingByTecnico(user);
 
@@ -438,6 +528,7 @@ public class TicketService {
         }
 
 
+        @Transactional(readOnly = true)
         public List<DocumentoEmpleadoDTO> getTechnicianDocuments(Integer userId) {
                 Empleado empleado = empleadoRepository.findByPersona_User_Id(userId)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,

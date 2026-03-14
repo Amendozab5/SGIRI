@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -38,7 +38,8 @@ export class TicketAssignPanelComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private ticketService: TicketService,
-    private tokenService: TokenStorageService
+    private tokenService: TokenStorageService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -57,20 +58,40 @@ export class TicketAssignPanelComponent implements OnInit {
     });
   }
 
-  loadTechnicians() {
+  loadTechnicians(force: boolean = false) {
     this.loading = true;
-    this.ticketService.getDetailedTechnicians().subscribe({
+    this.cdr.detectChanges();
+
+    // Safety timeout to force loading off after 10 seconds
+    const timeout = setTimeout(() => {
+      if (this.loading) {
+        console.warn('Technician load timed out, forcing loading end');
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    }, 10000);
+
+    this.ticketService.getDetailedTechnicians(force).subscribe({
       next: (data) => {
+        clearTimeout(timeout);
         this.technicians = data;
         this.filteredTechnicians = data;
         this.groupTechniciansByCargo();
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
+        clearTimeout(timeout);
         console.error('Error loading technicians', err);
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  reloadData() {
+    this.loadTicket();
+    this.loadTechnicians(true);
   }
 
   groupTechniciansByCargo() {

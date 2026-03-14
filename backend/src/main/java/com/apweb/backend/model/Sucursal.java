@@ -38,7 +38,12 @@ public class Sucursal {
     @Column(length = 50)
     private String telefono;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_catalogo_item_estado")
     private CatalogoItem estado;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("idEmpresa")
+    public Integer getIdEmpresa() {
+        return empresa != null ? empresa.getId() : null;
+    }
 }

@@ -213,13 +213,17 @@ export class TechDashboardComponent implements OnInit {
 
   private calculateKPIs(tickets: Ticket[], visitas: any[]): void {
     const criticalCount = tickets.filter(t => t.prioridadItem?.codigo === 'URGENTE' || t.prioridadItem?.codigo === 'CRITICA').length;
-    const assignedCount = tickets.filter(t => t.estadoItem?.codigo === 'ASIGNADO' || t.estadoItem?.codigo === 'EN_PROCESO').length;
+    
+    // Inclusión de estados que también significan trabajo para el técnico
+    const assignedCount = tickets.filter(t => 
+      ['ASIGNADO', 'EN_PROCESO', 'REQUIERE_VISITA', 'REPROGRAMADA'].includes(t.estadoItem?.codigo || '')
+    ).length;
 
     this.kpis = [
       { label: 'Asignados', value: assignedCount, icon: 'bi-briefcase', class: 'info' },
       { label: 'Críticos', value: criticalCount, icon: 'bi-exclamation-octagon', class: 'danger', trend: criticalCount > 0 ? `+${criticalCount} activos` : '' },
       { label: 'Visitas Hoy', value: visitas.length, icon: 'bi-calendar-event', class: 'warning' },
-      { label: 'Resueltos', value: tickets.filter(t => t.estadoItem?.codigo === 'RESUELTO').length, icon: 'bi-check-all', class: 'success' },
+      { label: 'Resueltos', value: tickets.filter(t => ['RESUELTO', 'CERRADO'].includes(t.estadoItem?.codigo || '')).length, icon: 'bi-check-all', class: 'success' },
       { label: 'Estado Red', value: 'Óptimo', icon: 'bi-graph-up-arrow', class: 'primary' }
     ];
   }

@@ -217,20 +217,43 @@ export class SchedulerComponent implements OnInit {
 
     onSaveVisita({ request, id }: { request: VisitaRequest, id: number | null }): void {
         if (id) {
-            this.visitaService.updateVisita(id, request).subscribe(() => {
-                this.loadVisitas();
-                this.loadInitialData(); // Reload pending list
-                this.visitaFormModal.hide();
-            });
-        } else {
-            this.visitaService.createVisita(request).subscribe(() => {
-                // Punto 1: Cambiar el estado del ticket a REQUIERE_VISITA al guardar
-                // Esto asegura que el flujo ITSM se respete y el estado refleje el trabajo logístico.
-                this.ticketService.updateStatus(request.idTicket, 'REQUIERE_VISITA', 'Visita agendada oficialmente por el administrador.').subscribe(() => {
+            this.visitaService.updateVisita(id, request).subscribe({
+                next: () => {
                     this.loadVisitas();
                     this.loadInitialData(); // Reload pending list
                     this.visitaFormModal.hide();
-                });
+                },
+                error: (err) => {
+                    alert('Error al actualizar la visita: ' + (err.error?.message || err.message));
+                }
+            });
+        } else {
+            // Optimistic UI: remove from pending list before calling APIs
+            const originalTickets = [...this.tickets];
+            this.tickets = this.tickets.filter(t => t.idTicket !== request.idTicket);
+            
+            this.visitaService.createVisita(request).subscribe({
+                next: () => {
+                    // Actualizar el estado del ticket para cumplir el flujo ITSM
+                    this.ticketService.updateStatus(request.idTicket, 'REQUIERE_VISITA', 'Visita agendada oficialmente por el administrador.').subscribe({
+                        next: () => {
+                            this.loadVisitas();
+                            this.loadInitialData(); // Refrescar lista definitiva desde el backend
+                            this.visitaFormModal.hide();
+                        },
+                        error: () => {
+                            // Si falla el estado, igual refrescamos la agenda
+                            this.loadVisitas();
+                            this.loadInitialData();
+                            this.visitaFormModal.hide();
+                        }
+                    });
+                },
+                error: (err) => {
+                    // Revert optimistic removal on error
+                    this.tickets = originalTickets;
+                    alert('Error al crear la visita: ' + (err.error?.message || err.message));
+                }
             });
         }
     }

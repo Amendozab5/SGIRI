@@ -93,9 +93,9 @@ export class TicketService {
     return this.http.get<Ticket[]>(API_URL + '/pending-visit');
   }
 
-  getDetailedTechnicians(): Observable<any[]> {
+  getDetailedTechnicians(force: boolean = false): Observable<any[]> {
     const now = Date.now();
-    if (this.techniciansCache && (now - this.lastTechFetch < this.CACHE_TTL)) {
+    if (!force && this.techniciansCache && (now - this.lastTechFetch < this.CACHE_TTL)) {
       return of(this.techniciansCache);
     }
     return this.http.get<any[]>(API_URL + '/tecnicos').pipe(

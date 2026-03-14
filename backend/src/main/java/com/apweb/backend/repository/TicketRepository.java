@@ -41,6 +41,26 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
                         @Param("categoryId") Integer categoryId,
                         org.springframework.data.domain.Pageable pageable);
 
+        @Query("SELECT DISTINCT t FROM Ticket t " +
+                        "LEFT JOIN FETCH t.usuarioAsignado ua " +
+                        "LEFT JOIN FETCH ua.persona uap " +
+                        "LEFT JOIN FETCH uap.canton " +
+                        "LEFT JOIN FETCH t.usuarioCreador uc " +
+                        "LEFT JOIN FETCH uc.persona ucp " +
+                        "LEFT JOIN FETCH ucp.canton " +
+                        "LEFT JOIN FETCH t.estadoItem " +
+                        "LEFT JOIN FETCH t.categoriaItem " +
+                        "LEFT JOIN FETCH t.prioridadItem " +
+                        "LEFT JOIN FETCH t.servicio " +
+                        "LEFT JOIN FETCH t.sla sla " +
+                        "LEFT JOIN FETCH sla.aplicaPrioridad " +
+                        "LEFT JOIN FETCH t.sucursal " +
+                        "LEFT JOIN FETCH t.cliente c " +
+                        "LEFT JOIN FETCH c.persona cp " +
+                        "LEFT JOIN FETCH cp.canton " +
+                        "WHERE t.usuarioAsignado = :user")
+        List<Ticket> findByUsuarioAsignadoWithAssociations(@Param("user") User user);
+
         List<Ticket> findByUsuarioAsignado(User user);
 
         @Query("SELECT AVG(t.calificacionSatisfaccion) FROM Ticket t WHERE t.usuarioAsignado = :tecnico AND t.calificacionSatisfaccion IS NOT NULL")
@@ -57,6 +77,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
                         "LEFT JOIN FETCH t.cliente c " +
                         "LEFT JOIN FETCH c.persona cp " +
                         "LEFT JOIN FETCH t.sucursal s " +
-                        "WHERE ei.codigo = 'REQUIERE_VISITA'")
+                        "WHERE ei.codigo = 'REQUIERE_VISITA' " +
+                        "AND NOT EXISTS (SELECT v FROM VisitaTecnica v WHERE v.ticket = t AND v.estado.codigo != 'CANCELADA')")
         List<Ticket> findTicketsPendingVisit();
 }

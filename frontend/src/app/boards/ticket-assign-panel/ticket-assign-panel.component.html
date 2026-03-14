@@ -87,6 +87,9 @@
             <div *ngIf="loading" class="text-center py-5">
                 <div class="spinner-border text-primary" role="status"></div>
                 <p class="mt-2 text-muted">Cargando técnicos autorizados...</p>
+                <button class="btn btn-sm btn-outline-secondary mt-3" (click)="reloadData()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Forzar recarga
+                </button>
             </div>
         </div>
 
