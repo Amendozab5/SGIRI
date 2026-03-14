@@ -27,7 +27,7 @@ public class PersonnelController {
     // ─── Personas ─────────────────────────────────────────────────────────────
 
     @GetMapping("/personas")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public List<Persona> getAllPersonas() {
         return personnelService.getAllPersonas();
     }
@@ -35,13 +35,13 @@ public class PersonnelController {
     // ─── Empleados ────────────────────────────────────────────────────────────
 
     @GetMapping("/empleados")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public List<EmpleadoDTO> getAllEmpleados() {
         return personnelService.getAllEmpleados();
     }
 
     @GetMapping("/empleados/{cedula}")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<EmpleadoDTO> getEmpleado(@PathVariable(name = "cedula") String cedula) {
         return personnelService.getEmpleadoByCedula(cedula)
                 .map(ResponseEntity::ok)
@@ -55,7 +55,7 @@ public class PersonnelController {
      * No crea usuario del sistema — eso es un paso posterior explícito.
      */
     @PostMapping("/empleados")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<EmpleadoDTO> crearEmpleado(@Valid @RequestBody EmpleadoCreateRequest request) {
         EmpleadoDTO creado = personnelService.crearEmpleado(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
@@ -67,7 +67,7 @@ public class PersonnelController {
      * antes de intentar crear el usuario del sistema.
      */
     @GetMapping("/empleados/{cedula}/acceso-status")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<EmpleadoAccessStatusDTO> getAccessStatus(@PathVariable(name = "cedula") String cedula) {
         return ResponseEntity.ok(personnelService.getAccessStatus(cedula));
     }
@@ -94,7 +94,7 @@ public class PersonnelController {
      * @param request Datos de activación: rol, idEmpresa, anioNacimiento
      */
     @PostMapping("/empleados/{cedula}/activar-acceso")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<UserAdminView> activarAccesoEmpleado(
             @PathVariable(name = "cedula") String cedula,
             @Valid @RequestBody EmpleadoActivarAccesoRequest request) {
@@ -105,13 +105,13 @@ public class PersonnelController {
     // ─── Clientes ─────────────────────────────────────────────────────────────
 
     @GetMapping("/clientes")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public List<Cliente> getAllClientes() {
         return personnelService.getAllClientes();
     }
 
     @GetMapping("/clientes/{cedula}")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<Cliente> getCliente(@PathVariable(name = "cedula") String cedula) {
         return personnelService.getClienteByCedula(cedula)
                 .map(ResponseEntity::ok)

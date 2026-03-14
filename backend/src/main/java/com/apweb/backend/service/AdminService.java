@@ -46,7 +46,7 @@ public class AdminService {
      * los clientes se auto-registran por otro flujo (/api/auth/register).
      */
     private static final Set<String> EMPLOYEE_ROLES = Set.of(
-            "TECNICO", "ADMIN_TECNICOS", "ADMIN_MASTER", "ADMIN_VISUAL");
+            "TECNICO", "ADMIN_TECNICOS", "ADMIN_MASTER", "ADMIN_CONTRATOS");
 
     @Autowired
     private UserRepository userRepository;

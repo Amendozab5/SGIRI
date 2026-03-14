@@ -284,7 +284,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
             this.isCliente = roles.includes('ROLE_CLIENTE');
 
             if (roles.includes('ROLE_ADMIN') || roles.includes('ROLE_ADMIN_MASTER') ||
-                roles.includes('ROLE_ADMIN_TECNICOS') || roles.includes('ROLE_ADMIN_VISUAL')) {
+                roles.includes('ROLE_ADMIN_TECNICOS') || roles.includes('ROLE_ADMIN_CONTRATOS')) {
                 this.backRoute = '/home/asignacion-tickets';
             } else if (roles.includes('ROLE_TECNICO')) {
                 this.backRoute = '/home/tech-tickets';

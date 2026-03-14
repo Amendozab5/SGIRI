@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { TicketService } from '../../_services/ticket.service';
 import { UserService } from '../../_services/user.service';
 import { CompanyService } from '../../_services/company.service';
+import { TokenStorageService } from '../../_services/token-storage.service';
 import { Ticket } from '../../models/ticket';
 import { Empresa } from '../../models/empresa';
 import { UserAdminView } from '../../models/user-admin-view.model';
@@ -57,6 +58,9 @@ export class AdminDashboardComponent implements OnInit {
 
   today: Date = new Date();
   isLoading: boolean = true;
+  canManageUsers: boolean = false;
+  canAssignTickets: boolean = false;
+  isContractAdmin: boolean = false;
 
   kpis: KPI[] = [];
   recentActivity: Activity[] = [];
@@ -77,11 +81,36 @@ export class AdminDashboardComponent implements OnInit {
     private ticketService: TicketService,
     private userService: UserService,
     private companyService: CompanyService,
+    private tokenStorageService: TokenStorageService,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
+    this.filterQuickActions();
     this.loadDashboardData();
+  }
+
+  private filterQuickActions(): void {
+    const user = this.tokenStorageService.getUser();
+    if (user && user.roles) {
+      const roles = user.roles;
+      const isMaster = roles.includes('ROLE_ADMIN') || roles.includes('ROLE_ADMIN_MASTER');
+      const isTecnico = roles.includes('ROLE_ADMIN_TECNICOS');
+
+      this.canManageUsers = isMaster;
+      this.canAssignTickets = isMaster || isTecnico;
+      this.isContractAdmin = roles.includes('ROLE_ADMIN_CONTRATOS');
+
+      this.quickActions = this.quickActions.filter(action => {
+        if (action.label === 'Usuarios' || action.label === 'Empleados' || action.label === 'Catálogos') {
+          return isMaster;
+        }
+        if (action.label === 'Tickets' || action.label === 'Red') {
+          return isMaster || isTecnico;
+        }
+        return true;
+      });
+    }
   }
 
   loadDashboardData(): void {
@@ -187,6 +216,10 @@ export class AdminDashboardComponent implements OnInit {
       { label: 'Incidencias Críticas', value: criticalCount.toString(), icon: 'bi-exclamation-octagon', color: '#dc2626', trend: 'Prioridad' },
       { label: 'Resolución General', value: `${slaPercent}%`, icon: 'bi-shield-check', color: '#16a34a', trend: 'Total' }
     ];
+
+    if (this.isContractAdmin) {
+      this.kpis = this.kpis.filter(k => k.label !== 'Técnicos Online');
+    }
   }
 
   private formatTimeAgo(date?: Date | string): string {

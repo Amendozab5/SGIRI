@@ -51,7 +51,7 @@
                     <div class="card-header-modern">
                         <i class="bi bi-activity me-2"></i>
                         <h2>Actividad Reciente (Últimos Tickets)</h2>
-                        <button class="btn-text-only ms-auto" routerLink="/home/asignacion-tickets">Ver todo</button>
+                        <button class="btn-text-only ms-auto" routerLink="/home/asignacion-tickets" *ngIf="canAssignTickets">Ver todo</button>
                     </div>
                     <div class="activity-timeline">
                         <div class="activity-item" *ngFor="let act of recentActivity">
@@ -75,7 +75,7 @@
                     <div class="card-header-modern">
                         <i class="bi bi-list-stars me-2"></i>
                         <h2>Tickets Prioritarios</h2>
-                        <button class="btn-text-only ms-auto" routerLink="/home/asignacion-tickets">Ir a
+                        <button class="btn-text-only ms-auto" routerLink="/home/asignacion-tickets" *ngIf="canAssignTickets">Ir a
                             asignación</button>
                     </div>
                     <div class="table-responsive">
@@ -122,7 +122,7 @@
             <div class="side-column">
 
                 <!-- Carga de Equipo -->
-                <div class="card glass-card mb-4">
+                <div class="card glass-card mb-4" *ngIf="!isContractAdmin">
                     <div class="card-header-modern">
                         <i class="bi bi-people me-2"></i>
                         <h2>Carga del Equipo Técnico</h2>

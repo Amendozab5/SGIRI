@@ -400,10 +400,27 @@
                 <span class="status-badge mb-2" [ngClass]="getEstadoBadgeClass(doc.codigoEstado)">
                   {{ doc.nombreEstado }}
                 </span>
-                <div class="btn-group" *ngIf="!updatingStatusIds.includes(doc.idDocumento); else statusLoading">
-                  <button class="btn btn-outline-success btn-xs" (click)="cambiarEstado(doc, 'ACTIVO')" *ngIf="doc.codigoEstado !== 'ACTIVO'">✓</button>
-                  <button class="btn btn-outline-danger btn-xs" (click)="cambiarEstado(doc, 'RECHAZADO')" *ngIf="doc.codigoEstado !== 'RECHAZADO'">✗</button>
+                <div class="d-flex gap-1 justify-content-end">
+                  <button class="btn btn-sm btn-outline-primary" (click)="verDocumento(doc.rutaArchivo)" title="Previsualizar">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" 
+                          *ngIf="isAdminMaster && !deletingDocIds.includes(doc.idDocumento)"
+                          (click)="eliminarDocumento(doc)" title="Eliminar definitivamente">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  <div class="btn-group" *ngIf="!updatingStatusIds.includes(doc.idDocumento); else statusLoading">
+                    <button class="btn btn-outline-success btn-xs" (click)="cambiarEstado(doc, 'ACTIVO')" *ngIf="doc.codigoEstado !== 'ACTIVO'">✓</button>
+                    <button class="btn btn-outline-danger btn-xs" (click)="cambiarEstado(doc, 'RECHAZADO')" *ngIf="doc.codigoEstado !== 'RECHAZADO'">✗</button>
+                  </div>
                 </div>
+                <!-- Botón de Renovación si está rechazado o tiene error -->
+                <div class="mt-2" *ngIf="doc.codigoEstado === 'RECHAZADO'">
+                   <button class="btn btn-xs btn-primary w-100" (click)="showUploadForm = true; uploadIdTipo = doc.idTipoDocumento">
+                     <i class="bi bi-arrow-repeat me-1"></i> Renovar
+                   </button>
+                </div>
+
                 <ng-template #statusLoading>
                   <div class="spinner-border spinner-border-sm text-primary"></div>
                 </ng-template>
@@ -458,13 +475,6 @@
                       <option *ngFor="let r of rolesEmpleado" [value]="r">{{ r }}</option>
                     </select>
                   </div>
-                  <div class="mb-3">
-                    <label class="form-label">Empresa</label>
-                    <select class="form-control" [(ngModel)]="activarEmpresa">
-                      <option [ngValue]="null">Seleccione empresa...</option>
-                      <option *ngFor="let emp of empresas" [ngValue]="emp.id">{{ emp.nombreComercial }}</option>
-                    </select>
-                  </div>
                 </div>
                 <button class="btn-aura btn-primary w-100" (click)="activarAcceso()" [disabled]="activating">
                   Confirmar y Generar Credenciales
@@ -495,6 +505,44 @@
           </div>
         </div>
       </main>
+    </div>
+  </div>
+
+  <!-- ── Modal de Confirmación Genérico ── -->
+  <div class="preview-backdrop" *ngIf="showConfirmModal" (click)="cancelarAccion()">
+    <div class="confirm-modal-content" (click)="$event.stopPropagation()">
+      <div class="text-center p-4">
+        <div class="confirm-icon-box mb-3" [class]="confirmColor">
+          <i class="bi" [class]="confirmIcon"></i>
+        </div>
+        <h4 class="fw-extrabold mb-2">{{confirmTitle}}</h4>
+        <p class="text-muted px-3">{{confirmMessage}}</p>
+      </div>
+      <div class="confirm-footer d-flex">
+        <button class="confirm-btn btn-cancel" (click)="cancelarAccion()">Cancelar</button>
+        <button class="confirm-btn btn-confirm" (click)="confirmarAccion()">Confirmar Acción</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal de Previsualización PDF ── -->
+  <div class="preview-backdrop" *ngIf="showPreview" (click)="cerrarPreview()">
+    <div class="preview-content" (click)="$event.stopPropagation()">
+      <div class="preview-header">
+        <div class="d-flex align-items-center">
+          <h5 class="m-0 fw-bold"><i class="bi bi-file-pdf me-2"></i>Monitoreo de Documento</h5>
+          <a [href]="previewUrl" target="_blank" class="btn btn-sm btn-outline-primary ms-3" title="Abrir en pestaña nueva">
+            <i class="bi bi-box-arrow-up-right me-1"></i> Abrir Original
+          </a>
+        </div>
+        <button class="btn-close-aura" (click)="cerrarPreview()">✕</button>
+      </div>
+      <div class="preview-body">
+        <iframe *ngIf="previewUrl" [src]="previewUrl" width="100%" height="100%" frameborder="0"></iframe>
+      </div>
+      <div class="preview-footer">
+        <button class="btn-aura btn-secondary w-100" (click)="cerrarPreview()">Cerrar Previsualización</button>
+      </div>
     </div>
   </div>
 

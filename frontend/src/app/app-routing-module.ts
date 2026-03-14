@@ -17,6 +17,7 @@ import { TicketAssignmentComponent } from './boards/ticket-assignment/ticket-ass
 import { EmployeeManagementComponent } from './boards/employee-management/employee-management.component';
 import { TechDashboardComponent } from './boards/tech-dashboard/tech-dashboard.component'; // Import TechDashboardComponent
 import { TicketAssignPanelComponent } from './boards/ticket-assign-panel/ticket-assign-panel.component';
+import { HrDashboardComponent } from './boards/hr-dashboard/hr-dashboard.component';
 
 
 import { AuditManagementComponent } from './boards/audit-management/audit-management.component'; // New import
@@ -33,6 +34,7 @@ export const routes: Routes = [
     runGuardsAndResolvers: 'always',
     children: [
       { path: 'admin', component: AdminDashboardComponent }, // New general admin dashboard
+      { path: 'hr-dashboard', component: HrDashboardComponent }, // Nuevo dashboard para contratos
       { path: 'gestion-usuarios', component: BoardAdminComponent }, // User management for admin
       { path: 'gestion-empleados', component: EmployeeManagementComponent }, // Employee management
       { path: 'gestion-catalogos', component: CatalogManagementComponent }, // Catalog management

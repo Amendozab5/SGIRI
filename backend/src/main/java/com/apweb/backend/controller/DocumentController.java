@@ -32,7 +32,7 @@ public class DocumentController {
      * documento.
      */
     @GetMapping("/tipos-documento")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<List<TipoDocumento>> getTiposDocumento() {
         return ResponseEntity.ok(documentService.getTiposDocumento());
     }
@@ -59,7 +59,7 @@ public class DocumentController {
      * Lista los documentos laborales de un empleado (excluye FOTO).
      */
     @GetMapping("/empleado/{idEmpleado}")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<List<DocumentoEmpleadoDTO>> getDocumentosEmpleado(
             @PathVariable(name = "idEmpleado") Integer idEmpleado) {
         return ResponseEntity.ok(documentService.getDocumentosEmpleado(idEmpleado));
@@ -76,7 +76,7 @@ public class DocumentController {
      * - descripcion: descripción libre
      */
     @PostMapping("/empleado/{idEmpleado}/upload")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<DocumentoEmpleadoDTO> subirDocumentoEmpleado(
             @PathVariable(name = "idEmpleado") Integer idEmpleado,
             @RequestParam(name = "file") MultipartFile file,
@@ -97,7 +97,7 @@ public class DocumentController {
      * Body JSON: { "estado": "ACTIVO" | "PENDIENTE" | "RECHAZADO" }
      */
     @PutMapping("/empleado/docs/{idDocumento}/estado")
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<DocumentoEmpleadoDTO> cambiarEstadoDocumento(
             @PathVariable(name = "idDocumento") Integer idDocumento,
             @RequestBody Map<String, String> body) {
@@ -109,5 +109,15 @@ public class DocumentController {
 
         DocumentoEmpleadoDTO dto = documentService.cambiarEstadoDocumento(idDocumento, estado);
         return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * Elimina físicamente un documento del expediente.
+     */
+    @DeleteMapping("/empleado/docs/{idDocumento}")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    public ResponseEntity<Void> eliminarDocumentoEmpleado(@PathVariable(name = "idDocumento") Integer idDocumento) {
+        documentService.eliminarDocumentoEmpleado(idDocumento);
+        return ResponseEntity.noContent().build();
     }
 }

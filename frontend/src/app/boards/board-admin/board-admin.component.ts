@@ -134,8 +134,8 @@ export class BoardAdminComponent implements OnInit {
       return false;
     }
     const employeeRoles = [
-      'TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_VISUAL', 
-      'ROLE_TECHNICIAN', 'ROLE_ADMIN_TECNICOS', 'ROLE_ADMIN_MASTER', 'ROLE_ADMIN_VISUAL',
+      'TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_CONTRATOS', 
+      'ROLE_TECHNICIAN', 'ROLE_ADMIN_TECNICOS', 'ROLE_ADMIN_MASTER', 'ROLE_ADMIN_CONTRATOS',
       'ROLE_TECNICO', 'TECHNICIAN'
     ];
     return user.roles.some(role => {

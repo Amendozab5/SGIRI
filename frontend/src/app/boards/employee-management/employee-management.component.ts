@@ -1,8 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, SecurityContext } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeService, EmpleadoActivarAccesoRequest, TipoDocumentoDTO } from '../../_services/employee.service';
 import { CompanyService } from '../../_services/company.service';
+import { TokenStorageService } from '../../_services/token-storage.service';
 import { Empresa } from '../../models/empresa';
 import { NetworkService, NetworkMapData } from '../../_services/network.service';
 import {
@@ -74,19 +76,45 @@ export class EmployeeManagementComponent implements OnInit {
   empresas: Empresa[] = [];
 
   // Roles de empleado disponibles
-  rolesEmpleado = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_VISUAL'];
+  rolesEmpleado = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_CONTRATOS'];
+
+  // Preview PDF
+  showPreview = false;
+  previewUrl: SafeResourceUrl | null = null;
+  deletingDocIds: number[] = [];
+
+  // Modal de Confirmación Genérico
+  showConfirmModal = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmIcon = 'bi-exclamation-triangle';
+  confirmColor = 'text-warning';
+  onConfirmCallback: Function | null = null;
+
+  // Control de roles
+  isAdminMaster = false;
 
   constructor(
     private fb: FormBuilder,
     private employeeService: EmployeeService,
     private companyService: CompanyService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer,
+    private tokenStorage: TokenStorageService
   ) { }
 
   ngOnInit(): void {
+    this.checkRoles();
     this.buildForms();
     this.loadCatalogos();
     this.loadEmpleados();
+  }
+
+  private checkRoles(): void {
+    const user = this.tokenStorage.getUser();
+    if (user && user.roles) {
+      this.isAdminMaster = user.roles.includes('ROLE_ADMIN_MASTER');
+    }
   }
 
   // ── Inicialización ─────────────────────────────────────────────────────────
@@ -323,7 +351,21 @@ export class EmployeeManagementComponent implements OnInit {
 
   cambiarEstado(doc: DocumentoEmpleadoDTO, nuevoEstado: string): void {
     if (this.updatingStatusIds.includes(doc.idDocumento)) return;
+
+    if (nuevoEstado === 'RECHAZADO' && doc.codigoEstado === 'ACTIVO') {
+      this.confirmTitle = '¿Invalidar Documento Activo?';
+      this.confirmMessage = 'Atención: Al rechazar este documento, el acceso del usuario al sistema será suspendido si no posee otros documentos activos.';
+      this.confirmIcon = 'bi-shield-exclamation';
+      this.confirmColor = 'text-danger';
+      this.onConfirmCallback = () => this.ejecutarCambioEstado(doc, nuevoEstado);
+      this.showConfirmModal = true;
+      return;
+    }
     
+    this.ejecutarCambioEstado(doc, nuevoEstado);
+  }
+
+  private ejecutarCambioEstado(doc: DocumentoEmpleadoDTO, nuevoEstado: string): void {
     this.updatingStatusIds.push(doc.idDocumento);
     this.errorMsg = '';
     this.cdr.detectChanges();
@@ -370,13 +412,12 @@ export class EmployeeManagementComponent implements OnInit {
   }
 
   activarAcceso(): void {
-    if (!this.activarRol || !this.activarEmpresa || !this.selectedEmpleado) return;
+    if (!this.activarRol || !this.selectedEmpleado) return;
     this.activating = true;
     this.errorMsg = '';
 
     const req: EmpleadoActivarAccesoRequest = {
-      rol: this.activarRol,
-      idEmpresa: this.activarEmpresa
+      rol: this.activarRol
     };
 
     this.employeeService.activarAcceso(this.selectedEmpleado.cedula, req).subscribe({
@@ -424,6 +465,74 @@ export class EmployeeManagementComponent implements OnInit {
   }
 
   // ── Helpers de UI ──────────────────────────────────────────────────────────
+
+  verDocumento(ruta?: string): void {
+    if (!ruta) return;
+    
+    let finalUrl = ruta;
+    // Si no es una URL completa (Cloudinary), es una ruta local antigua
+    if (!ruta.startsWith('http')) {
+      // Normalizar: si no trae el prefijo 'uploads/', lo agregamos
+      const cleanPath = ruta.startsWith('uploads/') ? ruta : `uploads/${ruta}`;
+      finalUrl = `http://localhost:8081/${cleanPath}`;
+    }
+
+    console.log('Visualizando documento:', finalUrl);
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(finalUrl);
+    this.showPreview = true;
+    this.cdr.detectChanges();
+  }
+
+  eliminarDocumento(doc: any): void {
+    this.confirmTitle = '¿Eliminar Documento?';
+    this.confirmMessage = `¿Está seguro de eliminar físicamente el documento "${doc.nombreTipoDocumento || 'sin nombre'}"? Esta acción borrará el archivo y no se puede deshacer.`;
+    this.confirmIcon = 'bi-trash3';
+    this.confirmColor = 'text-danger';
+    this.onConfirmCallback = () => this.ejecutarEliminacion(doc);
+    this.showConfirmModal = true;
+  }
+
+  private ejecutarEliminacion(doc: any): void {
+    const id = doc.idDocumento;
+    this.deletingDocIds.push(id);
+
+    this.employeeService.deleteDocumento(id).subscribe({
+      next: () => {
+        this.successMsg = 'Documento eliminado exitosamente.';
+        this.documentos = this.documentos.filter(d => d.idDocumento !== id);
+        this.deletingDocIds = this.deletingDocIds.filter(did => did !== id);
+        // Actualizamos el estado de acceso por si era el único documento activo
+        if (this.selectedEmpleado) this.loadAccessStatus(this.selectedEmpleado.cedula);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al eliminar documento:', err);
+        this.errorMsg = 'No se pudo eliminar el documento.';
+        this.deletingDocIds = this.deletingDocIds.filter(did => did !== id);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  confirmarAccion(): void {
+    if (this.onConfirmCallback) {
+      this.onConfirmCallback();
+    }
+    this.showConfirmModal = false;
+    this.onConfirmCallback = null;
+  }
+
+  cancelarAccion(): void {
+    this.showConfirmModal = false;
+    this.onConfirmCallback = null;
+  }
+
+
+  cerrarPreview(): void {
+    this.showPreview = false;
+    this.previewUrl = null;
+    this.cdr.detectChanges();
+  }
 
   clearMessages(): void {
     this.errorMsg = '';

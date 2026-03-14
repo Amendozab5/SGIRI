@@ -36,42 +36,47 @@
       </a>
 
       <!-- Admin-specific Links -->
+      <a class="menu-item" routerLink="/home/hr-dashboard" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" *ngIf="showHRMenu">
+        <i class="bi bi-person-check-fill"></i>
+        <span>Dashboard Talento</span>
+      </a>
       <a class="menu-item" routerLink="/home/admin" routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }" *ngIf="showAdminBoard">
+        [routerLinkActiveOptions]="{ exact: true }" *ngIf="showAdminBoard && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         <i class="bi bi-grid-1x2-fill"></i>
         <span>Dashboard Admin</span>
       </a>
-      <a class="menu-item" routerLink="/home/gestion-usuarios" routerLinkActive="active" *ngIf="showAdminBoard">
+      <a class="menu-item" routerLink="/home/gestion-usuarios" routerLinkActive="active" *ngIf="showMasterAdminMenu">
         <i class="bi bi-people-fill"></i>
         <span>Gestión de Usuarios</span>
       </a>
-      <a class="menu-item" routerLink="/home/gestion-empleados" routerLinkActive="active" *ngIf="showAdminBoard">
+      <a class="menu-item" routerLink="/home/gestion-empleados" routerLinkActive="active" *ngIf="showHRMenu">
         <i class="bi bi-person-badge-fill"></i>
         <span>Gestión de Empleados</span>
       </a>
-      <a class="menu-item" routerLink="/home/asignacion-tickets" routerLinkActive="active" *ngIf="showAdminBoard">
+      <a class="menu-item" routerLink="/home/asignacion-tickets" routerLinkActive="active" *ngIf="showMasterAdminMenu || showAdminBoard && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         <i class="bi bi-ticket-perforated-fill"></i>
         <span>Asignación de Tickets</span>
       </a>
-      <a class="menu-item" routerLink="/home/gestion-catalogos" routerLinkActive="active" *ngIf="showAdminBoard">
+      <a class="menu-item" routerLink="/home/gestion-catalogos" routerLinkActive="active" *ngIf="showMasterAdminMenu">
         <i class="bi bi-journal-check"></i>
         <span>Gestión de Catálogos</span>
       </a>
-      <a class="menu-item" routerLink="/home/gestion-entidades" routerLinkActive="active" *ngIf="showAdminBoard">
+      <a class="menu-item" routerLink="/home/gestion-entidades" routerLinkActive="active" *ngIf="showHRMenu">
         <i class="bi bi-diagram-3-fill"></i>
         <span>Gestión de Entidades</span>
       </a>
-      <a class="menu-item" routerLink="/home/gestion-auditoria" routerLinkActive="active" *ngIf="showAdminBoard">
+      <a class="menu-item" routerLink="/home/gestion-auditoria" routerLinkActive="active" *ngIf="showMasterAdminMenu">
         <i class="bi bi-shield-lock-fill"></i>
         <span>Gestión de Auditoría</span>
       </a>
 
       <!-- Monitoreo de Infraestructura -->
-      <div class="menu-category" *ngIf="showAdminBoard || showTechnicianBoard">
+      <div class="menu-category" *ngIf="(showAdminBoard || showTechnicianBoard) && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         Monitoreo Crítico (NOC)
       </div>
       <a class="menu-item" routerLink="/home/network-map" routerLinkActive="active"
-        *ngIf="showAdminBoard || showTechnicianBoard">
+        *ngIf="(showAdminBoard || showTechnicianBoard) && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         <i class="bi bi-geo-alt-fill"></i>
         <span>Estado de Red Nacional</span>
         <span class="badge rounded-pill bg-danger ms-2" style="font-size: 0.65rem;" *ngIf="showAdminBoard">LIVE</span>
@@ -79,30 +84,30 @@
 
       <!-- Agenda Access -->
       <a class="menu-item" routerLink="/home/agenda" routerLinkActive="active"
-        *ngIf="showAdminBoard || showTechnicianBoard">
+        *ngIf="(showAdminBoard || showTechnicianBoard) && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         <i class="bi bi-calendar3"></i>
         <span>Agenda de Visitas</span>
       </a>
 
       <!-- Analítica e Informes (GESTIÓN ESTRATÉGICA) -->
-      <div class="menu-category" *ngIf="showAdminBoard">
+      <div class="menu-category" *ngIf="showAdminBoard && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         Centro de Analítica
       </div>
       <a class="menu-item" [routerLink]="['/home/reportes']" [queryParams]="{report: 'TICKET_GESTION'}"
         routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false, queryParams: 'subset' }"
-        *ngIf="showAdminBoard">
+        *ngIf="showAdminBoard && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         <i class="bi bi-ticket-detailed-fill"></i>
         <span>Gestión de Tickets</span>
       </a>
       <a class="menu-item" [routerLink]="['/home/reportes']" [queryParams]="{report: 'SLA_TECNICO'}"
         routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false, queryParams: 'subset' }"
-        *ngIf="showAdminBoard">
+        *ngIf="showAdminBoard && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         <i class="bi bi-clock-history"></i>
         <span>Cumplimiento de SLA</span>
       </a>
       <a class="menu-item" [routerLink]="['/home/reportes']" [queryParams]="{report: 'CSAT_ANALISIS'}"
         routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false, queryParams: 'subset' }"
-        *ngIf="showAdminBoard">
+        *ngIf="showAdminBoard && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         <i class="bi bi-chat-heart-fill"></i>
         <span>Satisfacción Cliente</span>
       </a>

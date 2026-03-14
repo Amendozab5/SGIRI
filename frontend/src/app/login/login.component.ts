@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
             if (returnUrl) {
               this.router.navigateByUrl(returnUrl);
             } else {
-              if (mergedUser.roles.includes('ROLE_ADMIN') || mergedUser.roles.includes('ROLE_ADMIN_MASTER') || mergedUser.roles.includes('ROLE_ADMIN_TECNICOS') || mergedUser.roles.includes('ROLE_ADMIN_VISUAL')) {
+              if (mergedUser.roles.includes('ROLE_ADMIN') || mergedUser.roles.includes('ROLE_ADMIN_MASTER') || mergedUser.roles.includes('ROLE_ADMIN_TECNICOS') || mergedUser.roles.includes('ROLE_ADMIN_CONTRATOS')) {
                 this.router.navigateByUrl('/home/admin');
               } else if (mergedUser.roles.includes('ROLE_TECNICO')) {
                 this.router.navigateByUrl('/home/tech');
@@ -142,8 +142,10 @@ export class LoginComponent implements OnInit {
           if (returnUrl) {
             this.router.navigateByUrl(returnUrl);
           } else {
-            if (fullUser.roles.includes('ROLE_ADMIN') || fullUser.roles.includes('ROLE_ADMIN_MASTER') || fullUser.roles.includes('ROLE_ADMIN_TECNICOS') || fullUser.roles.includes('ROLE_ADMIN_VISUAL')) {
+            if (fullUser.roles.includes('ROLE_ADMIN') || fullUser.roles.includes('ROLE_ADMIN_MASTER') || fullUser.roles.includes('ROLE_ADMIN_TECNICOS')) {
               this.router.navigateByUrl('/home/admin');
+            } else if (fullUser.roles.includes('ROLE_ADMIN_CONTRATOS')) {
+              this.router.navigateByUrl('/home/hr-dashboard');
             } else if (fullUser.roles.includes('ROLE_TECNICO')) {
               this.router.navigateByUrl('/home/tech');
             } else {

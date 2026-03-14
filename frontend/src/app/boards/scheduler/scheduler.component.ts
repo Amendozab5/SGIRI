@@ -92,7 +92,7 @@ export class SchedulerComponent implements OnInit {
 
         // Cargar técnicos (incluyendo todos los roles operativos de empleados)
         this.userService.getAllUsers().subscribe(res => {
-            const employeeRoles = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_VISUAL'];
+            const employeeRoles = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_CONTRATOS'];
             this.tecnicos = res.filter(u => u.roles.some(r => employeeRoles.includes(r.replace('ROLE_', ''))));
             this.cdr.detectChanges(); // Trigger change detection
         });

@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 
 /**
  * Controlador para consultas administrativas de auditoría.
- * Acceso restringido a ADMIN_MASTER y ADMIN_VISUAL.
+ * Acceso restringido a ADMIN_MASTER y ADMIN_CONTRATOS.
  */
 @RestController
 @RequestMapping("/api/admin/audit")
@@ -28,7 +28,7 @@ public class AuditQueryController {
     private final AuditQueryService auditQueryService;
 
     @GetMapping("/timeline")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<Page<AuditTimelineDTO>> getTimeline(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
@@ -44,7 +44,7 @@ public class AuditQueryController {
     }
 
     @GetMapping("/timeline/{eventKey}")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<AuditDetailDTO> getEventDetail(@PathVariable String eventKey) {
         return auditQueryService.getEventDetail(eventKey)
                 .map(ResponseEntity::ok)

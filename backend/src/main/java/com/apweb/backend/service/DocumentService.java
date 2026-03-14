@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.apweb.backend.service.AuditService;
+
 import com.apweb.backend.util.AuditAccion;
 import com.apweb.backend.util.AuditModulo;
 
@@ -348,6 +348,40 @@ public class DocumentService {
 
         log.info("[DOCS-EMPLEADO] Estado del documento id={} cambiado a {}", idDocumento, estadoNormalizado);
         return toDocumentoDTO(actualizado);
+    }
+
+    /**
+     * Elimina físicamente un documento y su archivo asociado (Cloudinary/Local).
+     */
+    @Transactional
+    public void eliminarDocumentoEmpleado(Integer idDocumento) {
+        DocumentoEmpleado doc = documentoEmpleadoRepository.findById(idDocumento)
+                .orElseThrow(() -> new IllegalArgumentException("No existe el documento con id=" + idDocumento));
+
+        String ruta = doc.getRutaArchivo();
+        
+        // 1. Eliminar de Cloudinary si aplica
+        if (ruta != null && ruta.contains("cloudinary.com")) {
+            try {
+                cloudinaryService.delete(ruta);
+            } catch (Exception e) {
+                log.error("Error al borrar de Cloudinary: {}", e.getMessage());
+            }
+        }
+
+        Integer idEmpleado = doc.getEmpleado() != null ? doc.getEmpleado().getIdEmpleado() : null;
+
+        // 2. Eliminar registro de BD
+        documentoEmpleadoRepository.delete(doc);
+
+        // 3. Auditoría
+        auditService.registrarEventoContextual(
+                AuditModulo.DOCUMENTOS, "empleados", "documento_empleado", idDocumento,
+                AuditAccion.DELETE, "Eliminación física de documento",
+                null, java.util.Map.of("id_empleado", idEmpleado, "ruta_eliminada", ruta != null ? ruta : "N/A")
+        );
+
+        log.info("[DOCS-EMPLEADO] Documento id={} eliminado físicamente.", idDocumento);
     }
 
     // ─── Tipos de documento (para dropdowns) ──────────────────────────────────

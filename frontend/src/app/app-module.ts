@@ -1,4 +1,9 @@
-import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { NgModule, provideBrowserGlobalErrorListeners, LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
+
+registerLocaleData(localeEs);
+
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -25,7 +30,8 @@ import { authInterceptorProviders } from './_helpers/auth.interceptor';
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),
-    authInterceptorProviders
+    authInterceptorProviders,
+    { provide: LOCALE_ID, useValue: 'es' }
   ],
   bootstrap: [App]
 })

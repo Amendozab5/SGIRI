@@ -18,7 +18,7 @@ const ORG_API       = 'http://localhost:8081/api/organization';
 /** Request DTO for the dedicated employee access endpoint. */
 export interface EmpleadoActivarAccesoRequest {
   rol: string;
-  idEmpresa: number;
+  idEmpresa?: number | null;
   anioNacimiento?: number;
 }
 
@@ -95,6 +95,11 @@ export class EmployeeService {
       `${DOCS_API}/empleado/docs/${idDocumento}/estado`,
       { estado }
     );
+  }
+
+  /** Elimina físicamente un documento del expediente */
+  deleteDocumento(idDocumento: number): Observable<any> {
+    return this.http.delete(`${DOCS_API}/empleado/docs/${idDocumento}`);
   }
 
   // ── Catálogos organizacionales (para dropdowns del formulario) ─────────────

@@ -70,7 +70,7 @@ export class ChangePasswordComponent implements OnInit {
         setTimeout(() => {
           if (this.currentUser) {
             this.tokenStorage.saveUser(this.currentUser);
-            if (this.currentUser.roles.includes('ROLE_ADMIN_MASTER') || this.currentUser.roles.includes('ROLE_ADMIN_TECNICOS') || this.currentUser.roles.includes('ROLE_ADMIN_VISUAL')) {
+            if (this.currentUser.roles.includes('ROLE_ADMIN_MASTER') || this.currentUser.roles.includes('ROLE_ADMIN_TECNICOS') || this.currentUser.roles.includes('ROLE_ADMIN_CONTRATOS')) {
               this.router.navigate(['/home/admin']);
             } else if (this.currentUser.roles.includes('ROLE_TECNICO')) {
               this.router.navigate(['/home/tech']);

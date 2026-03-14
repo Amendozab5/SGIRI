@@ -35,7 +35,7 @@ public class ReporteController {
      * Lista todos los reportes configurados disponibles para administradores.
      */
     @GetMapping("/disponibles")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<List<ConfiguracionReporte>> getDisponibles() {
         return ResponseEntity.ok(reporteService.getReportesDisponibles());
     }
@@ -44,7 +44,7 @@ public class ReporteController {
      * Obtiene los datos de la vista de resumen de tickets para administración.
      */
     @GetMapping("/data/tickets-resumen")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<List<VwResumenTickets>> getTicketsResumen(
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "search", required = false) String search,
@@ -55,7 +55,7 @@ public class ReporteController {
     }
 
     @GetMapping("/export/tickets/pdf")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportTicketsPdf(
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "search", required = false) String search,
@@ -76,7 +76,7 @@ public class ReporteController {
     }
 
     @GetMapping("/export/sla/pdf")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportSlaPdf() {
         List<VwSlaTecnico> data = reporteService.getSlaTecnicoData();
         ByteArrayInputStream bis = pdfReporteService.generateSlaReport(data);
@@ -92,7 +92,7 @@ public class ReporteController {
     }
 
     @GetMapping("/export/csat/pdf")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportCsatPdf() {
         List<VwCsatDetalle> data = reporteService.getCsatDetalleData();
         ByteArrayInputStream bis = pdfReporteService.generateCsatDetalleReport(data);
@@ -108,7 +108,7 @@ public class ReporteController {
     }
 
     @GetMapping("/export/tickets/excel")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportTicketsExcel(
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "search", required = false) String search,
@@ -129,7 +129,7 @@ public class ReporteController {
     }
 
     @GetMapping("/export/sla/excel")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportSlaExcel() throws Exception {
         List<VwSlaTecnico> data = reporteService.getSlaTecnicoData();
         ByteArrayInputStream bis = excelReporteService.generateSlaExcel(data);
@@ -145,7 +145,7 @@ public class ReporteController {
     }
 
     @GetMapping("/export/csat/excel")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportCsatExcel() throws Exception {
         List<VwCsatDetalle> data = reporteService.getCsatDetalleData();
         ByteArrayInputStream bis = excelReporteService.generateCsatExcel(data);
@@ -161,19 +161,19 @@ public class ReporteController {
     }
 
     @GetMapping("/data/sla-tecnico")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<List<VwSlaTecnico>> getSlaTecnico() {
         return ResponseEntity.ok(reporteService.getSlaTecnicoData());
     }
 
     @GetMapping("/data/csat-analisis")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<List<VwCsatAnalisis>> getCsatAnalisis() {
         return ResponseEntity.ok(reporteService.getCsatAnalisisData());
     }
 
     @GetMapping("/data/csat-detalle")
-    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_VISUAL')")
+    @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<List<VwCsatDetalle>> getCsatDetalle() {
         return ResponseEntity.ok(reporteService.getCsatDetalleData());
     }

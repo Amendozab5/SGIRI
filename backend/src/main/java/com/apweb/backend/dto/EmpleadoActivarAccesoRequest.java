@@ -20,16 +20,15 @@ public class EmpleadoActivarAccesoRequest {
 
     /**
      * Código del rol aplicativo que recibirá el empleado.
-     * Valores permitidos: TECNICO, ADMIN_TECNICOS, ADMIN_MASTER, ADMIN_VISUAL.
+     * Valores permitidos: TECNICO, ADMIN_TECNICOS, ADMIN_MASTER, ADMIN_CONTRATOS.
      */
     @NotBlank(message = "El campo 'rol' es obligatorio.")
     private String rol;
 
     /**
-     * ID de la empresa a la que pertenece el empleado.
-     * Se registrará en usuarios.usuario.id_empresa para trazabilidad organizacional.
+     * ID de la empresa. Ya no es obligatorio para empleados internos.
+     * Si no se envía, se registrará como NULL en usuarios.usuario.
      */
-    @NotNull(message = "El campo 'idEmpresa' es obligatorio.")
     private Integer idEmpresa;
 
     /**
