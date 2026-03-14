@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SharedStateService } from '../../_services/shared-state.service';
 import { TicketService } from '../../_services/ticket.service';
@@ -46,7 +47,8 @@ export class BoardUserComponent implements OnInit, OnDestroy {
     private visitaService: VisitaService,
     private masterDataService: MasterDataService,
     private cdr: ChangeDetectorRef,
-    private zone: NgZone
+    private zone: NgZone,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -120,6 +122,17 @@ export class BoardUserComponent implements OnInit, OnDestroy {
   closeVisitDetails(): void {
     this.selectedVisitForDetails = null;
     this.cdr.detectChanges();
+  }
+
+  goToTicket(idTicket: number): void {
+    if (!idTicket) return;
+    
+    // Cerramos el modal primero (opcional, pero ayuda a la UX)
+    this.selectedVisitForDetails = null;
+    this.cdr.detectChanges();
+    
+    // Navegación programática
+    this.router.navigate(['/home/user/ticket', idTicket]);
   }
 
   loadIncidents(): void {

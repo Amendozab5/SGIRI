@@ -224,8 +224,7 @@
         </div>
 
         <button class="btn btn-primary w-100 mt-4 py-2 fw-bold rounded-3" 
-                [routerLink]="['/home/user/ticket', selectedVisitForDetails.ticket.idTicket]"
-                (click)="closeVisitDetails()">
+                (click)="goToTicket(selectedVisitForDetails.ticket.idTicket)">
           Ir al Ticket <i class="bi bi-arrow-right ms-2"></i>
         </button>
       </div>
