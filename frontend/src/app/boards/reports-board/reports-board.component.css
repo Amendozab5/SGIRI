@@ -213,11 +213,28 @@
 }
 
 .stat-value {
-    border-radius: 12px;
-    border-left: 4px solid #8b5cf6;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.stat-icon {
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    font-size: 5rem;
+    opacity: 0.2;
+    transform: rotate(-15deg);
+}
+
+.feedback-text {
     font-style: italic;
-    color: #475569;
-    max-width: 400px;
+    color: #64748b;
+    position: relative;
+    padding-left: 1rem;
+    border-left: 3px solid #e2e8f0;
 }
 
 .csat-rating .bi-star-fill {
@@ -409,6 +426,22 @@
 
 .animate-fade-in {
     animation: fadeIn 0.4s ease-out;
+}
+
+.hover-row {
+    transition: background-color 0.2s;
+}
+
+.hover-row:hover {
+    background-color: #f8fafc !important;
+}
+
+.fw-500 {
+    font-weight: 500;
+}
+
+.smaller {
+    font-size: 0.7rem;
 }
 
 @keyframes fadeIn {

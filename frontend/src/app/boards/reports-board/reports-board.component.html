@@ -59,19 +59,19 @@
                             </ng-container>
 
                             <ng-container *ngIf="selectedReport === 'SLA_TECNICO'">
-                                <button class="btn btn-filter active">Todos los Técnicos</button>
-                                <button class="btn btn-filter">SLA Crítico</button>
+                                <button class="btn btn-filter" [class.active]="slaFilter === 'TODOS'" (click)="toggleSlaFilter('TODOS')">Todos los Técnicos</button>
+                                <button class="btn btn-filter" [class.active]="slaFilter === 'CRITICO'" (click)="toggleSlaFilter('CRITICO')">SLA Crítico</button>
                             </ng-container>
 
                             <ng-container *ngIf="selectedReport === 'CSAT_ANALISIS'">
-                                <button class="btn btn-filter active">Todo el Feedback</button>
-                                <button class="btn btn-filter">Baja Calificación</button>
+                                <button class="btn btn-filter" [class.active]="csatFilter === 'TODOS'" (click)="toggleCsatFilter('TODOS')">Todo el Feedback</button>
+                                <button class="btn btn-filter" [class.active]="csatFilter === 'BAJO'" (click)="toggleCsatFilter('BAJO')">Baja Calificación</button>
                             </ng-container>
 
                             <div class="vr mx-2" style="height: 24px; align-self: center;"></div>
                             <span class="text-muted small align-self-center">Mostrando {{ (selectedReport ===
-                                'SLA_TECNICO' ? slaData.length : (selectedReport === 'CSAT_ANALISIS' ?
-                                csatDetalle.length : ticketsData.length)) }} registros</span>
+                                'SLA_TECNICO' ? filteredSlaData.length : (selectedReport === 'CSAT_ANALISIS' ?
+                                filteredCsatDetalle.length : ticketsData.length)) }} registros</span>
                         </div>
                     </div>
                 </div>
@@ -144,26 +144,38 @@
 
             <!-- 2. DASHBOARD: CUMPLIMIENTO DE SLA -->
             <div *ngIf="selectedReport === 'SLA_TECNICO'" class="animate__animated animate__fadeIn">
+                
+                <!-- Database View Warning -->
+                <div *ngIf="slaData.length === 0" class="alert alert-warning rounded-4 shadow-sm border-0 mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1">Sin datos de SLA detectados</h5>
+                            <p class="mb-0 small">Es posible que la vista <code>reportes.vw_sla_tecnico</code> no esté creada en la base de datos o no haya tickets resueltos aún.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row g-4 mb-4">
                     <div class="col-md-4">
                         <div class="stat-card" style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);">
                             <span class="stat-label">SLA GLOBAL PROM.</span>
-                            <span class="stat-value">91.4%</span>
+                            <span class="stat-value">{{ getGlobalSla() | number:'1.1-1' }}%</span>
                             <i class="bi bi-graph-up-arrow stat-icon"></i>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="stat-card" style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);">
                             <span class="stat-label">T. RESOLUCIÓN PROM.</span>
-                            <span class="stat-value">4.2 Horas</span>
+                            <span class="stat-value">{{ getAvgResolucion() }}</span>
                             <i class="bi bi-clock-history stat-icon"></i>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                             <span class="stat-label">CUMPLIMIENTO OBJETIVO</span>
-                            <span class="stat-value">Efectivo</span>
-                            <i class="bi bi-check-all stat-icon"></i>
+                            <span class="stat-value">{{ getGlobalSla() >= 80 ? 'Efectivo' : 'Bajo' }}</span>
+                            <i class="bi bi-shield-check stat-icon"></i>
                         </div>
                     </div>
                 </div>
@@ -183,7 +195,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr *ngFor="let s of slaData">
+                                    <tr *ngFor="let s of filteredSlaData">
                                         <td class="ps-4"><span class="fw-bold">{{ s.tecnicoNombre }}</span></td>
                                         <td class="text-center">{{ s.totalTickets }}</td>
                                         <td class="text-center">{{ s.ticketsResueltos }}</td>
@@ -205,25 +217,30 @@
             </div>
 
             <!-- 3. DASHBOARD: SATISFACCIÓN CLIENTE (CSAT) -->
-            <div *ngIf="selectedReport === 'CSAT_ANALISIS'" class="animate__animated animate__fadeIn">
+            <div *ngIf="selectedReport === 'CSAT_ANALISIS'" class="animate-fade-in">
+                <!-- Summary Metrics -->
                 <div class="row g-4 mb-4" *ngIf="csatData.length > 0">
                     <div class="col-md-6">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);">
                             <span class="stat-label">PUNTAJE SATISFACCIÓN GLOBAL</span>
-                            <span class="stat-value">{{ csatData[0].puntajePromedio || '0.0' }} / 5.0</span>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <span class="stat-value text-white">{{ csatData[0].puntajePromedio || '0.0' }}</span>
+                                <span class="text-white opacity-75">/ 5.0</span>
+                            </div>
                             <i class="bi bi-star-fill stat-icon"></i>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
                             <span class="stat-label">TASA DE EXPERIENCIA POSITIVA</span>
-                            <span class="stat-value">{{ csatData[0].tasaPositiva || '0' }}%</span>
+                            <span class="stat-value text-white">{{ csatData[0].tasaPositiva || '0' }}%</span>
                             <i class="bi bi-emoji-smile-fill stat-icon"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm overflow-hidden">
+                <!-- Detailed Feedback Table -->
+                <div class="card border-0 shadow-sm overflow-hidden animate-fade-in">
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table premium-table align-middle mb-0">
@@ -237,28 +254,43 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr *ngFor="let item of csatDetalle">
+                                    <tr *ngFor="let item of filteredCsatDetalle" class="hover-row">
                                         <td class="ps-4">
-                                            <div class="fw-bold">{{ item.clienteNombre }}</div>
-                                            <div class="small text-muted">{{ item.categoria }}</div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="avatar-sm rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 40px; height: 40px;">
+                                                    {{ item.clienteNombre.charAt(0) }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold text-dark">{{ item.clienteNombre }}</div>
+                                                    <div class="small text-muted">{{ item.categoria || 'Servicio General' }}</div>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td>
-                                            <span class="id-tag small">#{{ item.idTicket }}</span>
-                                            <div class="text-truncate" style="max-width: 200px;">{{ item.asunto }}</div>
+                                            <div class="d-flex flex-column">
+                                                <span class="id-tag small mb-1" style="width: fit-content;">#{{ item.idTicket }}</span>
+                                                <div class="text-truncate fw-500" style="max-width: 200px;" [title]="item.asunto">{{ item.asunto }}</div>
+                                            </div>
                                         </td>
                                         <td class="text-center">
-                                            <div class="text-warning">
+                                            <div class="d-flex justify-content-center gap-1">
                                                 <i class="bi" *ngFor="let star of [1,2,3,4,5]"
-                                                    [ngClass]="item.calificacionSatisfaccion >= star ? 'bi-star-fill' : 'bi-star'"></i>
+                                                    [ngClass]="item.calificacionSatisfaccion >= star ? 'bi-star-fill text-warning' : 'bi-star text-muted opacity-50'"></i>
+                                            </div>
+                                            <div class="small fw-bold mt-1" [class.text-success]="item.calificacionSatisfaccion >= 4" [class.text-warning]="item.calificacionSatisfaccion === 3" [class.text-danger]="item.calificacionSatisfaccion < 3">
+                                                {{ item.calificacionSatisfaccion }}.0 / 5.0
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="feedback-text fst-italic text-secondary"
-                                                style="max-width: 300px;">
-                                                "{{ item.comentarioCalificacion || 'Sin comentarios.' }}"
+                                            <div class="feedback-text px-3 py-2 bg-light rounded-3" style="max-width: 320px;">
+                                                <i class="bi bi-quote opacity-25 me-1"></i>
+                                                <span class="fst-italic">{{ item.comentarioCalificacion || 'El usuario no dejó comentarios adicionales.' }}</span>
                                             </div>
                                         </td>
-                                        <td class="pe-4 text-end small">{{ item.fechaCierre | date:'short' }}</td>
+                                        <td class="pe-4 text-end">
+                                            <div class="text-dark small fw-bold">{{ item.fechaCierre | date:'MMM d, y' }}</div>
+                                            <div class="text-muted smaller">{{ item.fechaCierre | date:'h:mm a' }}</div>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

@@ -6,6 +6,8 @@ import com.apweb.backend.payload.response.UserProfileResponse;
 import com.apweb.backend.payload.request.UserProfileUpdateRequest;
 import com.apweb.backend.repository.UserRepository;
 import com.apweb.backend.repository.PersonaRepository;
+import com.apweb.backend.repository.TicketRepository;
+import com.apweb.backend.repository.EmpleadoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +25,14 @@ public class UserService {
         private UserRepository userRepository;
 
         @Autowired
+        private TicketRepository ticketRepository;
+
+        @Autowired
+        private EmpleadoRepository empleadoRepository;
+
+        @Autowired
         private DocumentService documentService;
+
         @Autowired
         private PersonaRepository personaRepository;
 
@@ -43,6 +52,11 @@ public class UserService {
                                 ? Collections.singletonList("ROLE_" + user.getRole().getCodigo())
                                 : Collections.emptyList();
 
+                Long conteoIncidencias = ticketRepository.countTicketsByTecnico(user);
+                String nombreArea = empleadoRepository.findByPersona_User_Id(user.getId())
+                                .map(e -> e.getArea() != null ? e.getArea().getNombre() : "N/A")
+                                .orElse("N/A");
+
                 if (persona != null) {
                         return new UserProfileResponse(
                                         user.getId(),
@@ -54,11 +68,21 @@ public class UserService {
                                         persona.getCedula(),
                                         persona.getCelular(),
                                         documentService.getProfilePictureFilename(username),
-                                        user.getIdEmpresa());
+                                        user.getIdEmpresa(),
+                                        user.getEstado() != null ? user.getEstado().getNombre() : "Inactivo",
+                                        user.getFechaCreacion(),
+                                        user.getFechaActualizacion(),
+                                        conteoIncidencias,
+                                        nombreArea);
                 }
 
                 return new UserProfileResponse(user.getId(), user.getUsername(), null, roles, "N/A", "N/A", "N/A",
-                                null, null, user.getIdEmpresa());
+                                null, null, user.getIdEmpresa(),
+                                user.getEstado() != null ? user.getEstado().getNombre() : "Inactivo",
+                                user.getFechaCreacion(),
+                                user.getFechaActualizacion(),
+                                conteoIncidencias,
+                                nombreArea);
         }
 
         @Transactional

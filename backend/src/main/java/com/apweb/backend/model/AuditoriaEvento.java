@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -62,7 +64,8 @@ public class AuditoriaEvento {
      * Solo aplica para UPDATE y DELETE. Null en INSERT.
      * Ejemplo: {"estado": "ABIERTO", "prioridad": "BAJA"}
      */
-    @Column(name = "valores_anteriores", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "valores_anteriores")
     private String valoresAnteriores;
 
     /**
@@ -70,7 +73,8 @@ public class AuditoriaEvento {
      * Solo aplica para INSERT y UPDATE. Null en DELETE.
      * Ejemplo: {"estado": "ASIGNADO", "idTecnico": 12}
      */
-    @Column(name = "valores_nuevos", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "valores_nuevos")
     private String valoresNuevos;
 
     /**

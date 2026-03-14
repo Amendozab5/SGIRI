@@ -89,6 +89,16 @@
         <span>Agenda de Visitas</span>
       </a>
 
+      <!-- Technician Performance -->
+      <div class="menu-category" *ngIf="showTechnicianBoard && !showAdminBoard">
+        Tu Desempeño
+      </div>
+      <a class="menu-item" routerLink="/home/tech-stats" routerLinkActive="active" 
+         *ngIf="showTechnicianBoard && !showAdminBoard">
+        <i class="bi bi-star-fill"></i>
+        <span>Evaluación del Servicio</span>
+      </a>
+
       <!-- Analítica e Informes (GESTIÓN ESTRATÉGICA) -->
       <div class="menu-category" *ngIf="showAdminBoard && !roles.includes('ROLE_ADMIN_CONTRATOS')">
         Centro de Analítica

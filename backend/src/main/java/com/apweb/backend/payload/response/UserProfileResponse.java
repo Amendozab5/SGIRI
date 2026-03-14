@@ -19,4 +19,9 @@ public class UserProfileResponse {
     private String celular;
     private String rutaFoto;
     private Integer idEmpresa;
+    private String estado;
+    private java.time.LocalDateTime fechaCreacion;
+    private java.time.LocalDateTime fechaActualizacion;
+    private Long conteoIncidencias;
+    private String nombreArea;
 }

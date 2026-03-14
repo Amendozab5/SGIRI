@@ -2156,6 +2156,28 @@ CREATE VIEW reportes.vw_csat_detalle AS
 ALTER VIEW reportes.vw_csat_detalle OWNER TO postgres;
 
 --
+-- TOC entry 285 (class 1259 OID 23839)
+-- Name: vw_sla_tecnico; Type: VIEW; Schema: reportes; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW reportes.vw_sla_tecnico AS
+ SELECT t.id_usuario_asignado AS id_usuario,
+    COALESCE(((p.nombre)::text || ' '::text) || (p.apellido)::text, u.username) AS tecnico_nombre,
+    count(t.id_ticket) AS total_tickets,
+    count(t.id_ticket) FILTER (WHERE (ci_est.codigo = 'RESUELTO' OR ci_est.codigo = 'CERRADO')) AS tickets_resueltos,
+    count(t.id_ticket) FILTER (WHERE ((ci_est.codigo = 'RESUELTO' OR ci_est.codigo = 'CERRADO') AND (t.fecha_cierre <= (t.fecha_creacion + ((s.tiempo_solucion_min)::double precision * '00:01:00'::interval))))) AS sla_cumplido,
+    COALESCE(round((avg(EXTRACT(epoch FROM (t.fecha_cierre - t.fecha_creacion))) / (3600)::numeric), 2), 0) AS avg_resolucion_horas
+   FROM ((((soporte.ticket t
+     JOIN usuarios.usuario u ON ((t.id_usuario_asignado = u.id_usuario)))
+     LEFT JOIN usuarios.persona p ON ((u.id_usuario = p.id_usuario)))
+     LEFT JOIN catalogos.catalogo_item ci_est ON ((t.id_estado_item = ci_est.id_item)))
+     LEFT JOIN soporte.sla_ticket s ON ((t.id_sla = s.id_sla)))
+  WHERE (t.id_usuario_asignado IS NOT NULL)
+  GROUP BY t.id_usuario_asignado, p.nombre, p.apellido, u.username;
+
+ALTER VIEW reportes.vw_sla_tecnico OWNER TO postgres;
+
+--
 -- TOC entry 286 (class 1259 OID 23839)
 -- Name: visita_tecnica; Type: TABLE; Schema: soporte; Owner: postgres
 --
