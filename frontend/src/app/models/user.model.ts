@@ -35,4 +35,7 @@ export interface User {
 
   // Audit information
   fechaCreacion?: string; // LocalDateTime from backend
+  fechaActualizacion?: string;
+  conteoIncidencias?: number;
+  nombreArea?: string;
 }

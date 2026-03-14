@@ -1,0 +1,155 @@
+<div class="performance-container animate-fade-in">
+    <!-- Header Section -->
+    <header class="performance-header mb-4">
+        <div>
+            <h1 class="page-title">Tu Desempeño y Evaluación</h1>
+            <p class="page-subtitle">Analítica de satisfacción y métricas de calidad de servicio</p>
+        </div>
+        <div class="header-actions">
+            <span class="tech-badge">
+                <i class="bi bi-shield-check me-2"></i>Técnico Certificado
+            </span>
+        </div>
+    </header>
+
+    <div *ngIf="isLoading" class="loader-wrap">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p>Calculando métricas...</p>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+        <!-- Hero Metrics -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="hero-card main-stats">
+                    <span class="card-label">PROMEDIO GLOBAL</span>
+                    <div class="rating-huge">
+                        {{ performance.avgRating | number:'1.1-1' }}
+                        <div class="stars-wrap">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <span class="max-val">/ 5.0</span>
+                        </div>
+                    </div>
+                    <div class="count-pill">
+                        <i class="bi bi-people-fill me-2"></i>{{ performance.totalEvaluations }} Opiniones
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="hero-card metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-icon bg-soft-primary"><i class="bi bi-ticket-check"></i></div>
+                        <div class="metric-data">
+                            <span class="m-val">{{ performance.resolvedTickets }}</span>
+                            <span class="m-label">Tickets Resueltos</span>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-icon bg-soft-warning"><i class="bi bi-lightning"></i></div>
+                        <div class="metric-data">
+                            <span class="m-val">{{ performance.responseTimeRating }}</span>
+                            <span class="m-label">Tiempo Respuesta</span>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-icon bg-soft-success"><i class="bi bi-gem"></i></div>
+                        <div class="metric-data">
+                            <span class="m-val">{{ performance.qualityRating }}</span>
+                            <span class="m-label">Calidad Solución</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Side: Detail Feedback -->
+            <div class="col-lg-7">
+                <div class="glass-card h-100">
+                    <div class="card-header-modern">
+                        <i class="bi bi-chat-left-heart me-2"></i>
+                        <h2>Feedback Detallado de Clientes</h2>
+                    </div>
+                    
+                    <div class="feedback-list">
+                        <div *ngFor="let item of performance.recentFeedback" class="feedback-item">
+                            <div class="f-header">
+                                <div class="f-user">
+                                    <div class="avatar-mini">{{ item.client.charAt(0) }}</div>
+                                    <div class="user-meta">
+                                        <span class="u-name">{{ item.client }}</span>
+                                        <span class="u-ticket">#{{ item.id }} - {{ item.subject }}</span>
+                                    </div>
+                                </div>
+                                <div class="f-rating">
+                                    <i class="bi bi-star-fill text-warning" *ngFor="let s of [1,2,3,4,5].slice(0, item.rating)"></i>
+                                    <span class="f-date">{{ item.date | date:'MMM d, y' }}</span>
+                                </div>
+                            </div>
+                            <div class="f-comment">
+                                <i class="bi bi-quote me-2"></i>
+                                <span>{{ item.comment }}</span>
+                            </div>
+                        </div>
+
+                        <div *ngIf="performance.recentFeedback.length === 0" class="empty-notif">
+                            <i class="bi bi-chat-square-dots"></i>
+                            <p>Aún no has recibido comentarios de tus clientes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Service breakdown -->
+            <div class="col-lg-5">
+                <div class="glass-card">
+                    <div class="card-header-modern">
+                        <i class="bi bi-bar-chart-steps me-2"></i>
+                        <h2>Desglose de Puntuación</h2>
+                    </div>
+                    <div class="p-4">
+                        <div class="breakdown-item mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="b-label">Atención y Amabilidad</span>
+                                <span class="b-val">{{ performance.courtesyRating }} / 5</span>
+                            </div>
+                            <div class="progress-custom">
+                                <div class="progress-bar-custom bg-success" [style.width]="(performance.courtesyRating/5)*100 + '%'"></div>
+                            </div>
+                        </div>
+
+                        <div class="breakdown-item mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="b-label">Efectividad Técnica</span>
+                                <span class="b-val">{{ performance.qualityRating }} / 5</span>
+                            </div>
+                            <div class="progress-custom">
+                                <div class="progress-bar-custom bg-primary" [style.width]="(performance.qualityRating/5)*100 + '%'"></div>
+                            </div>
+                        </div>
+
+                        <div class="breakdown-item">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="b-label">Rapidez de Gestión</span>
+                                <span class="b-val">{{ performance.responseTimeRating }} / 5</span>
+                            </div>
+                            <div class="progress-custom">
+                                <div class="progress-bar-custom bg-warning" [style.width]="(performance.responseTimeRating/5)*100 + '%'"></div>
+                            </div>
+                        </div>
+
+                        <div class="tips-box mt-5">
+                            <h4><i class="bi bi-lightbulb me-2"></i>Tips de Mejora</h4>
+                            <ul>
+                                <li>Mantén informado al cliente sobre el progreso.</li>
+                                <li>Asegúrate de realizar pruebas delante del usuario.</li>
+                                <li>Solicita feedback respetuosamente al cerrar.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</div>

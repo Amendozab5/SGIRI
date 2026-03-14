@@ -3,6 +3,8 @@ package com.apweb.backend.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,7 +24,8 @@ public class HistorialGeneracion {
     @Column(name = "id_usuario", nullable = false)
     private Integer idUsuario;
 
-    @Column(name = "parametros_json", columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "parametros_json")
     private String parametrosJson;
 
     @Column(name = "ruta_archivo", columnDefinition = "TEXT")

@@ -1,152 +1,299 @@
 <div class="profile-container" *ngIf="currentUser && !isLoading; else loading">
-  <div class="card profile-card">
-    <div class="profile-header text-center">
-      <h2 class="profile-name">{{ currentUser.nombre }} {{ currentUser.apellidos }}</h2>
-      <p class="profile-subtitle">Perfil de Usuario • {{ getRoleName(currentUser.roles[0]) }}</p>
-
-      <button *ngIf="!editMode" class="btn btn-edit-profile" (click)="toggleEditMode()">
-        <i class="bi bi-pencil-fill me-2"></i>Editar Perfil
-      </button>
-    </div>
-
-    <div class="card-body">
-      <div class="profile-column-unified">
-        <!-- Profile Picture Section -->
-        <div class="profile-picture-section text-center">
-          <div class="profile-avatar-container position-relative d-inline-block">
-            <img [src]="getAvatarUrl()" class="profile-avatar" alt="Avatar">
-            <div class="avatar-edit-badge" (click)="fileInput.click()">
-              <i class="bi bi-camera-fill"></i>
-            </div>
-          </div>
-          <div class="mt-2">
-            <button type="button" class="btn btn-sm btn-outline-primary" (click)="fileInput.click()"
-              [disabled]="isSaving">
-              <i class="bi bi-upload me-1"></i>Cambiar Foto
-            </button>
-            <input #fileInput type="file" (change)="uploadPhoto($event)" style="display:none" accept="image/*">
-          </div>
-          <div *ngIf="isSaving && !editMode" class="mt-2">
-            <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
-            <small class="ms-1 text-muted">Subiendo...</small>
-          </div>
+  <div class="profile-layout">
+    
+    <!-- MAIN PROFILE HEADER CARD -->
+    <div class="main-profile-card">
+      <div class="card-banner">
+        <div class="header-actions">
+          <button *ngIf="!editMode" class="btn-edit" (click)="toggleEditMode()">
+            <i class="bi bi-pencil-square"></i>
+            <span>Editar Perfil</span>
+          </button>
         </div>
-
-        <!-- Section: Datos de la Cuenta -->
-        <div class="profile-section">
-          <h5 class="profile-section-header">
-            <i class="bi bi-person-circle"></i>Información Personal
-          </h5>
-
-          <form *ngIf="editMode" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="info-label">Nombres</span>
-                <input type="text" formControlName="nombre" class="form-control"
-                  [ngClass]="{'is-invalid': profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched}">
-                <div *ngIf="profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched"
-                  class="invalid-feedback">
-                  <div *ngIf="profileForm.get('nombre')?.errors?.['required']">El nombre es requerido.</div>
-                  <div *ngIf="profileForm.get('nombre')?.errors?.['minlength']">Mínimo 2 caracteres.</div>
-                </div>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Apellidos</span>
-                <input type="text" formControlName="apellidos" class="form-control"
-                  [ngClass]="{'is-invalid': profileForm.get('apellidos')?.invalid && profileForm.get('apellidos')?.touched}">
-                <div *ngIf="profileForm.get('apellidos')?.invalid && profileForm.get('apellidos')?.touched"
-                  class="invalid-feedback">
-                  <div *ngIf="profileForm.get('apellidos')?.errors?.['required']">El apellido es requerido.</div>
-                </div>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Email de Notificaciones</span>
-                <input type="email" formControlName="email" class="form-control"
-                  [ngClass]="{'is-invalid': profileForm.get('email')?.invalid && profileForm.get('email')?.touched}">
-              </div>
-              <div class="info-item">
-                <span class="info-label">Número Celular</span>
-                <input type="text" formControlName="celular" class="form-control"
-                  [ngClass]="{'is-invalid': profileForm.get('celular')?.invalid && profileForm.get('celular')?.touched}">
-              </div>
-            </div>
-
-            <div class="d-flex justify-content-end mt-4">
-              <button type="button" class="btn btn-outline-secondary me-2 px-4 shadow-sm"
-                (click)="cancelEdit()">Cancelar</button>
-              <button type="submit" class="btn btn-primary px-4 shadow-sm" [disabled]="profileForm.invalid || isSaving">
-                <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                Guardar Cambios
-              </button>
-            </div>
-          </form>
-
-          <div *ngIf="!editMode" class="info-grid">
-            <div class="info-item">
-              <span class="info-label">Nombres</span>
-              <p class="info-value">{{ currentUser.nombre || 'N/A' }}</p>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Apellidos</span>
-              <p class="info-value">{{ currentUser.apellidos || 'N/A' }}</p>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Email Corporativo</span>
-              <p class="info-value">{{ currentUser.email }}</p>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Teléfono / Celular</span>
-              <p class="info-value">{{ currentUser.celular || 'N/A' }}</p>
-            </div>
+      </div>
+      
+      <div class="profile-main-info">
+        <div class="avatar-wrapper">
+          <img [src]="getAvatarUrl()" class="profile-avatar" [class.uploading]="isSaving" alt="User Avatar">
+          <div class="avatar-badge" (click)="fileInput.click()" title="Cambiar foto de perfil">
+            <i class="bi bi-camera-fill"></i>
           </div>
+          <input #fileInput type="file" (change)="uploadPhoto($event)" style="display:none" accept="image/*">
         </div>
-
-        <div class="info-grid">
-          <!-- Section: Identificación -->
-          <div class="profile-section">
-            <h5 class="profile-section-header">
-              <i class="bi bi-shield-shaded"></i>Seguridad y Acceso
-            </h5>
-            <div class="info-item">
-              <span class="info-label">Nombre de Usuario</span>
-              <p class="info-value text-primary font-monospace">{{ currentUser.username }}</p>
-            </div>
-            <div class="info-item mt-2">
-              <span class="info-label">Cédula de Identidad</span>
-              <p class="info-value">{{ currentUser.cedula || 'N/A' }}</p>
-            </div>
-          </div>
-
-          <!-- Section: Roles -->
-          <div class="profile-section">
-            <h5 class="profile-section-header">
-              <i class="bi bi-key-fill"></i>Nivel de Acceso
-            </h5>
-            <div class="info-item">
-              <span class="info-label">Roles en el Sistema</span>
-              <div class="d-flex flex-wrap mt-2">
-                <span *ngFor="let role of currentUser.roles" class="badge rounded-pill me-2 mb-2"
-                  [ngClass]="getRoleClass(role)">
-                  <i class="bi bi-check-circle-fill me-1"></i> {{ getRoleName(role) }}
-                </span>
-              </div>
-            </div>
-          </div>
+        
+        <h1 class="user-full-name">{{ currentUser.nombre }} {{ currentUser.apellidos }}</h1>
+        
+        <div class="status-indicator">
+          <span class="dot" [class.active]="currentUser.estado === 'Activo' || currentUser.estado === 'ACTIVO'" [class.inactive]="currentUser.estado !== 'Activo' && currentUser.estado !== 'ACTIVO'"></span>
+          <span>Estado: {{ currentUser.estado || 'Inactivo' }}</span>
         </div>
-
-        <div *ngIf="errorMessage" class="alert alert-danger mt-3 shadow-sm border-0">{{ errorMessage }}</div>
-        <div *ngIf="successMessage" class="alert alert-success mt-3 shadow-sm border-0">{{ successMessage }}</div>
       </div>
     </div>
+
+    <!-- VIEW MODE -->
+    <ng-container *ngIf="!editMode">
+      
+      <!-- ROLE-BASED STATS BAR -->
+      <div class="stats-container">
+        
+        <!-- TECNICO STATS -->
+        <ng-container *ngIf="isTech">
+          <div class="stat-item">
+            <div class="stat-icon"><i class="bi bi-ticket-perforated"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ techStats.assigned }}</span>
+              <span class="stat-label">Asignadas</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ techStats.inProgress }}</span>
+              <span class="stat-label">En Progreso</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon" style="background: var(--profile-success-soft); color: var(--profile-success);"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ techStats.resolved }}</span>
+              <span class="stat-label">Resueltas</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- USUARIO / CLIENTE STATS -->
+        <ng-container *ngIf="isUser">
+          <div class="stat-item">
+            <div class="stat-icon"><i class="bi bi-journal-text"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ userStats.total }}</span>
+              <span class="stat-label">Tickets Totales</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i class="bi bi-exclamation-circle"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ userStats.open }}</span>
+              <span class="stat-label">Tickets Abiertos</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon" style="background: var(--profile-success-soft); color: var(--profile-success);"><i class="bi bi-archive"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ userStats.closed }}</span>
+              <span class="stat-label">Tickets Cerrados</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ADMIN PROPOSAL STATS -->
+        <ng-container *ngIf="isAdmin">
+          <div class="stat-item">
+            <div class="stat-icon" style="background: rgba(30, 58, 138, 0.1); color: #1e3a8a;"><i class="bi bi-grid-3x3-gap"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ adminStats.totalTickets }}</span>
+              <span class="stat-label">Carga del Sistema</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i class="bi bi-geo-alt"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ adminStats.pendingVisits }}</span>
+              <span class="stat-label">Visitas Pendientes</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i class="bi bi-star-fill"></i></div>
+            <div class="stat-content">
+              <span class="stat-value">{{ adminStats.csatAvg }} / 5</span>
+              <span class="stat-label">Satisfacción Global</span>
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+
+      <div class="info-sections-grid">
+        <!-- SECTION 1: PERSONAL INFO -->
+        <div class="info-card">
+          <h3 class="card-title">
+            <i class="bi bi-person-vcard"></i>
+            Información Personal
+          </h3>
+          <div class="data-row">
+            <span class="label">Nombres</span>
+            <span class="value">{{ currentUser.nombre }}</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Apellidos</span>
+            <span class="value">{{ currentUser.apellidos }}</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Email Corporativo</span>
+            <span class="value">{{ currentUser.email }}</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Teléfono / Celular</span>
+            <span class="value">{{ currentUser.celular || 'No registrado' }}</span>
+          </div>
+        </div>
+
+        <!-- SECTION 2: ACCOUNT INFO -->
+        <div class="info-card">
+          <h3 class="card-title">
+            <i class="bi bi-person-badge"></i>
+            Información de Cuenta
+          </h3>
+          <div class="data-row">
+            <span class="label">Nombre de Usuario</span>
+            <span class="value mono">{{ currentUser.username }}</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Cédula de Identidad</span>
+            <span class="value">{{ currentUser.cedula || '---' }}</span>
+          </div>
+
+          <!-- DYNAMIC ACCORDING TO ROLE -->
+          <div class="data-row" *ngIf="isUser">
+            <span class="label">Proveedor de Internet</span>
+            <span class="value" style="color: var(--profile-primary);">{{ companyName }}</span>
+          </div>
+          <div class="data-row" *ngIf="isTech">
+            <span class="label">Departamento / Área</span>
+            <span class="value">{{ currentUser.nombreArea || 'Soporte' }}</span>
+          </div>
+
+          <div class="data-row">
+            <span class="label">Miembro desde</span>
+            <span class="value">{{ (currentUser.fechaCreacion | date:'dd/MM/yyyy') || '---' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TECHNICIAN EVALUATION SECTION -->
+      <div class="evaluation-card animate-fade-in" *ngIf="isTech">
+        <h3 class="card-title">
+          <i class="bi bi-star-fill"></i>
+          Evaluación del Servicio
+        </h3>
+
+        <div class="eval-header">
+          <div class="summary-rating">
+            <div class="rating-big">
+              <i class="bi bi-star-fill"></i>
+              {{ techEvaluation.avgRating | number:'1.1-1' }} <span style="font-size: 1.5rem; opacity: 0.5; margin-left: 5px;">/ 5</span>
+            </div>
+            <div class="rating-count">
+              <i class="bi bi-graph-up text-primary"></i>
+              Basado en {{ techEvaluation.totalEvaluations }} evaluaciones
+            </div>
+          </div>
+        </div>
+
+        <div class="eval-stats-grid">
+          <!-- STATS LIST -->
+          <div class="stats-column">
+            <span class="section-subtitle">Estadísticas de Desempeño</span>
+            <div class="mini-stats-list">
+              <div class="mini-stat-row">
+                <span class="stat-inline-label">Incidencias atendidas</span>
+                <span class="stat-inline-value">{{ techEvaluation.totalAtendidas }}</span>
+              </div>
+              <div class="mini-stat-row">
+                <span class="stat-inline-label">Incidencias evaluadas</span>
+                <span class="stat-inline-value">{{ techEvaluation.totalEvaluations }}</span>
+              </div>
+              <div class="mini-stat-row">
+                <span class="stat-inline-label">Promedio tiempo de respuesta</span>
+                <div class="star-rating-inline">
+                  <i class="bi bi-star-fill"></i> {{ techEvaluation.responseTimeRating }}
+                </div>
+              </div>
+              <div class="mini-stat-row">
+                <span class="stat-inline-label">Calidad de solución</span>
+                <div class="star-rating-inline">
+                  <i class="bi bi-star-fill"></i> {{ techEvaluation.qualityRating }}
+                </div>
+              </div>
+              <div class="mini-stat-row">
+                <span class="stat-inline-label">Atención del técnico</span>
+                <div class="star-rating-inline">
+                  <i class="bi bi-star-fill"></i> {{ techEvaluation.courtesyRating }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COMMENTS LIST -->
+          <div class="comments-column">
+            <span class="section-subtitle">Últimos comentarios</span>
+            <div class="last-comments">
+              <div *ngFor="let comment of techEvaluation.recentComments" class="comment-pill">
+                {{ comment }}
+              </div>
+              <div *ngIf="techEvaluation.recentComments.length === 0" class="text-muted small italic p-3 text-center bg-light rounded-4">
+                No hay comentarios recientes aún.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- EDIT MODE -->
+    <div class="edit-form-card" *ngIf="editMode">
+      <h3 class="card-title">
+        <i class="bi bi-pencil-square"></i>
+        Editar Información de Perfil
+      </h3>
+      
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombres</label>
+            <input type="text" formControlName="nombre" class="form-control-custom" placeholder="Ej. Juan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apellidos</label>
+            <input type="text" formControlName="apellidos" class="form-control-custom" placeholder="Ej. Pérez">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email de Notificaciones</label>
+            <input type="email" formControlName="email" class="form-control-custom" placeholder="usuario@empresa.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Número Celular</label>
+            <input type="text" formControlName="celular" class="form-control-custom" placeholder="09XXXXXXXX">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-base btn-cancel" (click)="cancelEdit()">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button type="submit" class="btn-base btn-save" [disabled]="profileForm.invalid || isSaving">
+            <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            <i *ngIf="!isSaving" class="bi bi-check2-circle"></i>
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- MESSAGES -->
+    <div *ngIf="errorMessage" class="alert alert-danger mt-3 shadow-sm border-0 rounded-4">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="alert alert-success mt-3 shadow-sm border-0 rounded-4">
+      <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+    </div>
+
   </div>
 </div>
 
 <ng-template #loading>
   <div class="d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
-    <div *ngIf="errorMessage" class="alert alert-warning shadow-sm">{{ errorMessage }}</div>
-    <div *ngIf="!errorMessage" class="text-center">
-      <div class="spinner-grow text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-      <p class="text-muted fw-bold">Cargando tu perfil...</p>
-    </div>
+    <div class="spinner-grow text-primary mb-3" role="status" style="width: 4rem; height: 4rem;"></div>
+    <p class="text-muted fw-bold">Cargando tu información...</p>
   </div>
 </ng-template>

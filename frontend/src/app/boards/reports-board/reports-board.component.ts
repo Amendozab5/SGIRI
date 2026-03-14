@@ -20,6 +20,8 @@ export class ReportsBoardComponent implements OnInit {
     csatData: CsatAnalisisReporte[] = [];
     csatDetalle: CsatDetalleReporte[] = [];
     statusFilter = 'TODOS';
+    slaFilter = 'TODOS';
+    csatFilter = 'TODOS';
     searchTerm = '';
     isLoading = true;
     selectedReport: string | null = null;
@@ -143,11 +145,71 @@ export class ReportsBoardComponent implements OnInit {
         });
     }
 
+    // --- SLA Report Methods ---
+    get filteredSlaData(): SlaTecnicoReporte[] {
+        let data = this.slaData;
+        if (this.slaFilter === 'CRITICO') {
+            // Se considera crítico si el cumplimiento es menor al 80%
+            data = data.filter(s => (s.slaCumplido / s.totalTickets) < 0.8);
+        }
+        if (this.searchTerm) {
+            data = data.filter(s => s.tecnicoNombre.toLowerCase().includes(this.searchTerm.toLowerCase()));
+        }
+        return data;
+    }
+
+    toggleSlaFilter(filter: string): void {
+        this.slaFilter = filter;
+        this.cdr.detectChanges();
+    }
+
+    // --- CSAT Report Methods ---
+    get filteredCsatDetalle(): CsatDetalleReporte[] {
+        let data = this.csatDetalle;
+        if (this.csatFilter === 'BAJO') {
+            // Se considera bajo si la calificación es 3 o menos
+            data = data.filter(c => c.calificacionSatisfaccion <= 3);
+        }
+        if (this.searchTerm) {
+            data = data.filter(c => 
+                c.clienteNombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                c.asunto.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                (c.comentarioCalificacion && c.comentarioCalificacion.toLowerCase().includes(this.searchTerm.toLowerCase()))
+            );
+        }
+        return data;
+    }
+
+    toggleCsatFilter(filter: string): void {
+        this.csatFilter = filter;
+        this.cdr.detectChanges();
+    }
+
     loadSlaData(): void {
-        this.reporteService.getSlaTecnico().subscribe(data => {
-            this.slaData = data;
-            this.cdr.detectChanges();
+        this.reporteService.getSlaTecnico().subscribe({
+            next: (data) => {
+                this.slaData = data;
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Error cargando datos de SLA:', err);
+                this.slaData = [];
+                this.cdr.detectChanges();
+            }
         });
+    }
+
+    getGlobalSla(): number {
+        if (!this.slaData || this.slaData.length === 0) return 0;
+        const total = this.slaData.reduce((acc, curr) => acc + curr.totalTickets, 0);
+        const cumplimiento = this.slaData.reduce((acc, curr) => acc + curr.slaCumplido, 0);
+        return total > 0 ? (cumplimiento / total) * 100 : 0;
+    }
+
+    getAvgResolucion(): string {
+        if (!this.slaData || this.slaData.length === 0) return '0h';
+        const avg = this.slaData.reduce((acc, curr) => acc + curr.avgResolucionHoras, 0) / this.slaData.length;
+        return avg.toFixed(1) + 'h';
     }
 
     loadCsatData(): void {

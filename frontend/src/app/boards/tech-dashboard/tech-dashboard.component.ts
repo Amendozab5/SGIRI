@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { TicketService } from '../../_services/ticket.service';
 import { VisitaService } from '../../_services/visita.service';
 import { CompanyService } from '../../_services/company.service';
+import { TokenStorageService } from '../../_services/token-storage.service';
 import { NetworkService, NetworkMapData } from '../../_services/network.service';
 import { Ticket } from '../../models/ticket';
 import { forkJoin, of } from 'rxjs';
@@ -61,6 +62,14 @@ export class TechDashboardComponent implements OnInit {
   visitasHoy: Visit[] = [];
   networkStatus: NetStatus[] = [];
 
+  techEvaluation = {
+    avgRating: 0,
+    totalEvaluations: 0,
+    totalAtendidas: 0,
+    qualityRating: 0,
+    recentComments: [] as any[]
+  };
+
   companyMap: Map<number, string> = new Map();
 
   constructor(
@@ -68,6 +77,7 @@ export class TechDashboardComponent implements OnInit {
     private visitaService: VisitaService,
     private companyService: CompanyService,
     private networkService: NetworkService,
+    private tokenStorage: TokenStorageService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -120,6 +130,7 @@ export class TechDashboardComponent implements OnInit {
         this.processVisitas(res.visitas);
         this.processNetwork(res.network);
         this.calculateKPIs(processedTickets, todayVisits);
+        this.loadTechEvaluation();
 
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -230,5 +241,31 @@ export class TechDashboardComponent implements OnInit {
     if (code === 'ASIGNADO') return 'status-pending';
     if (code === 'RESUELTO') return 'status-success';
     return 'status-default';
+  }
+
+  private loadTechEvaluation(): void {
+    const user = this.tokenStorage.getUser();
+    if (!user || !user.id) return;
+
+    this.ticketService.getTechnicianStats(user.id).subscribe(stats => {
+      this.techEvaluation.avgRating = stats.promedio || 0;
+      this.techEvaluation.totalEvaluations = stats.totalCalificados || 0;
+      this.techEvaluation.totalAtendidas = stats.totalTickets || 0;
+      this.techEvaluation.qualityRating = Number((stats.promedio || 0).toFixed(1));
+      this.cdr.detectChanges();
+    });
+
+    this.ticketService.getAssignedTickets().subscribe(tickets => {
+      this.techEvaluation.recentComments = tickets
+        .filter(t => t.calificacionSatisfaccion && t.comentarioCalificacion)
+        .sort((a, b) => new Date(b.fechaCierre!).getTime() - new Date(a.fechaCierre!).getTime())
+        .slice(0, 2)
+        .map(t => ({
+          text: t.comentarioCalificacion,
+          client: (t.cliente?.persona?.nombre || 'U') + ' ' + (t.cliente?.persona?.apellido || ''),
+          rating: t.calificacionSatisfaccion
+        }));
+      this.cdr.detectChanges();
+    });
   }
 }

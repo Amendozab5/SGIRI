@@ -62,49 +62,79 @@ public class ReporteController {
             @RequestParam(name = "desde", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
             @RequestParam(name = "hasta", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta) {
 
-        List<VwResumenTickets> data = reporteService.getTicketsData(null, status, search, desde, hasta);
-        ByteArrayInputStream bis = pdfReporteService.generateTicketsReport(data);
+        long start = System.currentTimeMillis();
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+        params.put("status", status);
+        params.put("search", search);
+        params.put("desde", desde);
+        params.put("hasta", hasta);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=tickets_report.pdf");
+        try {
+            List<VwResumenTickets> data = reporteService.getTicketsData(null, status, search, desde, hasta);
+            ByteArrayInputStream bis = pdfReporteService.generateTicketsReport(data);
 
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(new InputStreamResource(bis));
+            reporteService.registrarGeneracion("TICKETS_RESUMEN", "PDF", true, null, System.currentTimeMillis() - start, params);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=tickets_report.pdf");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            reporteService.registrarGeneracion("TICKETS_RESUMEN", "PDF", false, e.getMessage(), System.currentTimeMillis() - start, params);
+            throw e;
+        }
     }
 
     @GetMapping("/export/sla/pdf")
     @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportSlaPdf() {
-        List<VwSlaTecnico> data = reporteService.getSlaTecnicoData();
-        ByteArrayInputStream bis = pdfReporteService.generateSlaReport(data);
+        long start = System.currentTimeMillis();
+        try {
+            List<VwSlaTecnico> data = reporteService.getSlaTecnicoData();
+            ByteArrayInputStream bis = pdfReporteService.generateSlaReport(data);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=sla_report.pdf");
+            reporteService.registrarGeneracion("SLA_TECNICO", "PDF", true, null, System.currentTimeMillis() - start, null);
 
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(new InputStreamResource(bis));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=sla_report.pdf");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            reporteService.registrarGeneracion("SLA_TECNICO", "PDF", false, e.getMessage(), System.currentTimeMillis() - start, null);
+            throw e;
+        }
     }
 
     @GetMapping("/export/csat/pdf")
     @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportCsatPdf() {
-        List<VwCsatDetalle> data = reporteService.getCsatDetalleData();
-        ByteArrayInputStream bis = pdfReporteService.generateCsatDetalleReport(data);
+        long start = System.currentTimeMillis();
+        try {
+            List<VwCsatDetalle> data = reporteService.getCsatDetalleData();
+            ByteArrayInputStream bis = pdfReporteService.generateCsatDetalleReport(data);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=csat_detailed_report.pdf");
+            reporteService.registrarGeneracion("CSAT_ANALISIS", "PDF", true, null, System.currentTimeMillis() - start, null);
 
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(new InputStreamResource(bis));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=csat_detailed_report.pdf");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            reporteService.registrarGeneracion("CSAT_FEEDBACK", "PDF", false, e.getMessage(), System.currentTimeMillis() - start, null);
+            throw e;
+        }
     }
 
     @GetMapping("/export/tickets/excel")
@@ -115,49 +145,79 @@ public class ReporteController {
             @RequestParam(name = "desde", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
             @RequestParam(name = "hasta", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta) throws Exception {
 
-        List<VwResumenTickets> data = reporteService.getTicketsData(null, status, search, desde, hasta);
-        ByteArrayInputStream bis = excelReporteService.generateTicketsExcel(data);
+        long start = System.currentTimeMillis();
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+        params.put("status", status);
+        params.put("search", search);
+        params.put("desde", desde);
+        params.put("hasta", hasta);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=tickets_report.xlsx");
+        try {
+            List<VwResumenTickets> data = reporteService.getTicketsData(null, status, search, desde, hasta);
+            ByteArrayInputStream bis = excelReporteService.generateTicketsExcel(data);
 
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(bis));
+            reporteService.registrarGeneracion("TICKETS_RESUMEN", "EXCEL", true, null, System.currentTimeMillis() - start, params);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=tickets_report.xlsx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            reporteService.registrarGeneracion("TICKETS_RESUMEN", "EXCEL", false, e.getMessage(), System.currentTimeMillis() - start, params);
+            throw e;
+        }
     }
 
     @GetMapping("/export/sla/excel")
     @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportSlaExcel() throws Exception {
-        List<VwSlaTecnico> data = reporteService.getSlaTecnicoData();
-        ByteArrayInputStream bis = excelReporteService.generateSlaExcel(data);
+        long start = System.currentTimeMillis();
+        try {
+            List<VwSlaTecnico> data = reporteService.getSlaTecnicoData();
+            ByteArrayInputStream bis = excelReporteService.generateSlaExcel(data);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=sla_report.xlsx");
+            reporteService.registrarGeneracion("SLA_TECNICO", "EXCEL", true, null, System.currentTimeMillis() - start, null);
 
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(bis));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=sla_report.xlsx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            reporteService.registrarGeneracion("SLA_TECNICO", "EXCEL", false, e.getMessage(), System.currentTimeMillis() - start, null);
+            throw e;
+        }
     }
 
     @GetMapping("/export/csat/excel")
     @PreAuthorize("hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_CONTRATOS')")
     public ResponseEntity<InputStreamResource> exportCsatExcel() throws Exception {
-        List<VwCsatDetalle> data = reporteService.getCsatDetalleData();
-        ByteArrayInputStream bis = excelReporteService.generateCsatExcel(data);
+        long start = System.currentTimeMillis();
+        try {
+            List<VwCsatDetalle> data = reporteService.getCsatDetalleData();
+            ByteArrayInputStream bis = excelReporteService.generateCsatExcel(data);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=csat_report.xlsx");
+            reporteService.registrarGeneracion("CSAT_ANALISIS", "EXCEL", true, null, System.currentTimeMillis() - start, null);
 
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(bis));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=csat_report.xlsx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            reporteService.registrarGeneracion("CSAT_FEEDBACK", "EXCEL", false, e.getMessage(), System.currentTimeMillis() - start, null);
+            throw e;
+        }
     }
 
     @GetMapping("/data/sla-tecnico")

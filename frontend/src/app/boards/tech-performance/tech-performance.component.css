@@ -1,0 +1,330 @@
+.performance-container {
+    padding: 2.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.performance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.025em;
+}
+
+.page-subtitle {
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+.tech-badge {
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Hero Cards */
+.hero-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    height: 100%;
+    border: 1px solid #f1f5f9;
+}
+
+.main-stats {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.8;
+    margin-bottom: 1rem;
+}
+
+.rating-huge {
+    font-size: 4.5rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stars-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.stars-wrap i {
+    font-size: 2rem;
+}
+
+.max-val {
+    font-size: 1.25rem;
+    opacity: 0.6;
+}
+
+.count-pill {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.6rem 1.2rem;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    backdrop-filter: blur(8px);
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    border-radius: 20px;
+    background: #f8fafc;
+    transition: transform 0.2s;
+}
+
+.metric-item:hover {
+    transform: translateY(-4px);
+    background: white;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.metric-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.bg-soft-primary { background: #e0e7ff; color: #4338ca; }
+.bg-soft-warning { background: #fef3c7; color: #d97706; }
+.bg-soft-success { background: #dcfce7; color: #16a34a; }
+
+.m-val {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.m-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* Glass Cards */
+.glass-card {
+    background: white;
+    border-radius: 24px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.card-header-modern {
+    padding: 1.5rem 1.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.card-header-modern h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #334155;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.card-header-modern i {
+    font-size: 1.25rem;
+    color: #2563eb;
+}
+
+/* Feedback List */
+.feedback-list {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.feedback-item {
+    padding: 1.25rem;
+    border-radius: 16px;
+    background: #f8fafc;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.feedback-item:hover {
+    border-color: #2563eb;
+    background: white;
+}
+
+.f-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.f-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.avatar-mini {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.u-name {
+    display: block;
+    font-weight: 700;
+    color: #334155;
+    font-size: 0.95rem;
+}
+
+.u-ticket {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.f-rating {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.f-date {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+.f-comment {
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #475569;
+    padding-left: 0.5rem;
+    border-left: 3px solid #e2e8f0;
+}
+
+/* Breakdown & Tips */
+.b-label { font-weight: 600; color: #475569; font-size: 0.9rem; }
+.b-val { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
+
+.progress-custom {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-custom {
+    height: 100%;
+    border-radius: 10px;
+}
+
+.tips-box {
+    padding: 1.5rem;
+    background: #eff6ff;
+    border-radius: 16px;
+    border: 1px solid #dbeafe;
+}
+
+.tips-box h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 1rem;
+}
+
+.tips-box ul {
+    padding-left: 1.25rem;
+    margin: 0;
+}
+
+.tips-box li {
+    font-size: 0.9rem;
+    color: #1e3a8a;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.loader-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem;
+    color: #64748b;
+}
+
+.empty-notif {
+    padding: 3rem;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.empty-notif i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }

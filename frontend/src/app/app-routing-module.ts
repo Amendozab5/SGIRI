@@ -18,6 +18,7 @@ import { EmployeeManagementComponent } from './boards/employee-management/employ
 import { TechDashboardComponent } from './boards/tech-dashboard/tech-dashboard.component'; // Import TechDashboardComponent
 import { TicketAssignPanelComponent } from './boards/ticket-assign-panel/ticket-assign-panel.component';
 import { HrDashboardComponent } from './boards/hr-dashboard/hr-dashboard.component';
+import { TechPerformanceComponent } from './boards/tech-performance/tech-performance.component';
 
 
 import { AuditManagementComponent } from './boards/audit-management/audit-management.component'; // New import
@@ -43,6 +44,7 @@ export const routes: Routes = [
       { path: 'reportes', component: ReportsBoardComponent }, // New reports route
       { path: 'tech', component: TechDashboardComponent }, // Technician dashboard
       { path: 'tech-tickets', component: BoardTechnicianComponent }, // Technician tickets list
+      { path: 'tech-stats', component: TechPerformanceComponent }, // New Tech Performance route
       { path: 'asignacion-tickets', component: TicketAssignmentComponent },
       { path: 'user', component: BoardUserComponent },
       { path: 'user/report-incident', component: ReportIncidentComponent }, // New route for reporting
