@@ -4,7 +4,7 @@ import { HttpClientModule } from '@angular/common/http';
 import * as L from 'leaflet';
 import { NetworkService, NetworkMapData } from '../../_services/network.service';
 import { HttpClient } from '@angular/common/http';
-import { Subscription, interval } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-network-map',
@@ -22,7 +22,6 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
     private dataMap: Map<string, NetworkMapData> = new Map();
 
     private aliasMap: Map<string, string> = new Map([
-        // geoKey -> backendKey
         ['santo domingo de los tsachilas', 'santo domingo'],
         ['zona no delimitada', 'zonas no delimitadas'],
         ['canar', 'canar'],
@@ -30,18 +29,14 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
         ['galapagos', 'galapagos']
     ]);
 
-    private unmatchedFeaturesCount: number = 0;
-    private diagnosticsPrinted: boolean = false;
-    private pollingSubscription: Subscription | undefined;
+    private dataSubscription: Subscription | undefined;
 
     public overallLatency: number = 0;
     public dataSourceStatus: string = '';
     public lastUpdate: string = '';
     public isFullscreen: boolean = false;
-
-    // ---- NUEVO: caches para diagnóstico ----
-    private lastGeoKeys: { original: string; normalized: string }[] = [];
-    private lastBackendKeys: { original: string; normalized: string }[] = [];
+    public isLoading: boolean = false;
+    public errorLoading: boolean = false;
 
     constructor(
         private networkService: NetworkService,
@@ -49,174 +44,107 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-        this.fetchNetworkData();
-        this.pollingSubscription = interval(60000).subscribe(() => {
-            this.fetchNetworkData();
-        });
+        this.loadGeoJSON();
+        this.subscribeToData();
     }
 
     ngAfterViewInit(): void {
-        this.initMap();
         setTimeout(() => {
-            this.map?.invalidateSize();
-        }, 500);
-    }
-
-    public toggleFullscreen(): void {
-        const elem = document.querySelector('.network-map-container');
-        if (!elem) return;
-
-        if (!this.isFullscreen) {
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
+            if (this.map) {
+                this.map.invalidateSize();
             }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-        }
-        this.isFullscreen = !this.isFullscreen;
-        setTimeout(() => this.map?.invalidateSize(), 300);
+        }, 800);
     }
 
     ngOnDestroy(): void {
-        if (this.pollingSubscription) {
-            this.pollingSubscription.unsubscribe();
+        if (this.dataSubscription) {
+            this.dataSubscription.unsubscribe();
         }
     }
 
-    public fetchNetworkData(): void {
-        this.networkService.getNetworkMap('PROVINCIA').subscribe({
-            next: (data) => {
-                this.networkData = data;
-                // ✅ DEBUG TEMPORAL: fuerza scores para probar WARNING/CRITICAL (BORRAR luego)
-                for (const z of this.networkData) {
-                    const key = this.normalizeName(z.zoneName);
-                    if (key === 'azuay') z.scoreFinal = 75;   // WARNING (amarillo)
-                    if (key === 'guayas') z.scoreFinal = 40;  // CRITICAL (rojo)
+    private loadGeoJSON(): void {
+        this.http.get(`assets/ecuador.geojson`).subscribe({
+            next: (geojsonData: any) => {
+                this.initMap(geojsonData);
+                if (this.networkData.length > 0) {
+                    this.updateMapColors();
                 }
-                this.dataMap.clear();
-
-                // ---- NUEVO: logs backend + tabla normalizada ----
-                console.log('--- BACKEND RAW (NetworkMapData[]) ---');
-                console.log(data);
-
-                this.lastBackendKeys = (data || []).map(z => ({
-                    original: z.zoneName,
-                    normalized: this.normalizeName(z.zoneName)
-                }));
-                console.log('--- BACKEND NORMALIZED (zoneName) ---');
-                console.table(this.lastBackendKeys);
-
-                data.forEach(z => this.dataMap.set(this.normalizeName(z.zoneName), z));
-
-                // Si ya se había cargado el mapa y aún no imprimimos diagnóstico,
-                // imprimimos apenas tengamos backend + geojson
-                if (this.geojsonLayer && !this.diagnosticsPrinted) {
-                    this.printDiagnostics();
-                }
-
-                if (data.length > 0) {
-                    this.overallLatency = data[0].latencyOverallMs;
-                    this.dataSourceStatus = data[0].dataSource;
-                    this.lastUpdate = data[0].lastSuccessfulCheckAt;
-                }
-
-                console.table(this.networkData.map(x => ({
-                    zone: x.zoneName,
-                    tickets: x.openTickets,
-                    score: x.scoreFinal,
-                    backendLevel: x.level
-                })));
-
-                this.updateMapColors();
             },
-            error: (err) => console.error('Error fetching network map data', err)
+            error: (err) => {
+                console.error('Error loading GeoJSON', err);
+                this.errorLoading = true;
+            }
         });
     }
 
-    private initMap(): void {
+    private subscribeToData(): void {
+        this.dataSubscription = this.networkService.networkData$.subscribe(data => {
+            if (data && data.length > 0) {
+                this.processNetworkData(data);
+                this.updateMapColors();
+            }
+        });
+
+        this.networkService.isLoading$.subscribe(loading => {
+            this.isLoading = loading;
+        });
+    }
+
+    private processNetworkData(data: NetworkMapData[]): void {
+        this.networkData = data;
+        this.dataMap.clear();
+        data.forEach(z => {
+            this.dataMap.set(this.normalizeName(z.zoneName), z);
+        });
+
+        if (data.length > 0) {
+            this.overallLatency = data[0].latencyOverallMs;
+            this.dataSourceStatus = data[0].dataSource;
+            this.lastUpdate = data[0].lastSuccessfulCheckAt;
+        }
+    }
+
+    private initMap(geoData?: any): void {
+        if (this.map) return;
+
         this.map = L.map('networkMap', {
             center: [-1.8312, -78.1834],
-            zoom: 6
+            zoom: 6,
+            zoomControl: false
         });
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
         }).addTo(this.map);
 
-        this.loadGeoJSON();
+        L.control.zoom({ position: 'bottomright' }).addTo(this.map);
+
+        if (geoData) {
+            this.handleGeoJSON(geoData);
+        }
     }
 
-    private loadGeoJSON(): void {
+    private handleGeoJSON(geojsonData: any): void {
         if (this.geojsonLayer && this.map) {
             this.map.removeLayer(this.geojsonLayer);
         }
 
-        this.unmatchedFeaturesCount = 0;
-
-        this.http.get('assets/ecuador.geojson').subscribe({
-            next: (geojsonData: any) => {
-                // Logs de diagnóstico obligatorios (los tuyos)
-                console.log('geojson.type', geojsonData?.type);
-                console.log('features', geojsonData?.features?.length);
-                console.log('first geometry type', geojsonData?.features?.[0]?.geometry?.type);
-                console.log('first coord sample', geojsonData?.features?.[0]?.geometry?.coordinates?.[0]?.[0]);
-
-                // ---- NUEVO: tabla de nombres del geojson (normalizados) ----
-                this.lastGeoKeys = (geojsonData?.features || []).map((f: any) => {
-                    const props = f?.properties || {};
-                    const geoName =
-                        props.dpa_despro ||
-                        props.DPA_DESPRO ||
-                        props.nombre ||
-                        props.NOMBRE ||
-                        props.name ||
-                        props.NAME_1 ||
-                        props.NAME ||
-                        props.provincia ||
-                        props.PROVINCIA ||
-                        '';
-                    return {
-                        original: geoName,
-                        normalized: this.normalizeName(geoName)
-                    };
-                });
-
-                console.log('--- GEOJSON NAMES (normalized) ---');
-                console.table(this.lastGeoKeys);
-
-                this.geojsonLayer = L.geoJSON(geojsonData as any, {
-                    style: this.getFeatureStyle.bind(this),
-                    onEachFeature: this.onEachFeature.bind(this)
-                });
-
-                if (this.map) {
-                    this.geojsonLayer.addTo(this.map);
-
-                    const bounds = this.geojsonLayer.getBounds();
-                    console.log('bounds valid', bounds.isValid(), bounds);
-
-                    if (bounds.isValid()) {
-                        this.map.fitBounds(bounds, { padding: [20, 20] });
-                    }
-
-                    setTimeout(() => {
-                        this.map?.invalidateSize();
-                    }, 200);
-                }
-
-                // si tenemos backend cargado también, imprime diagnóstico completo
-                if (this.networkData?.length && !this.diagnosticsPrinted) {
-                    this.printDiagnostics();
-                }
-
-                if (this.unmatchedFeaturesCount > 0) {
-                    console.log(`[Network Map] ${this.unmatchedFeaturesCount} provinces without active tickets loaded with default styling.`);
-                }
-            },
-            error: (err) => console.error('Error cargando assets/ecuador.geojson. Asegúrate de que exista en src/assets/', err)
+        this.geojsonLayer = L.geoJSON(geojsonData as any, {
+            style: this.getFeatureStyle.bind(this),
+            onEachFeature: this.onEachFeature.bind(this)
         });
+
+        if (this.map) {
+            this.geojsonLayer.addTo(this.map);
+            try {
+                const bounds = this.geojsonLayer.getBounds();
+                if (bounds.isValid()) {
+                    this.map.fitBounds(bounds, { padding: [20, 20] });
+                }
+            } catch (e) {
+                console.warn('Could not fit bounds', e);
+            }
+        }
     }
 
     private updateMapColors(): void {
@@ -239,9 +167,7 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
         return 'GOOD';
     }
 
-    // ---- NUEVO: helper para aplicar alias (geoKey -> backendKey) ----
     private resolveBackendKeyFromGeoKey(geoKey: string): string {
-        // Primero intentamos match directo (por si el backend envía el nombre largo/completo)
         if (this.dataMap.has(geoKey)) {
             return geoKey;
         }
@@ -249,74 +175,7 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
         return alias ? alias : geoKey;
     }
 
-    private printDiagnostics(): void {
-        if (!this.geojsonLayer) return;
-        this.diagnosticsPrinted = true;
-
-        // construir set real desde layers (más confiable que features crudos)
-        const geoKeys = new Set<string>();
-        const geoNames = new Map<string, string>();
-
-        this.geojsonLayer.eachLayer((layer: any) => {
-            const props = layer.feature?.properties || {};
-            const geoName =
-                props.dpa_despro || props.DPA_DESPRO ||
-                props.nombre || props.NOMBRE ||
-                props.name || props.NAME_1 || props.NAME ||
-                props.provincia || props.PROVINCIA || '';
-
-            const geoKey = this.normalizeName(geoName);
-            if (geoKey) {
-                geoKeys.add(geoKey);
-                geoNames.set(geoKey, geoName);
-            }
-        });
-
-        const backendKeys = Array.from(this.dataMap.keys());
-
-        console.log('--- DIAGNOSTICO MATCHING GEOJSON VS BACKEND ---');
-        console.log('GeoJSON keys (normalized):', Array.from(geoKeys));
-        console.log('Backend keys (normalized):', backendKeys);
-
-        // GeoJSON que no aparece ni directo ni por alias
-        const inGeoNotBackend = Array.from(geoKeys).filter(gk => {
-            const mapped = this.resolveBackendKeyFromGeoKey(gk);
-            return !this.dataMap.has(mapped);
-        });
-
-        // Backend que no existe en geojson ni como destino de alias
-        const aliasTargets = new Set(Array.from(this.aliasMap.values()));
-        const inBackendNotGeo = backendKeys.filter(bk => {
-            const isDirect = geoKeys.has(bk);
-            const isAliasTarget = aliasTargets.has(bk);
-            return !isDirect && !isAliasTarget;
-        });
-
-        console.log('En GeoJSON pero NO en Backend:', inGeoNotBackend.map(k => ({
-            geoName: geoNames.get(k),
-            geoKey: k,
-            aliasTarget: this.aliasMap.get(k) || null
-        })));
-
-        console.log('En Backend pero NO en GeoJSON:', inBackendNotGeo);
-
-        console.log(`Matched provinces: ${geoKeys.size - inGeoNotBackend.length}/${geoKeys.size}`);
-        console.log('----------------------------------------------');
-
-        // ---- NUEVO: comparaciones rápidas usando las tablas cacheadas ----
-        if (this.lastGeoKeys.length && this.lastBackendKeys.length) {
-            const geoSet = new Set(this.lastGeoKeys.map(x => x.normalized));
-            const backSet = new Set(this.lastBackendKeys.map(x => x.normalized));
-
-            const onlyInGeo = [...geoSet].filter(k => !backSet.has(this.resolveBackendKeyFromGeoKey(k)));
-            const onlyInBackend = [...backSet].filter(k => !geoSet.has(k));
-
-            console.log('--- SOLO EN GEOJSON (no existe en backend ni alias) ---', onlyInGeo);
-            console.log('--- SOLO EN BACKEND (no existe en geojson) ---', onlyInBackend);
-        }
-    }
-
-    private getGeoInfo(feature: any): { geoName: string, geoKey: string, backendKey: string, data: NetworkMapData | undefined } {
+    private getGeoInfo(feature: any): { geoName: string, data: NetworkMapData | undefined } {
         const props: any = feature?.properties || {};
         const geoName =
             props.dpa_despro || props.DPA_DESPRO ||
@@ -326,10 +185,9 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const geoKey = this.normalizeName(geoName);
         const backendKey = this.resolveBackendKeyFromGeoKey(geoKey);
+        const data = this.dataMap.get(backendKey);
 
-        let data = this.dataMap.get(backendKey);
-
-        return { geoName, geoKey, backendKey, data };
+        return { geoName, data };
     }
 
     private getFeatureStyle(feature: any): any {
@@ -363,7 +221,7 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private onEachFeature(feature: any, layer: L.Layer): void {
-        const { geoName, geoKey, backendKey, data } = this.getGeoInfo(feature);
+        const { geoName, data } = this.getGeoInfo(feature);
         let tooltipContent = '<div class="noc-tooltip">';
 
         if (data) {
@@ -374,13 +232,12 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
             tooltipContent += `<div class="tooltip-header">${data.zoneName}</div>`;
             tooltipContent += `<div class="tooltip-row"><span>Salud:</span> <span class="val-${levelClass}">${level} (${score}%)</span></div>`;
             tooltipContent += `<div class="tooltip-row"><span>Tickets:</span> <span>${data.openTickets}</span></div>`;
-            tooltipContent += `<div class="tooltip-row"><span>Prioridad:</span> <span>${data.maxPriority || 'Baja'}</span></div>`;
+            tooltipContent += `<div class="tooltip-row"><span>Prioridad:</span> <span>${data.maxPriority || 'BAJA'}</span></div>`;
             tooltipContent += `<div class="tooltip-divider"></div>`;
             tooltipContent += `<div class="tooltip-footer">Latencia: ${data.latencyOverallMs.toFixed(2)} ms</div>`;
         } else {
             tooltipContent += `<div class="tooltip-header">${geoName || 'Desconocida'}</div>`;
             tooltipContent += `<div class="tooltip-error">Sin datos de telemetría</div>`;
-            this.unmatchedFeaturesCount++;
         }
         tooltipContent += '</div>';
 
@@ -402,17 +259,26 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             }
         });
+    }
 
-        // ---- MEJORADO: click imprime TODO lo necesario para debug ----
-        layer.on('click', () => {
-            console.log('Clicked on province DEBUG =>', {
-                geoName,
-                geoKey,
-                backendKey,
-                aliasUsed: this.aliasMap.get(geoKey) || null,
-                hasBackendKey: this.dataMap.has(backendKey),
-                data: data || null
-            });
-        });
+    public toggleFullscreen(): void {
+        const elem = document.querySelector('.network-map-container');
+        if (!elem) return;
+
+        if (!this.isFullscreen) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+        this.isFullscreen = !this.isFullscreen;
+        setTimeout(() => this.map?.invalidateSize(), 300);
+    }
+
+    public fetchNetworkData(): void {
+        this.networkService.refreshNow();
     }
 }

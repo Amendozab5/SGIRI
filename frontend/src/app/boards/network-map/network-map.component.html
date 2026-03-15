@@ -1,4 +1,19 @@
 <div class="network-map-container" [class.is-fullscreen]="isFullscreen">
+  <!-- Subtle Loading Indicator (Non-blocking) -->
+  <div class="sync-indicator" *ngIf="isLoading" title="Sincronizando Telemetría...">
+    <div class="spinner-border text-info spinner-sm" role="status"></div>
+    <span class="sync-text">Sincronizando...</span>
+  </div>
+
+  <!-- Error State -->
+  <div class="loading-overlay glass-morphism error" *ngIf="errorLoading && !isLoading">
+    <div class="loader-content">
+      <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+      <p>Error al cargar el mapa físico</p>
+      <button class="btn btn-outline-info btn-sm mt-3" (click)="fetchNetworkData()">Reintentar</button>
+    </div>
+  </div>
+
   <!-- Immersive Map Wrapper -->
   <div class="map-wrapper">
     <div id="networkMap"></div>

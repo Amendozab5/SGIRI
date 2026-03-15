@@ -5,11 +5,12 @@ import { TicketService } from '../../_services/ticket.service';
 import { UserService } from '../../_services/user.service';
 import { CompanyService } from '../../_services/company.service';
 import { TokenStorageService } from '../../_services/token-storage.service';
+import { BackupService } from '../../_services/backup.service';
 import { Ticket } from '../../models/ticket';
 import { Empresa } from '../../models/empresa';
 import { UserAdminView } from '../../models/user-admin-view.model';
 import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 
 interface KPI {
   label: string;
@@ -62,6 +63,11 @@ export class AdminDashboardComponent implements OnInit {
   canAssignTickets: boolean = false;
   isContractAdmin: boolean = false;
 
+  // ── Backup state ───────────────────────────────────────────────────────────
+  isBackupLoading: boolean = false;
+  backupMensaje: string | null = null;
+  backupError: boolean = false;
+
   kpis: KPI[] = [];
   recentActivity: Activity[] = [];
   pendingTickets: MiniTicket[] = [];
@@ -82,6 +88,7 @@ export class AdminDashboardComponent implements OnInit {
     private userService: UserService,
     private companyService: CompanyService,
     private tokenStorageService: TokenStorageService,
+    private backupService: BackupService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -233,5 +240,57 @@ export class AdminDashboardComponent implements OnInit {
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `hace ${diffHours} h`;
     return past.toLocaleDateString();
+  }
+
+  // ── Backup ─────────────────────────────────────────────────────────────────
+
+  generarBackup(): void {
+    this.isBackupLoading = true;
+    this.backupMensaje = null;
+    this.backupError = false;
+    this.cdr.detectChanges();
+
+    this.backupService.generarBackup().pipe(
+      finalize(() => {
+        this.isBackupLoading = false;
+        this.cdr.detectChanges();
+        // Auto-ocultar el mensaje tras 8 segundos
+        setTimeout(() => {
+          this.backupMensaje = null;
+          this.cdr.detectChanges();
+        }, 8000);
+      })
+    ).subscribe({
+      next: (blob: Blob) => {
+        // Generar nombre con timestamp local
+        const ahora = new Date();
+        const fecha = ahora.toISOString().slice(0, 19).replace(/[-T:]/g, (c) =>
+          c === 'T' ? '_' : c === '-' ? '' : '');
+        const nombreArchivo = `sgim2_backup_${fecha}.dump`;
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nombreArchivo;
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        this.backupError = false;
+        this.backupMensaje = '✅ Backup generado y descargado correctamente.';
+      },
+      error: (err) => {
+        this.backupError = true;
+        const status: number = err?.status ?? 0;
+        if (status === 409) {
+          this.backupMensaje = '⏳ Ya hay un backup en curso. Espere a que finalice.';
+        } else if (status === 503) {
+          this.backupMensaje = '⏱ El backup tardó demasiado. Intente de nuevo o contacte al administrador.';
+        } else if (status === 403 || status === 401) {
+          this.backupMensaje = '⚠ No tiene permisos para realizar esta acción. Verifique su sesión.';
+        } else {
+          this.backupMensaje = '❌ Error al generar el backup. Intente de nuevo o contacte al administrador.';
+        }
+      }
+    });
   }
 }
