@@ -12,16 +12,64 @@
 .network-map-container {
   width: 100%;
   height: calc(100vh - 72px);
-  /* Navbar is ~72px, adjusting for that */
   position: relative;
   background-color: #0f172a;
-  /* Dark base for NOC look */
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .network-map-container.is-fullscreen {
   height: 100vh;
+}
+
+/* Subtle Sync Indicator */
+.sync-indicator {
+  position: absolute;
+  top: 100px;
+  right: 20px;
+  z-index: 1001;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  animation: slideIn 0.3s ease-out;
+}
+
+.spinner-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+.sync-text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #60a5fa;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.8);
 }
 
 .map-wrapper {
@@ -36,7 +84,6 @@
   background: #0f172a;
 }
 
-/* Glassmorphism Panels */
 .glass-morphism {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
@@ -51,10 +98,8 @@
   z-index: 1000;
   padding: 1rem 1.5rem;
   border-radius: 12px;
-  pointer-events: auto;
 }
 
-/* Top Left Panel: branding */
 .top-left-panel {
   top: 20px;
   left: 20px;
@@ -78,7 +123,6 @@
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
-  letter-spacing: -0.01em;
 }
 
 .subtitle {
@@ -87,7 +131,6 @@
   margin: 0.1rem 0 0 0;
 }
 
-/* Top Right Panel: Metrics */
 .top-right-panel {
   top: 20px;
   right: 20px;
@@ -100,35 +143,18 @@
   display: block;
   font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--text-secondary);
   margin-bottom: 0.25rem;
-  font-weight: 600;
 }
 
 .metric-value {
   font-size: 1.5rem;
   font-weight: 800;
-  line-height: 1;
 }
 
-.metric-value span {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  font-weight: 400;
-}
-
-.value-good {
-  color: var(--noc-green);
-}
-
-.value-warning {
-  color: var(--noc-yellow);
-}
-
-.value-critical {
-  color: var(--noc-red);
-}
+.value-good { color: var(--noc-green); }
+.value-warning { color: var(--noc-yellow); }
+.value-critical { color: var(--noc-red); }
 
 .divider {
   width: 1px;
@@ -141,7 +167,6 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  font-weight: 600;
 }
 
 .dot {
@@ -149,7 +174,6 @@
   height: 8px;
   border-radius: 50%;
   background: #64748b;
-  position: relative;
 }
 
 .dot-real {
@@ -157,13 +181,6 @@
   box-shadow: 0 0 8px var(--noc-green);
 }
 
-.update-info {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-family: monospace;
-}
-
-/* Bottom Left Panel: Legend */
 .bottom-left-panel {
   bottom: 20px;
   left: 20px;
@@ -173,10 +190,7 @@
 .bottom-left-panel h3 {
   font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 700;
   margin-bottom: 1rem;
-  color: var(--text-secondary);
 }
 
 .legend-grid {
@@ -195,33 +209,15 @@
   width: 12px;
   height: 12px;
   border-radius: 3px;
-  flex-shrink: 0;
 }
 
-.color-dot.good {
-  background: var(--noc-green);
-}
+.color-dot.good { background: var(--noc-green); }
+.color-dot.warning { background: var(--noc-yellow); }
+.color-dot.critical { background: var(--noc-red); }
 
-.color-dot.warning {
-  background: var(--noc-yellow);
-}
+.label { font-size: 0.8rem; flex-grow: 1; }
+.range { font-size: 0.7rem; color: var(--text-secondary); font-family: monospace; }
 
-.color-dot.critical {
-  background: var(--noc-red);
-}
-
-.label {
-  font-size: 0.8rem;
-  flex-grow: 1;
-}
-
-.range {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  font-family: monospace;
-}
-
-/* Floating Controls */
 .map-actions {
   position: absolute;
   bottom: 30px;
@@ -240,7 +236,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -250,70 +245,19 @@
   transform: scale(1.05);
 }
 
-/* Leaflet Customization for NOC */
-::ng-deep .leaflet-container {
-  background: #0f172a !important;
-}
+::ng-deep .leaflet-container { background: #0f172a !important; }
+::ng-deep .leaflet-tile-pane { filter: brightness(0.6) contrast(1.2) saturate(0.5); }
 
-::ng-deep .leaflet-tile-pane {
-  filter: brightness(0.6) contrast(1.2) saturate(0.5);
-  /* Technical Look */
-}
-
-::ng-deep .leaflet-tooltip {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: white;
-  border-radius: 8px;
-  padding: 8px 12px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-}
-
-::ng-deep .leaflet-bar {
-  border: none !important;
-  box-shadow: none !important;
-  margin-top: 100px !important;
-  /* Move default zoom controls down */
-}
-
-::ng-deep .leaflet-bar a {
-  background: var(--glass-bg) !important;
-  color: white !important;
-  border: 1px solid var(--glass-border) !important;
-  backdrop-filter: blur(8px);
-}
-
-@media (max-width: 768px) {
-  .top-right-panel {
-    display: none;
-  }
-
-  .bottom-left-panel {
-    width: auto;
-  }
-
-  .top-left-panel {
-    padding: 0.75rem;
-  }
-}
-
-/* Tooltip Styling */
 ::ng-deep .noc-leaflet-tooltip {
   background: rgba(15, 23, 42, 0.95) !important;
   backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border) !important;
   color: white !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
-  padding: 0 !important;
-  overflow: hidden;
   border-radius: 8px !important;
 }
 
-::ng-deep .noc-tooltip {
-  padding: 12px 16px;
-  min-width: 200px;
-}
-
+::ng-deep .noc-tooltip { padding: 12px 16px; min-width: 200px; }
 ::ng-deep .tooltip-header {
   font-weight: 800;
   font-size: 0.95rem;
@@ -323,47 +267,11 @@
   color: #60a5fa;
 }
 
-::ng-deep .tooltip-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  margin-bottom: 5px;
-}
-
-::ng-deep .tooltip-row span:first-child {
-  color: #94a3b8;
-}
-
-::ng-deep .tooltip-divider {
-  height: 1px;
-  background: var(--glass-border);
-  margin: 10px 0;
-}
-
-::ng-deep .tooltip-footer {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  text-align: right;
-  font-family: monospace;
-}
-
-::ng-deep .val-good {
-  color: var(--noc-green);
-  font-weight: 700;
-}
-
-::ng-deep .val-warning {
-  color: var(--noc-yellow);
-  font-weight: 700;
-}
-
-::ng-deep .val-critical {
-  color: var(--noc-red);
-  font-weight: 700;
-}
-
-::ng-deep .tooltip-error {
-  color: #94a3b8;
-  font-style: italic;
-  font-size: 0.75rem;
-}
+::ng-deep .tooltip-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
+::ng-deep .tooltip-row span:first-child { color: #94a3b8; }
+::ng-deep .tooltip-divider { height: 1px; background: var(--glass-border); margin: 10px 0; }
+::ng-deep .tooltip-footer { font-size: 0.75rem; color: #94a3b8; text-align: right; }
+::ng-deep .val-good { color: var(--noc-green); font-weight: 700; }
+::ng-deep .val-warning { color: var(--noc-yellow); font-weight: 700; }
+::ng-deep .val-critical { color: var(--noc-red); font-weight: 700; }
+::ng-deep .tooltip-error { color: #94a3b8; font-style: italic; font-size: 0.75rem; }

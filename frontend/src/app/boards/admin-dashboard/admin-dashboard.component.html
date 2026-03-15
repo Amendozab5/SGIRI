@@ -158,6 +158,32 @@
                             <span>{{ action.label }}</span>
                         </a>
                     </div>
+
+                    <!-- Botón Backup BD: solo ADMIN_MASTER -->
+                    <div class="backup-section" *ngIf="canManageUsers">
+                        <hr class="backup-divider">
+                        <button
+                            id="btn-generar-backup"
+                            class="btn-backup"
+                            (click)="generarBackup()"
+                            [disabled]="isBackupLoading"
+                            title="Genera y descarga un backup completo de la base de datos">
+                            <span *ngIf="!isBackupLoading">
+                                <i class="bi bi-database-down me-2"></i>Generar Backup BD
+                            </span>
+                            <span *ngIf="isBackupLoading">
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                Generando backup...
+                            </span>
+                        </button>
+                        <div
+                            *ngIf="backupMensaje"
+                            class="backup-alert"
+                            [class.backup-alert--ok]="!backupError"
+                            [class.backup-alert--error]="backupError">
+                            {{ backupMensaje }}
+                        </div>
+                    </div>
                 </div>
 
             </div>

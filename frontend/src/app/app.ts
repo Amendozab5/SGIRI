@@ -4,6 +4,7 @@ import { TokenStorageService } from './_services/token-storage.service';
 import { AuthService } from './_services/auth.service';
 import { SharedStateService } from './_services/shared-state.service';
 import { NotificationService } from './_services/notification.service';
+import { NetworkService } from './_services/network.service';
 import { NotificacionWeb } from './models/notification';
 import { User } from './models/user.model';
 import { Router, RouterModule } from '@angular/router'; // Import RouterModule
@@ -38,7 +39,8 @@ export class App implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private authService: AuthService,
     private router: Router,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private networkService: NetworkService
   ) { }
 
   ngOnInit(): void {

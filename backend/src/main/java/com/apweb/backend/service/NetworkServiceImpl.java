@@ -103,52 +103,55 @@ public class NetworkServiceImpl implements NetworkService {
                     "Santo Domingo de los Tsáchilas", "Santa Elena");
 
             Map<String, NetworkMapDTO> provMap = new java.util.HashMap<>();
+            Map<String, String> normalizedSearchMap = new java.util.HashMap<>(); // NormalizedKey -> OriginalKey
+
             for (int i = 0; i < ALL_PROVINCES.size(); i++) {
                 String pName = ALL_PROVINCES.get(i);
                 NetworkMapDTO dto = new NetworkMapDTO();
                 dto.setZoneId(i + 1);
                 dto.setZoneName(pName);
                 dto.setOpenTickets(0);
-                dto.setMaxPriority("NINGUNA");
+                dto.setMaxPriority("BAJA");
                 dto.setScoreTickets(100);
                 dto.setScoreFinal(Math.min(redScore, 100));
 
-                if (dto.getScoreFinal() >= 80)
-                    dto.setLevel("GOOD");
-                else if (dto.getScoreFinal() >= 50)
-                    dto.setLevel("WARNING");
-                else
-                    dto.setLevel("CRITICAL");
+                if (dto.getScoreFinal() >= 80) dto.setLevel("GOOD");
+                else if (dto.getScoreFinal() >= 50) dto.setLevel("WARNING");
+                else dto.setLevel("CRITICAL");
 
                 dto.setDataSource(dataSource);
                 dto.setLatencyOverallMs(latencyOverallMs);
                 dto.setGeneratedAt(generatedAt);
                 dto.setLastSuccessfulCheckAt(lastSuccessfulCheckAt);
 
-                provMap.put(pName.toUpperCase(), dto);
+                String key = pName.toUpperCase();
+                provMap.put(key, dto);
+
+                // Pre-normalize for fuzzy matching
+                String norm = java.text.Normalizer.normalize(key, java.text.Normalizer.Form.NFD)
+                        .replaceAll("\\p{InCombiningDiacriticalMarks}+", "").toUpperCase();
+                normalizedSearchMap.put(norm, key);
             }
 
             for (Map<String, Object> row : rows) {
                 String zoneName = (String) row.get("zone_name");
-                if (zoneName == null)
-                    continue;
+                if (zoneName == null) continue;
+                
                 String normalizedDB = zoneName.toUpperCase();
-
                 NetworkMapDTO dto = provMap.get(normalizedDB);
+
                 if (dto == null) {
-                    for (Map.Entry<String, NetworkMapDTO> entry : provMap.entrySet()) {
-                        String k1 = java.text.Normalizer.normalize(entry.getKey(), java.text.Normalizer.Form.NFD)
-                                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "").toUpperCase();
-                        String k2 = java.text.Normalizer.normalize(zoneName, java.text.Normalizer.Form.NFD)
-                                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "").toUpperCase();
-                        if (k1.equals(k2)) {
-                            dto = entry.getValue();
-                            break;
-                        }
+                    // Try with pre-calculated normalized map
+                    String normDB = java.text.Normalizer.normalize(zoneName, java.text.Normalizer.Form.NFD)
+                            .replaceAll("\\p{InCombiningDiacriticalMarks}+", "").toUpperCase();
+                    String originalKey = normalizedSearchMap.get(normDB);
+                    if (originalKey != null) {
+                        dto = provMap.get(originalKey);
                     }
                 }
 
                 if (dto == null) {
+                    // Fallback for names not in our static list
                     dto = new NetworkMapDTO();
                     dto.setZoneId(((Number) row.get("zone_id")).intValue());
                     dto.setZoneName(zoneName);

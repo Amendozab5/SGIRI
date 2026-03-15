@@ -57,6 +57,9 @@ public final class AuditAccion {
     /** Calificación de servicio registrada por el cliente */
     public static final String CALIFICACION = "CALIFICACION";
 
+    /** Generación de un backup completo de la base de datos */
+    public static final String BACKUP = "BACKUP";
+
     private AuditAccion() {
         // Clase de constantes, no instanciable
     }

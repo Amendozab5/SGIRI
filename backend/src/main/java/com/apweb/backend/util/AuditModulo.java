@@ -34,6 +34,9 @@ public final class AuditModulo {
     /** Perfil propio del usuario autenticado */
     public static final String PERFIL = "PERFIL";
 
+    /** Operaciones de mantenimiento y respaldo del sistema */
+    public static final String SISTEMA = "SISTEMA";
+
     private AuditModulo() {
         // Clase de constantes, no instanciable
     }
