@@ -5,7 +5,7 @@ Este proyecto es un sistema de gestión de incidencias que consta de un backend 
 ## 🚀 Requisitos Previos
 
 Antes de comenzar, asegúrate de tener instalado lo siguiente:
-* [Java 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+* [Java 25](https://www.oracle.com/java/technologies/javase/jdk25-archive-downloads.html)
 * [Node.js](https://nodejs.org/) (versión LTS recomendada)
 * [PostgreSQL](https://www.postgresql.org/)
 * [Angular CLI](https://angular.io/cli) (opcional, se puede usar `npm`)
