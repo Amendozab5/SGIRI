@@ -65,37 +65,39 @@ export class SchedulerComponent implements OnInit {
     }
 
     loadInitialData(): void {
-        // Cargar tickets que REQUIEREN VISITA y NO tienen agenda ya colocada
-        this.ticketService.getTicketsPendingVisit().subscribe(res => {
-            this.tickets = res;
-            this.cdr.detectChanges(); // Trigger change detection
-            
-            // Check for ticketId in query params to open modal directly
-            this.route.queryParams.subscribe(params => {
-                const ticketId = params['ticketId'];
-                if (ticketId) {
-                    const ticketToOpen = this.tickets.find(t => t.idTicket === +ticketId);
-                    if (ticketToOpen) {
-                        this.onPendingTicketClick(ticketToOpen);
-                    } else {
-                        // SI el ticket no está en pendientes (ej: viene de detalle sin ser REQUIERE_VISITA aún)
-                        // lo cargamos directamente para poder agendarlo.
-                         this.ticketService.getTicketById(+ticketId).subscribe(t => {
-                             if (t) {
-                                 this.onPendingTicketClick(t);
-                             }
-                         });
+        if (!this.isUserTechnician) {
+            // Cargar tickets que REQUIEREN VISITA y NO tienen agenda ya colocada
+            this.ticketService.getTicketsPendingVisit().subscribe(res => {
+                this.tickets = res;
+                this.cdr.detectChanges(); // Trigger change detection
+                
+                // Check for ticketId in query params to open modal directly
+                this.route.queryParams.subscribe(params => {
+                    const ticketId = params['ticketId'];
+                    if (ticketId) {
+                        const ticketToOpen = this.tickets.find(t => t.idTicket === +ticketId);
+                        if (ticketToOpen) {
+                            this.onPendingTicketClick(ticketToOpen);
+                        } else {
+                            // SI el ticket no está en pendientes (ej: viene de detalle sin ser REQUIERE_VISITA aún)
+                            // lo cargamos directamente para poder agendarlo.
+                             this.ticketService.getTicketById(+ticketId).subscribe(t => {
+                                 if (t) {
+                                     this.onPendingTicketClick(t);
+                                 }
+                             });
+                        }
                     }
-                }
+                });
             });
-        });
 
-        // Cargar técnicos (incluyendo todos los roles operativos de empleados)
-        this.userService.getAllUsers().subscribe(res => {
-            const employeeRoles = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_CONTRATOS'];
-            this.tecnicos = res.filter(u => u.roles.some(r => employeeRoles.includes(r.replace('ROLE_', ''))));
-            this.cdr.detectChanges(); // Trigger change detection
-        });
+            // Cargar técnicos (incluyendo todos los roles operativos de empleados)
+            this.userService.getAllUsers().subscribe(res => {
+                const employeeRoles = ['TECNICO', 'ADMIN_TECNICOS', 'ADMIN_MASTER', 'ADMIN_CONTRATOS'];
+                this.tecnicos = res.filter(u => u.roles.some(r => employeeRoles.includes(r.replace('ROLE_', ''))));
+                this.cdr.detectChanges(); // Trigger change detection
+            });
+        }
     }
 
     generateCalendar(): void {

@@ -34,6 +34,7 @@ export class VisitaFormModalComponent implements OnInit {
     conflictInfo: any = null;
     isTechnician = false;
     currentTicket: Ticket | null = null;
+    currentVisita: VisitaTecnica | null = null;
 
     constructor(
         private fb: FormBuilder,
@@ -151,6 +152,7 @@ export class VisitaFormModalComponent implements OnInit {
             this.isEditMode = true;
             this.isTechnicianAutoSelected = true;
             this.currentVisitaId = visita.idVisita || null;
+            this.currentVisita = visita;
             this.visitaForm.patchValue({
                 idTicket: visita.ticket.idTicket,
                 idTecnico: visita.tecnico.id,

@@ -69,6 +69,10 @@
                   <option *ngFor="let tec of tecnicos" [value]="tec.id">
                     {{tec.fullName || tec.nombre + ' ' + tec.apellido}} ({{tec.username}})
                   </option>
+                  <!-- Opción de respaldo cuando el técnico se ve a sí mismo pero la lista general no se cargó -->
+                  <option *ngIf="tecnicos.length === 0 && currentVisita" [value]="currentVisita.tecnico.id">
+                    {{ currentVisita.tecnico.persona?.nombre }} {{ currentVisita.tecnico.persona?.apellido }} ({{ currentVisita.tecnico.username }})
+                  </option>
                 </select>
               </div>
               <div *ngIf="isTechnicianAutoSelected" class="mt-2 animate__animated animate__fadeIn">
