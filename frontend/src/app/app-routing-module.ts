@@ -26,6 +26,8 @@ import { ReportsBoardComponent } from './boards/reports-board/reports-board.comp
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 
+
+// Si el usuario entra a `/login`, muéstrale el componente `LoginComponent`; si entra a `/home/admin`, muéstrale el `AdminDashboardComponent
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent }, // Add register route

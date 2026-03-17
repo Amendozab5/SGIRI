@@ -250,6 +250,18 @@ public class TicketController {
                 return ResponseEntity.ok(new MessageResponse("Calificación registrada exitosamente"));
         }
 
+        @PostMapping("/{id:[0-9]+}/confirm-closure")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<?> confirmClosure(@PathVariable("id") Integer id) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentUserName = authentication.getName();
+                User currentUser = userRepository.findByUsername(currentUserName)
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                Ticket ticket = ticketService.confirmClosure(id, currentUser);
+                return ResponseEntity.ok(ticket);
+        }
+
         @GetMapping("/tecnico/{idTecnico}/stats")
         @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('TECNICO')")
         public ResponseEntity<?> getTechnicianRatingStats(@PathVariable("idTecnico") Integer idTecnico) {

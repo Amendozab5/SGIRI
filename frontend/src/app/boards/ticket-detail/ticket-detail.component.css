@@ -235,6 +235,17 @@
     transform: translateY(-1px);
 }
 
+.btn-confirm-closure {
+    background: #f59e0b; /* Warning Yellow */
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btn-confirm-closure:hover {
+    background: #d97706;
+    transform: scale(1.05);
+}
+
 /* Main Grid Layout */
 .main-layout-grid {
     display: grid;

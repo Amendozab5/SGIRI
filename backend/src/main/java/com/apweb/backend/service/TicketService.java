@@ -737,9 +737,10 @@ public class TicketService {
 
                 // Logic: ONLY Admin can close tickets (CERRADO)
                 if ("CERRADO".equals(statusCode)) {
-                        if (!isAdmin) {
+                        boolean isMutualAgreement = ticket.getConfirmacionTecnico() && ticket.getConfirmacionCliente();
+                        if (!isAdmin && !isMutualAgreement) {
                                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                                                "Solo un administrador puede CERRAR oficialmente un ticket.");
+                                                "Solo un administrador puede CERRAR oficialmente un ticket, a menos que haya un acuerdo mutuo.");
                         }
                 }
 
@@ -833,6 +834,41 @@ public class TicketService {
                                                 "Ticket #" + ticket.getIdTicket() + " - " + literalEstado,
                                                 cuerpoMail);
                         }
+                }
+
+                return ticketRepository.save(ticket);
+        }
+
+        @Transactional
+        public Ticket confirmClosure(Integer idTicket, User user) {
+                Ticket ticket = getTicketById(idTicket);
+
+                boolean isTechnician = ticket.getUsuarioAsignado() != null
+                                && ticket.getUsuarioAsignado().getId().equals(user.getId());
+                boolean isClient = ticket.getUsuarioCreador() != null
+                                && ticket.getUsuarioCreador().getId().equals(user.getId());
+                boolean isAdmin = user.getRole() != null &&
+                                ("ADMIN_MASTER".equals(user.getRole().getCodigo()) ||
+                                                "ADMIN".equals(user.getRole().getCodigo()) ||
+                                                "ADMIN_TECNICOS".equals(user.getRole().getCodigo()));
+
+                if (!isTechnician && !isClient && !isAdmin) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                        "Solo el técnico asignado, el cliente o un administrador pueden confirmar el cierre.");
+                }
+
+                if (isTechnician || isAdmin) {
+                        ticket.setConfirmacionTecnico(true);
+                        addComment(idTicket, user, "El técnico/administrador ha confirmado el cierre del ticket.", true);
+                }
+
+                if (isClient) {
+                        ticket.setConfirmacionCliente(true);
+                        addComment(idTicket, user, "El cliente ha solicitado/confirmado el cierre del ticket.", false);
+                }
+
+                if (ticket.getConfirmacionTecnico() && ticket.getConfirmacionCliente()) {
+                        return updateTicketStatus(idTicket, user, "CERRADO", "Ticket cerrado por acuerdo mutuo.");
                 }
 
                 return ticketRepository.save(ticket);

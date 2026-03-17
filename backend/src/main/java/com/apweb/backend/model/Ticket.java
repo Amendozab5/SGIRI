@@ -81,6 +81,14 @@ public class Ticket {
 
     @Column(name = "comentario_calificacion", columnDefinition = "TEXT")
     private String comentarioCalificacion;
+//
+    @Column(name = "confirmacion_tecnico", nullable = false)
+    @Builder.Default
+    private Boolean confirmacionTecnico = false;
+
+    @Column(name = "confirmacion_cliente", nullable = false)
+    @Builder.Default
+    private Boolean confirmacionCliente = false;
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

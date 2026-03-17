@@ -91,7 +91,7 @@ public class AuthController {
         this.userService = userService;
         this.passwordResetService = passwordResetService;
     }
-
+//el servidor verifica tus datos y te devuelve un "token"
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication;

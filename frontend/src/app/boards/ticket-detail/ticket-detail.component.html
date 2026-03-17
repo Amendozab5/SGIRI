@@ -58,6 +58,12 @@
                         <i class="bi bi-patch-check-fill"></i> CERRAR TICKET (Validado)
                     </button>
 
+                    <!-- MUTUAL AGREEMENT: Confirm Closure for Client or Technician -->
+                    <button *ngIf="canConfirmClosure" (click)="confirmClosure()"
+                        class="btn-action btn-confirm-closure animate-pulse" [disabled]="loading">
+                        <i class="bi bi-hand-thumbs-up-fill"></i> CONFIRMAR CIERRE
+                    </button>
+
                     <!-- NEW: Real-time Work Counter Display -->
                     <div class="timer-display-compact" *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'">
                         <i class="bi bi-stopwatch-fill animate-pulse text-warning"></i>
@@ -97,6 +103,12 @@
                     </div>
                     <div *ngIf="error" class="alert alert-danger border-0 shadow-sm rounded-4 animate-fade-in mb-0">
                         <i class="bi bi-exclamation-circle-fill me-2"></i> {{ error }}
+                    </div>
+
+                    <!-- PENDING MUTUAL AGREEMENT ALERT -->
+                    <div *ngIf="pendingOtherConfirmation" class="alert alert-warning border-0 shadow-sm rounded-4 animate-fade-in mb-0">
+                        <i class="bi bi-hourglass-split me-2"></i> 
+                        {{ isCliente ? 'Esperando confirmación del técnico para cerrar el ticket.' : 'Esperando que el cliente confirme la solución para cerrar el ticket.' }}
                     </div>
 
                     <!-- Description Card -->

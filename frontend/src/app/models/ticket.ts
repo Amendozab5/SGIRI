@@ -40,6 +40,8 @@ export interface Ticket {
     calificacionSatisfaccion?: number;
     comentarioCalificacion?: string;
     fechaCierre?: Date;
+    confirmacionTecnico?: boolean;
+    confirmacionCliente?: boolean;
 }
 
 export interface Cliente {

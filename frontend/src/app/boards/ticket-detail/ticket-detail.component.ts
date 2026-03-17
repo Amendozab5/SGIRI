@@ -438,6 +438,24 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
             !this.ticket?.calificacionSatisfaccion;
     }
 
+    get canConfirmClosure(): boolean {
+        if (!this.ticket) return false;
+        const status = this.ticket.estadoItem?.codigo;
+        if (status !== 'RESUELTO') return false;
+
+        if (this.isCliente && !this.ticket.confirmacionCliente) return true;
+        if ((this.isTecnico || this.isAdmin) && !this.ticket.confirmacionTecnico) return true;
+
+        return false;
+    }
+
+    get pendingOtherConfirmation(): boolean {
+        if (!this.ticket || this.ticket.estadoItem?.codigo !== 'RESUELTO') return false;
+        if (this.isCliente && this.ticket.confirmacionCliente && !this.ticket.confirmacionTecnico) return true;
+        if ((this.isTecnico || this.isAdmin) && this.ticket.confirmacionTecnico && !this.ticket.confirmacionCliente) return true;
+        return false;
+    }
+
     get alreadyRated(): boolean {
         return !!this.ticket?.calificacionSatisfaccion;
     }
@@ -538,6 +556,29 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
             error: () => {
                 this.zone.run(() => {
                     this.error = 'Error al actualizar el estado.';
+                    this.loading = false;
+                    this.cdr.detectChanges();
+                });
+            }
+        });
+    }
+
+    confirmClosure(): void {
+        if (!this.ticket) return;
+        this.loading = true;
+        this.ticketService.confirmClosure(this.ticket.idTicket).subscribe({
+            next: (data) => {
+                this.zone.run(() => {
+                    this.ticket = data;
+                    this.successMessage = 'Confirmación de cierre registrada.';
+                    setTimeout(() => this.successMessage = '', 4000);
+                    this.loadTicket(this.ticket.idTicket);
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.zone.run(() => {
+                    this.error = err.error?.message || 'Error al confirmar el cierre.';
                     this.loading = false;
                     this.cdr.detectChanges();
                 });

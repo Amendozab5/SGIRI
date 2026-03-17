@@ -117,4 +117,8 @@ export class TicketService {
   reassignTicket(id: number, userId: number, notaReasignacion: string): Observable<any> {
     return this.http.post(API_URL + `/${id}/reassign`, { userId, notaReasignacion });
   }
-}
+
+  confirmClosure(id: number): Observable<any> {
+    return this.http.post(API_URL + `/${id}/confirm-closure`, {});
+  }
+}

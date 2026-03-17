@@ -11,7 +11,7 @@ export class SharedStateService {
   private currentUserSubject: BehaviorSubject<User | null>;
 
   constructor() {
-    const user = window.sessionStorage.getItem(USER_KEY);
+    const user = window.localStorage.getItem(USER_KEY);
     this.currentUserSubject = new BehaviorSubject<User | null>(user ? JSON.parse(user) : null);
   }
 
