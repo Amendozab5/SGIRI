@@ -38,49 +38,62 @@
                         </div>
                     </div>
 
-                    <!-- PDF Download Button: Shown when TICKET is in a finalized or reportable state -->
-                    <button type="button"
-                        *ngIf="ticket.estadoItem?.codigo === 'CERRADO' || ticket.estadoItem?.codigo === 'REPROGRAMADA' || ticket.estadoItem?.codigo === 'RESUELTO'"
-                        (click)="downloadPdf()" class="btn-action btn-pdf" [disabled]="loading">
-                        <i class="bi bi-file-earmark-pdf"></i> Reporte PDF
-                    </button>
+                    <ng-container *ngIf="!showOnlyCancellationNotice && !showPendingSchedulingNotice">
+                        <!-- PDF Download Button: Shown when TICKET is in a finalized or reportable state -->
+                        <button type="button"
+                            *ngIf="ticket.estadoItem?.codigo === 'CERRADO' || ticket.estadoItem?.codigo === 'REPROGRAMADA' || ticket.estadoItem?.codigo === 'RESUELTO'"
+                            (click)="downloadPdf()" class="btn-action btn-pdf" [disabled]="loading">
+                            <i class="bi bi-file-earmark-pdf"></i> Reporte PDF
+                        </button>
 
-                    <!-- ATENDER TICKET: strictly for assigned technician -->
-                    <button type="button"
-                        *ngIf="canAttend"
-                        (click)="changeStatus('EN_PROCESO')" class="btn-action btn-resolve" [disabled]="loading">
-                        <i class="bi bi-play-fill"></i> Atender
-                    </button>
-                    
-                    <!-- ADMIN: Close Ticket only if RESUELTO (verification flow) -->
-                    <button *ngIf="canClose" (click)="changeStatus('CERRADO')"
-                        class="btn-action btn-close-ticket" [disabled]="loading">
-                        <i class="bi bi-patch-check-fill"></i> CERRAR TICKET (Validado)
-                    </button>
+                        <!-- ATENDER TICKET: strictly for assigned technician -->
+                        <button type="button"
+                            *ngIf="canAttend"
+                            (click)="changeStatus('EN_PROCESO')" class="btn-action btn-resolve" [disabled]="loading">
+                            <i class="bi bi-play-fill"></i> Atender
+                        </button>
+                        
+                        <!-- ADMIN: Close Ticket only if RESUELTO (verification flow) -->
+                        <button *ngIf="canClose" (click)="changeStatus('CERRADO')"
+                            class="btn-action btn-close-ticket" [disabled]="loading">
+                            <i class="bi bi-patch-check-fill"></i> CERRAR TICKET (Validado)
+                        </button>
 
-                    <!-- NEW: Real-time Work Counter Display -->
-                    <div class="timer-display-compact" *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'">
-                        <i class="bi bi-stopwatch-fill animate-pulse text-warning"></i>
-                        <span class="timer-text">{{ elapsedTimeDisplay }}</span>
+                        <!-- NEW: Real-time Work Counter Display -->
+                        <div class="timer-display-compact" *ngIf="ticket.estadoItem?.codigo === 'EN_PROCESO'">
+                            <i class="bi bi-stopwatch-fill animate-pulse text-warning"></i>
+                            <span class="timer-text">{{ elapsedTimeDisplay }}</span>
+                        </div>
+
+                        <!-- ASIGNAR TICKET: For Admins when ABIERTO or ASIGNADO -->
+                        <button type="button" *ngIf="canAssign" [routerLink]="['/home/admin/tickets/asignar', ticket.idTicket]"
+                            class="btn-action btn-assign" [disabled]="loading">
+                            <i class="bi bi-person-plus-fill"></i> ASIGNAR
+                        </button>
+
+                        <!-- REASIGNAR TICKET: For Master Admin when REPROGRAMADA -->
+                        <button type="button" *ngIf="canReassign" (click)="openReassignModal()" class="btn-action btn-reassign"
+                            [disabled]="loading">
+                            <i class="bi bi-arrow-left-right"></i> REASIGNAR
+                        </button>
+                    </ng-container>
+
+                    <div *ngIf="showPendingSchedulingNotice && !showOnlyCancellationNotice" class="alert alert-info mb-0 w-100 d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history"></i>
+                        <div>
+                            <strong>Este ticket ha sido asignado, pero aún no tiene fecha y hora programada.</strong>
+                            <div class="small text-muted">No puede atenderse aún. Espere a que se programe la visita.</div>
+                        </div>
                     </div>
 
-                    <!-- ASIGNAR TICKET: For Admins when ABIERTO or ASIGNADO -->
-                    <button type="button" *ngIf="canAssign" [routerLink]="['/home/admin/tickets/asignar', ticket.idTicket]"
-                        class="btn-action btn-assign" [disabled]="loading">
-                        <i class="bi bi-person-plus-fill"></i> ASIGNAR
-                    </button>
+                    <div *ngIf="showOnlyCancellationNotice" class="alert alert-warning mb-0 w-100 d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>
+                            <strong>Solicitud de visita cancelada.</strong>
+                            <div class="small text-muted">No hay acciones disponibles para este ticket.</div>
+                        </div>
+                    </div>
 
-                    <!-- REASIGNAR TICKET: For Master Admin when REPROGRAMADA -->
-                    <button type="button" *ngIf="canReassign" (click)="openReassignModal()" class="btn-action btn-reassign"
-                        [disabled]="loading">
-                        <i class="bi bi-arrow-left-right"></i> REASIGNAR
-                    </button>
-
-                    <!-- AGENDAR VISITA: Direct action for Admin to request a field visit -->
-                    <button type="button" *ngIf="canSolicitarVisita" (click)="agendarVisitaDirect()" 
-                        class="btn-action btn-visit" [disabled]="loading">
-                        <i class="bi bi-calendar-check-fill"></i> AGENDAR VISITA
-                    </button>
                 </div>
             </header>
 
@@ -216,13 +229,13 @@
                     </div>
 
                     <!-- NEW ATTEMPT SECTION (shown if ASIGNADO or EN_PROCESO) -->
-                    <div class="new-attempt-separator" *ngIf="showTechWorkForm && showInformeSummary">
+                    <div class="new-attempt-separator" *ngIf="showTechWorkForm && showInformeSummary && !showOnlyCancellationNotice">
                         <div class="separator-line"></div>
                         <span class="separator-text">NUEVO INTENTO DE ATENCIÓN</span>
                         <div class="separator-line"></div>
                     </div>
 
-                    <section class="informe-card" [class.new-attempt-card]="showInformeSummary" *ngIf="showTechWorkForm">
+                    <section class="informe-card" [class.new-attempt-card]="showInformeSummary" *ngIf="showTechWorkForm && !showOnlyCancellationNotice && !showPendingSchedulingNotice">
                         <div class="informe-header">
                             <h2 class="section-title mb-0">
                                 <i class="bi bi-clipboard2-pulse"></i> Registrar Trabajo Técnico
@@ -565,7 +578,7 @@
                     </div>
 
                     <!-- Visit Schedule History -->
-                    <div class="sidebar-card" *ngIf="visits && visits.length > 0">
+                    <div class="sidebar-card" *ngIf="visits && visits.length > 0 && !isVisitRequestCanceled">
                         <h3><i class="bi bi-calendar-event"></i> Agenda de Visitas</h3>
                         <div class="timeline-vertical visits-timeline">
                             <div *ngFor="let v of visits" class="timeline-event"
@@ -731,14 +744,6 @@
                                             rows="3" placeholder="Motivo del cambio de técnico..."></textarea>
                                     </div>
 
-                                    <div class="mb-3 d-flex align-items-center">
-                                        <div class="form-check form-switch custom-switch">
-                                            <input class="form-check-input" type="checkbox" id="visitSwitch" [(ngModel)]="reassignData.programarVisita">
-                                            <label class="form-check-label fw-bold ms-2 text-primary" for="visitSwitch" style="cursor: pointer;">
-                                                <i class="bi bi-calendar-check me-1"></i> Programar Visita Técnica
-                                            </label>
-                                        </div>
-                                    </div>
                                 </div>
                                 
                                 <ng-template #noSelection>

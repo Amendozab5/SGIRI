@@ -51,7 +51,7 @@
                     </div>
 
                     <!-- Days -->
-                    <div *ngFor="let day of days" class="calendar-day" cdkDropList
+                    <div *ngFor="let day of days; trackBy: trackByDay" class="calendar-day" cdkDropList
                         [cdkDropListDisabled]="isUserTechnician" [cdkDropListData]="day"
                         (cdkDropListDropped)="dropTicket($event, day)" [ngClass]="{
                             'other-month': !day.isCurrentMonth, 
@@ -62,7 +62,7 @@
                         <div class="day-number text-end mb-1">{{ day.date | date: 'd' }}</div>
 
                         <div class="visitas-container d-flex flex-column gap-1">
-                            <div *ngFor="let v of day.visitas" class="visita-item shadow-sm"
+                            <div *ngFor="let v of day.visitas; trackBy: trackByVisita" class="visita-item shadow-sm"
                                 [ngClass]="{'is-locked-visita': isVisitaLocked(v)}"
                                 [style.border-left-color]="getStatusColor(v.estado.codigo)"
                                 (click)="onVisitaClick($event, v)"
@@ -142,5 +142,6 @@
     </div>
 </div>
 
-<app-visita-form-modal [tickets]="tickets" [tecnicos]="tecnicos" [allVisitas]="allVisitas"
-    (save)="onSaveVisita($event)"></app-visita-form-modal>
+<app-visita-form-modal [tickets]="tickets" [tecnicos]="tecnicos" [allVisitas]="allVisitas" (save)="onSaveVisita($event)"
+    (delete)="onDeleteVisita($event)">
+</app-visita-form-modal>

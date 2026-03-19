@@ -58,8 +58,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
     showReassignModal = false;
     reassignData = {
         userId: 0,
-        notaReasignacion: '',
-        programarVisita: false
+        notaReasignacion: ''
     };
     technicians: any[] = [];
     reassignSearchTerm: string = '';
@@ -210,12 +209,23 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
             next: (data) => {
                 this.zone.run(() => {
                     this.ticket = data;
-                    this.loading = false;
-                    // checkPermissions already called in ngOnInit, but update just in case roles come from data
-                    this.loadInformeTecnico(id);
-                    this.calculateUnreadMessages(id);
-                    this.handleTimerLogic();
-                    this.cdr.detectChanges();
+                    
+                    // Refresh agenda state first
+                    this.visitaService.getVisitaHistory(id).subscribe({
+                        next: (visitsData) => {
+                            this.visits = visitsData;
+                            this.loading = false;
+                            this.loadInformeTecnico(id);
+                            this.calculateUnreadMessages(id);
+                            this.handleTimerLogic();
+                            this.cdr.detectChanges();
+                        },
+                        error: (err) => {
+                            console.error('Error loading visit history', err);
+                            this.loading = false;
+                            this.cdr.detectChanges();
+                        }
+                    });
                 });
             },
             error: (err) => {
@@ -413,6 +423,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
     }
 
     get canAttend(): boolean {
+        if (this.showOnlyCancellationNotice) return false;
         if (!this.ticket || !this.currentUser) return false;
         const status = this.ticket.estadoItem?.codigo;
         
@@ -420,16 +431,51 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         if (this.isAdmin || this.isAdminMaster) return false;
 
         if (this.isOnlyTecnico || this.currentUser.roles?.includes('ROLE_TECNICO')) {
-            return ((status === 'ASIGNADO' || status === 'REQUIERE_VISITA') && this.isAssignedToMe) || (status === 'ABIERTO');
+            // For REQUIERE_VISITA, technician can only attend if there's an active scheduled visit
+            if (status === 'REQUIERE_VISITA') {
+                return this.isAssignedToMe && this.hasActiveScheduledVisit();
+            }
+            return ((status === 'ASIGNADO') && this.isAssignedToMe) || (status === 'ABIERTO');
         }
         return false;
     }
 
-    get canSolicitarVisita(): boolean {
-        if (!this.isAdmin || !this.ticket) return false;
+    get showPendingSchedulingNotice(): boolean {
+        if (!this.ticket || !this.currentUser) return false;
         const status = this.ticket.estadoItem?.codigo;
-        // Allowed for: ABIERTO, ASIGNADO, REPROGRAMADA, REQUIERE_VISITA
-        return status === 'ABIERTO' || status === 'ASIGNADO' || status === 'REPROGRAMADA' || status === 'REQUIERE_VISITA';
+        // Only show for technicians when REQUIERE_VISITA but no active scheduled visit
+        if (status === 'REQUIERE_VISITA' && this.isAssignedToMe && (this.isOnlyTecnico || this.currentUser.roles?.includes('ROLE_TECNICO'))) {
+            return !this.hasActiveScheduledVisit();
+        }
+        return false;
+    }
+
+    private hasActiveScheduledVisit(): boolean {
+        if (!this.visits?.length) return false;
+        // Check if there's at least one visit that is not cancelled and has date/time
+        return this.visits.some(v => 
+            v.estado?.codigo !== 'CANCELADA' && 
+            v.fechaVisita && 
+            v.horaInicio
+        );
+    }
+
+    get isTicketCanceled(): boolean {
+        return this.ticket?.estadoItem?.codigo === 'CANCELADA';
+    }
+
+    get isVisitRequestCanceled(): boolean {
+        if (!this.ticket || this.ticket.estadoItem?.codigo !== 'REQUIERE_VISITA') return false;
+        if (!this.visits?.length) return false;
+
+        const hasCancelled = this.visits.some(v => v.estado?.codigo === 'CANCELADA');
+        const hasActive = this.visits.some(v => v.estado?.codigo !== 'CANCELADA');
+
+        return hasCancelled && !hasActive;
+    }
+
+    get showOnlyCancellationNotice(): boolean {
+        return this.isTicketCanceled || this.isVisitRequestCanceled;
     }
 
     get canRate(): boolean {
@@ -545,19 +591,11 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         });
     }
 
-    agendarVisitaDirect(): void {
-        const ticketId = this.ticket.idTicket;
-        this.zone.run(() => {
-            this.router.navigate(['/home/agenda'], { queryParams: { ticketId: ticketId } });
-        });
-    }
-
     openReassignModal(): void {
         this.reassignData.userId = this.ticket.usuarioAsignado?.id || this.ticket.usuarioAsignado?.userId || 0;
         this.reassignData.notaReasignacion = '';
         this.reassignSearchTerm = '';
         this.selectedTechForPreview = null;
-        this.reassignData.programarVisita = false;
         
         // UX Fix: Open modal instantly
         this.showReassignModal = true;
@@ -605,7 +643,6 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         }
 
         const wasRequiresVisit = this.ticket.estadoItem?.codigo === 'REQUIERE_VISITA';
-        const programarVisita = this.reassignData.programarVisita;
 
         this.showReassignModal = false;
         this.loading = true;
@@ -618,23 +655,23 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         ).subscribe({
             next: () => {
                 if (wasRequiresVisit) {
+                    // Keep the ticket status in REQUIERE_VISITA when reassigning.
                     this.ticketService.updateStatus(this.ticket.idTicket, 'REQUIERE_VISITA', 'Reasignación de técnico manteniendo solicitud de visita.').subscribe({
                         next: () => {
                             this.zone.run(() => {
-                                if (programarVisita) {
-                                    this.router.navigate(['/home/agenda'], { queryParams: { ticketId: this.ticket.idTicket } });
-                                } else {
-                                    this.successMessage = 'Ticket reasignado manteniendo estado de visita.';
-                                    setTimeout(() => this.successMessage = '', 4000);
-                                    this.loadTicket(this.ticket.idTicket);
-                                    this.cdr.detectChanges();
-                                }
+                                this.successMessage = 'Ticket reasignado manteniendo estado de visita.';
+                                setTimeout(() => this.successMessage = '', 4000);
+                                this.loadTicket(this.ticket.idTicket);
+                                this.cdr.detectChanges();
+                            });
+                        },
+                        error: () => {
+                            // Even if status update fails, refresh ticket to avoid stale assignment state.
+                            this.zone.run(() => {
+                                this.loadTicket(this.ticket.idTicket);
+                                this.cdr.detectChanges();
                             });
                         }
-                    });
-                } else if (programarVisita) {
-                    this.zone.run(() => {
-                        this.router.navigate(['/home/agenda'], { queryParams: { ticketId: this.ticket.idTicket } });
                     });
                 } else {
                     this.zone.run(() => {

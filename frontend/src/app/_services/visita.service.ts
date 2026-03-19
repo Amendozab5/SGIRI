@@ -38,4 +38,8 @@ export class VisitaService {
     getVisitaHistory(ticketId: number): Observable<VisitaTecnica[]> {
         return this.http.get<VisitaTecnica[]>(`${API_URL}/ticket/${ticketId}/history`);
     }
+
+    deleteVisita(id: number): Observable<any> {
+        return this.http.delete(`${API_URL}/${id}`);
+    }
 }

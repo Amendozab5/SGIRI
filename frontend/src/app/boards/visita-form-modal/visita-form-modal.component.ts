@@ -22,6 +22,7 @@ export class VisitaFormModalComponent implements OnInit {
     @Input() allVisitas: VisitaTecnica[] = [];
 
     @Output() save = new EventEmitter<{ request: VisitaRequest, id: number | null }>();
+    @Output() delete = new EventEmitter<number>();
 
     @ViewChild('visitaModal') modalElement!: ElementRef;
     private modalInstance?: Modal;
@@ -31,6 +32,8 @@ export class VisitaFormModalComponent implements OnInit {
     currentVisitaId: number | null = null;
     isLocked = false;
     isTechnicianAutoSelected = false;
+    isTicketFixed = false;
+    fixedTicketId: number | null = null;
     conflictInfo: any = null;
     isTechnician = false;
     currentTicket: Ticket | null = null;
@@ -131,10 +134,13 @@ export class VisitaFormModalComponent implements OnInit {
         this.modalInstance = new Modal(this.modalElement.nativeElement);
     }
 
-    open(visita?: VisitaTecnica, initialDate?: string, idTicket?: number): void {
+    open(visita?: VisitaTecnica, initialDate?: string, idTicket?: number, tecnicoId?: number): void {
         this.visitaForm.reset({ codigoEstado: 'PROGRAMADA' });
         this.isLocked = false;
         this.isTechnicianAutoSelected = false;
+        this.isTicketFixed = false;
+        this.fixedTicketId = null;
+        this.currentTicket = null;
 
         const user = this.tokenService.getUser();
         this.isTechnician = user?.roles.includes('ROLE_TECNICO') || false;
@@ -148,13 +154,32 @@ export class VisitaFormModalComponent implements OnInit {
             this.visitaForm.get('idTecnico')?.enable();
         }
 
+        // Ticket fijo (se pasa por query param o al editar una visita existente)
+        const setFixedTicket = (ticketId: number, ticket?: Ticket) => {
+            this.isTicketFixed = true;
+            this.fixedTicketId = ticketId;
+            this.visitaForm.patchValue({ idTicket: ticketId });
+            this.visitaForm.get('idTicket')?.disable();
+            if (ticket) {
+                this.currentTicket = ticket;
+            } else {
+                // Si no tenemos ticket cargado en el listado, lo buscamos para mostrar nombre/cliente.
+                this.ticketService.getTicketById(ticketId).subscribe(t => this.currentTicket = t);
+            }
+        };
+
         if (visita) {
             this.isEditMode = true;
             this.isTechnicianAutoSelected = true;
             this.currentVisitaId = visita.idVisita || null;
             this.currentVisita = visita;
+
+            const ticketId = visita.ticket?.idTicket;
+            if (ticketId != null) {
+                setFixedTicket(ticketId, visita.ticket);
+            }
+
             this.visitaForm.patchValue({
-                idTicket: visita.ticket.idTicket,
                 idTecnico: visita.tecnico.id,
                 fechaVisita: visita.fechaVisita,
                 horaInicio: visita.horaInicio,
@@ -163,8 +188,6 @@ export class VisitaFormModalComponent implements OnInit {
                 codigoEstado: visita.estado.codigo,
                 reporteVisita: visita.reporteVisita
             });
-
-            this.currentTicket = visita.ticket;
 
             const ticketStatus = visita.ticket.estadoItem?.codigo;
             if (['FINALIZADA', 'CANCELADA'].includes(visita.estado.codigo) ||
@@ -179,7 +202,12 @@ export class VisitaFormModalComponent implements OnInit {
                 this.visitaForm.patchValue({ fechaVisita: initialDate });
             }
             if (idTicket) {
-                this.visitaForm.patchValue({ idTicket: idTicket });
+                const ticketObj = this.tickets.find(t => t.idTicket === idTicket);
+                setFixedTicket(idTicket, ticketObj);
+            }
+            if (tecnicoId) {
+                this.visitaForm.patchValue({ idTecnico: tecnicoId });
+                this.isTechnicianAutoSelected = true;
             }
         }
 
@@ -218,9 +246,15 @@ export class VisitaFormModalComponent implements OnInit {
         this.visitaForm.patchValue({ codigoEstado: 'REPROGRAMADA' });
     }
 
+    onDelete(): void {
+        if (this.currentVisitaId && confirm('¿Está seguro de que desea remover esta visita de la agenda? El técnico será desvinculado del ticket.')) {
+            this.delete.emit(this.currentVisitaId);
+        }
+    }
+
     onSubmit(): void {
         if (this.visitaForm.valid) {
-            const formValue = this.visitaForm.getRawValue(); // getRawValue para obtener campos disabled
+            const formValue = this.visitaForm.getRawValue();
             const currentUser = this.tokenService.getUser();
             const idEmpresa = currentUser?.idEmpresa || 1;
 
