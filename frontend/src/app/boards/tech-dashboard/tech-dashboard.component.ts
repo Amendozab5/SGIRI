@@ -243,7 +243,7 @@ export class TechDashboardComponent implements OnInit {
     const code = s.toUpperCase();
     if (code === 'EN_PROCESO') return 'status-active';
     if (code === 'ASIGNADO') return 'status-pending';
-    if (code === 'RESUELTO') return 'status-success';
+    if (code === 'RESUELTO' || code === 'CERRADO') return 'status-success';
     return 'status-default';
   }
 

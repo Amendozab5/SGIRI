@@ -24,11 +24,16 @@ interface HRStat {
 })
 export class HrDashboardComponent implements OnInit {
   stats: HRStat[] = [
-    { label: 'Total Colaboradores', value: '...', icon: 'bi-people-fill', color: '#2563eb', description: 'Personal registrado en nómina' },
-    { label: 'Accesos Activos', value: '...', icon: 'bi-shield-check', color: '#16a34a', description: 'Personal con credenciales de sistema' },
-    { label: 'Pendientes Documentación', value: '...', icon: 'bi-file-earmark-exclamation', color: '#f59e0b', description: 'Expedientes por validar' },
+    { label: 'Total Colaboradores', value: '...', icon: 'bi-people-fill', color: '#4f46e5', description: 'Personal registrado en nómina' },
+    { label: 'Accesos Activos', value: '...', icon: 'bi-shield-check', color: '#10b981', description: 'Personal con credenciales de sistema' },
+    { label: 'Pendientes Documentación', value: '...', icon: 'bi-exclamation-octagon', color: '#f59e0b', description: 'Expedientes por validar' },
     { label: 'Entidades / ISPs', value: '...', icon: 'bi-building', color: '#7c3aed', description: 'Empresas vinculadas al sistema' }
   ];
+  totalEmpleados: number = 0;
+  totalContratos: number = 0;
+  empresas_isps: any[] = [];
+  recentEmployees: EmpleadoDTO[] = [];
+  areaDistribution: { name: string, count: number, percentage: number }[] = [];
   isLoading = false;
   hasError = false;
   today = new Date();
@@ -47,8 +52,6 @@ export class HrDashboardComponent implements OnInit {
     this.isLoading = true;
     this.hasError = false;
     
-    // Añadimos un pequeño retardo y reintento para evitar que el primer hit 
-    // en un refresh (F5) devuelva listas vacías por falta de contexto de sesión
     forkJoin({
       empleados: this.employeeService.getAll().pipe(
         catchError(err => {
@@ -66,13 +69,7 @@ export class HrDashboardComponent implements OnInit {
       )
     }).subscribe({
       next: (res) => {
-        console.log('Dashboard Data Received:', {
-          empleados: res.empleados?.length,
-          empresas: res.empresas?.length
-        });
-
         if (!res.empleados || !res.empresas) {
-          console.warn('Respuesta incompleta, abortando actualización de stats');
           this.isLoading = false;
           return;
         }
@@ -80,10 +77,7 @@ export class HrDashboardComponent implements OnInit {
         const totalEmp = res.empleados.length;
         const totalEmpresas = res.empresas.length;
 
-        // Si recibimos 0 en todo pero no hubo error explícito, 
-        // es una "falsa alarma" de la base de datos (contexto de sesión no listo)
         if (totalEmp === 0 && totalEmpresas === 0) {
-          console.warn('Dashboard recibió ceros. Reintentando en 1.5s...');
           setTimeout(() => this.retryLoad(), 1500);
           return;
         }
@@ -91,16 +85,37 @@ export class HrDashboardComponent implements OnInit {
         const activos = res.empleados.filter((e: EmpleadoDTO) => e.tieneUsuarioActivo).length;
         const pendientesDocs = res.empleados.filter((e: EmpleadoDTO) => !e.tieneDocumentoActivo).length;
 
+        this.totalEmpleados = totalEmp;
+        this.totalContratos = totalEmpresas;
+        this.empresas_isps = res.empresas;
+
+        // Recent Employees (last 5)
+        this.recentEmployees = [...res.empleados]
+          .sort((a, b) => new Date(b.fechaIngreso).getTime() - new Date(a.fechaIngreso).getTime())
+          .slice(0, 5);
+
+        // Area Distribution
+        const counts: { [key: string]: number } = {};
+        res.empleados.forEach((e: EmpleadoDTO) => {
+          const area = e.nombreArea || 'Sin Área';
+          counts[area] = (counts[area] || 0) + 1;
+        });
+
+        this.areaDistribution = Object.keys(counts).map(name => ({
+          name,
+          count: counts[name],
+          percentage: (counts[name] / totalEmp) * 100
+        })).sort((a, b) => b.count - a.count);
+
         this.stats = [
           { label: 'Total Colaboradores', value: totalEmp.toString(), icon: 'bi-people-fill', color: '#2563eb', description: 'Personal registrado en nómina' },
           { label: 'Accesos Activos', value: activos.toString(), icon: 'bi-shield-check', color: '#16a34a', description: 'Personal con credenciales de sistema' },
-          { label: 'Pendientes Documentación', value: pendientesDocs.toString(), icon: 'bi-file-earmark-exclamation', color: '#f59e0b', description: 'Expedientes por validar' },
+          { label: 'Pendientes Documentación', value: pendientesDocs.toString(), icon: 'bi-exclamation-octagon', color: '#f59e0b', description: 'Expedientes por validar' },
           { label: 'Entidades / ISPs', value: totalEmpresas.toString(), icon: 'bi-building', color: '#7c3aed', description: 'Empresas vinculadas al sistema' }
         ];
+        
         this.isLoading = false;
         this.hasError = false;
-        
-        // FORZAR ACTUALIZACIÓN DE UI
         this.cdr.detectChanges();
       },
       error: () => {

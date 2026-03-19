@@ -79,6 +79,10 @@ export class MasterDataService {
         return this.http.post<Sucursal>(`${API_EMPRESAS}/sucursales`, sucursal);
     }
 
+    updateSucursal(id: number, sucursal: any): Observable<Sucursal> {
+        return this.http.put<Sucursal>(`${API_EMPRESAS}/sucursales/${id}`, sucursal);
+    }
+
     getAllSucursales(): Observable<Sucursal[]> {
         return this.http.get<Sucursal[]>(`${API_EMPRESAS}/sucursales`);
     }

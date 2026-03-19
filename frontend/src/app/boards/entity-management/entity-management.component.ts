@@ -27,7 +27,11 @@ export class EntityManagementComponent implements OnInit {
     isEditingEmpresa = false;
     uploadingContract = false;
     error = '';
-    activeFilter: string = 'TODOS'; // Added
+    activeFilter: string = 'TODOS';
+    isEditingSucursal = false;
+    selectedSucursal: Sucursal | null = null;
+    totalActivas = 0;
+    totalInactivas = 0;
 
     estadosGenerales: any[] = [];
 
@@ -113,7 +117,11 @@ export class EntityManagementComponent implements OnInit {
         }
     }
 
-    openEmpresaModal(): void {
+    openEmpresaModal(empresa?: Empresa): void {
+        if (empresa) {
+            this.editEmpresa(empresa);
+            return;
+        }
         this.newEmpresa = {
             nombreComercial: '',
             razonSocial: '',
@@ -125,6 +133,10 @@ export class EntityManagementComponent implements OnInit {
         };
         this.showEmpresaModal = true;
         this.isEditingEmpresa = false;
+    }
+
+    autoCargarEmpresa(): void {
+        console.log('Auto-cargar empresa (IA) invocado.');
     }
 
     editEmpresa(empresa: Empresa): void {
@@ -172,7 +184,11 @@ export class EntityManagementComponent implements OnInit {
             });
     }
 
-    openSucursalModal(): void {
+    openSucursalModal(sucursal?: Sucursal): void {
+        if (sucursal) {
+            this.editSucursal(sucursal);
+            return;
+        }
         this.newSucursal = {
             nombre: '',
             direccion: '',
@@ -183,6 +199,21 @@ export class EntityManagementComponent implements OnInit {
         };
         this.ciudades = [];
         this.cantones = [];
+        this.showSucursalModal = true;
+        this.isEditingSucursal = false;
+    }
+
+    editSucursal(sucursal: Sucursal): void {
+        this.newSucursal = {
+            nombre: sucursal.nombre,
+            direccion: sucursal.direccion,
+            telefono: sucursal.telefono,
+            idPais: null,
+            idCiudad: sucursal.idCiudad,
+            idCanton: sucursal.idCanton
+        };
+        this.selectedSucursal = sucursal;
+        this.isEditingSucursal = true;
         this.showSucursalModal = true;
     }
 
@@ -195,14 +226,22 @@ export class EntityManagementComponent implements OnInit {
             idEmpresa: this.selectedEmpresa.id
         };
 
-        this.masterDataService.createSucursal(request)
-            .pipe(finalize(() => {
+        const action = this.isEditingSucursal && this.selectedSucursal
+            ? this.masterDataService.updateSucursal(this.selectedSucursal.id, request)
+            : this.masterDataService.createSucursal(request);
+
+        action.pipe(finalize(() => {
                 this.savingSucursal = false;
                 this.cdr.detectChanges();
             }))
             .subscribe({
                 next: (data) => {
-                    this.sucursales.push(data);
+                    if (this.isEditingSucursal) {
+                        const index = this.sucursales.findIndex(s => s.id === data.id);
+                        if (index !== -1) this.sucursales[index] = data;
+                    } else {
+                        this.sucursales.push(data);
+                    }
                     this.showSucursalModal = false;
                 },
                 error: (err) => {
@@ -298,6 +337,11 @@ export class EntityManagementComponent implements OnInit {
         } else {
             this.filteredEmpresas = this.empresas.filter(emp => emp.estado?.codigo === this.activeFilter);
         }
+        
+        // Update counts for the stats strip
+        this.totalActivas = this.empresas.filter(e => e.estado?.codigo === 'ACTIVO').length;
+        this.totalInactivas = this.empresas.filter(e => e.estado?.codigo === 'INACTIVO').length;
+        
         this.cdr.detectChanges();
     }
 }

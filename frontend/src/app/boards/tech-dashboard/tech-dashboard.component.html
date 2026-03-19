@@ -81,6 +81,7 @@
                                     *ngIf="ticket.status === 'ASIGNADO' || ticket.status === 'ABIERTO' || ticket.status === 'REQUIERE_VISITA'"></i>
                                 <i class="bi bi-arrow-right" *ngIf="ticket.status === 'EN_PROCESO'"></i>
                                 <i class="bi bi-check-lg" *ngIf="ticket.status === 'RESUELTO'"></i>
+                                <i class="bi bi-check2-all" *ngIf="ticket.status === 'CERRADO'"></i>
                             </button>
                         </div>
                     </div>

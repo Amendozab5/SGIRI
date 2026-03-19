@@ -802,9 +802,9 @@
                         </div>
 
                         <div *ngFor="let comment of ticket.comentarios" class="chat-bubble"
-                            [ngClass]="comment.usuario?.role?.codigo === 'CLIENTE' ? 'bubble-left' : 'bubble-right'">
-                            <div class="chat-avatar" *ngIf="comment.usuario?.role?.codigo === 'CLIENTE'">
-                                {{ comment.usuario?.username.slice(0, 2).toUpperCase() }}
+                            [ngClass]="isMe(comment) ? 'bubble-right' : 'bubble-left'">
+                            <div class="chat-avatar" *ngIf="!isMe(comment)">
+                                {{ getInitials(comment.usuario) }}
                             </div>
                             <div class="bubble-wrapper">
                                 <div class="bubble-content shadow-sm">

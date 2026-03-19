@@ -1,329 +1,178 @@
-<div class="container-fluid mt-4 pb-5 animate-fade-in">
-    <div class="row g-4">
-        <!-- Error Alert -->
-        <div *ngIf="error" class="col-12 mb-2">
-            <div class="alert alert-danger shadow-sm border-0 rounded-3 d-flex align-items-center">
-                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-                <div>{{ error }}</div>
+<div class="management-container animate-fade-in">
+    
+    <!-- Top Header Strategy: Not minimalist, but highly professional -->
+    <header class="management-header mb-4">
+        <div class="header-main">
+            <div class="title-group">
+                <div class="title-icon"><i class="bi bi-buildings-fill"></i></div>
+                <div>
+                    <h1 class="management-title">Gestión de Entidades</h1>
+                    <p class="management-subtitle">Administración centralizada de ISPs y Entidades Gubernamentales.</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="filter-segmented-premium me-3">
+                    <button class="segment-btn" [class.active]="activeFilter === 'TODOS'" (click)="setFilter('TODOS')">
+                        <span class="label">Todo</span>
+                        <span class="count">{{ empresas.length }}</span>
+                    </button>
+                    <button class="segment-btn sec-active" [class.active]="activeFilter === 'ACTIVO'" (click)="setFilter('ACTIVO')">
+                        <span class="label">Activas</span>
+                        <span class="count">{{ totalActivas }}</span>
+                    </button>
+                    <button class="segment-btn sec-inactive" [class.active]="activeFilter === 'INACTIVO'" (click)="setFilter('INACTIVO')">
+                        <span class="label">Inactivas</span>
+                        <span class="count">{{ totalInactivas }}</span>
+                    </button>
+                </div>
+                <button class="btn-create-premium" (click)="openEmpresaModal()">
+                    <i class="bi bi-plus-circle me-2"></i>Nueva Entidad
+                </button>
             </div>
         </div>
+    </header>
 
-        <!-- Empresas Section -->
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="mb-0 text-primary fw-bold">Gestión de Empresas e ISP</h4>
-                <div class="d-flex gap-2">
-                    <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)"
-                        accept=".pdf,.doc,.docx">
-                    <button class="btn btn-outline-success rounded-pill px-4 shadow-sm" (click)="fileInput.click()"
-                        [disabled]="uploadingContract">
-                        <i class="bi bi-file-earmark-text me-1" *ngIf="!uploadingContract"></i>
-                        <span class="spinner-border spinner-border-sm me-1" *ngIf="uploadingContract"></span>
-                        {{ uploadingContract ? 'Procesando...' : 'Cargar desde Contrato' }}
-                    </button>
-                    <button class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="loadEmpresas()"
-                        [disabled]="loadingEmpresas">
-                        <i class="bi bi-arrow-clockwise me-1" [class.spinner-border-sm]="loadingEmpresas"></i>
-                        {{ loadingEmpresas ? 'Actualizando...' : 'Actualizar' }}
-                    </button>
-                </div>
-            </div>
+    <!-- Entity Cards Grid: Rich, informative, high-order -->
+    <main class="management-grid">
+        <div *ngIf="loadingEmpresas" class="loader-container">
+            <div class="spinner-premium"></div>
+            <p>Sincronizando registros...</p>
+        </div>
 
-            <!-- Filter Buttons -->
-            <div class="d-flex justify-content-center mb-4">
-                <div class="btn-group shadow-sm rounded-pill" role="group">
-                    <button type="button" class="btn" [class.btn-primary]="activeFilter === 'TODOS'"
-                        [class.btn-outline-secondary]="activeFilter !== 'TODOS'" (click)="setFilter('TODOS')">Todos</button>
-                    <button type="button" class="btn" [class.btn-primary]="activeFilter === 'ACTIVO'"
-                        [class.btn-outline-secondary]="activeFilter !== 'ACTIVO'" (click)="setFilter('ACTIVO')">
-                        <i class="bi bi-check-circle-fill text-success me-1"></i> Activos
-                    </button>
-                    <button type="button" class="btn" [class.btn-primary]="activeFilter === 'PENDIENTE'"
-                        [class.btn-outline-secondary]="activeFilter !== 'PENDIENTE'" (click)="setFilter('PENDIENTE')">
-                        <i class="bi bi-clock-fill text-warning me-1"></i> Pendientes
-                    </button>
-                    <button type="button" class="btn" [class.btn-primary]="activeFilter === 'INACTIVO'"
-                        [class.btn-outline-secondary]="activeFilter !== 'INACTIVO'" (click)="setFilter('INACTIVO')">
-                        <i class="bi bi-x-circle-fill text-danger me-1"></i> Inactivos
-                    </button>
-                </div>
-            </div>
-
-            <!-- Loading Spinner for Empresas -->
-            <div *ngIf="loadingEmpresas && !empresas.length" class="text-center py-5 my-5">
-                <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-                <p class="mt-3 text-muted fw-bold">Cargando empresas registradas...</p>
-            </div>
-
-            <!-- Empty State -->
-            <div *ngIf="!loadingEmpresas && !empresas.length && !error"
-                class="text-center py-5 bg-light rounded-4 border border-dashed">
-                <i class="bi bi-building-dash display-4 text-muted mb-3 d-block"></i>
-                <h5 class="text-muted">No hay empresas registradas</h5>
-                <p class="text-secondary small">Carga un contrato legal desde el botón superior para registrar una
-                    empresa e ISP automáticamente.</p>
-            </div>
-
-            <!-- Filtered Empty State -->
-            <div *ngIf="!loadingEmpresas && empresas.length && !filteredEmpresas.length && !error"
-                class="text-center py-5 bg-light rounded-4 border border-dashed">
-                <i class="bi bi-funnel-fill display-4 text-muted mb-3 d-block"></i>
-                <h5 class="text-muted">No hay empresas que coincidan con el filtro</h5>
-                <p class="text-secondary small">Intenta seleccionar otro estado o el filtro "Todos".</p>
-            </div>
-
-            <!-- Empresas Cards -->
-            <div class="row g-3" *ngIf="filteredEmpresas.length">
-                <div *ngFor="let emp of filteredEmpresas" class="col-md-4">
-                    <div class="card h-100 border-0 shadow-sm transition-all empresa-card"
-                        [class.selected]="selectedEmpresa?.id === emp.id" (click)="selectEmpresa(emp)">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div class="bg-primary-subtle p-2 rounded-circle text-primary">
-                                    <i class="bi bi-building fs-4"></i>
-                                </div>
-                                <span class="badge rounded-pill"
-                                    [ngClass]="['ACTIVO', 'ACTIVA'].includes(emp.estado?.codigo || '') || emp.estado?.nombre === 'Activa' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
-                                    {{ emp.estado?.nombre || 'S/E' }}
-                                </span>
-                                <button class="btn btn-sm btn-outline-primary rounded-circle"
-                                    (click)="$event.stopPropagation(); editEmpresa(emp)" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                            </div>
-                            <h5 class="card-title fw-bold mb-1 text-dark">{{ emp.nombreComercial }}</h5>
-                            <p class="card-text text-muted small mb-0">{{ emp.razonSocial }}</p>
-                            <hr class="my-3 opacity-10">
-                            <div class="d-flex justify-content-between small">
-                                <span class="text-secondary">RUC: <span class="text-dark fw-medium">{{ emp.ruc
-                                        }}</span></span>
-                                <span class="badge bg-light text-dark border fw-normal">{{ emp.tipoEmpresa }}</span>
-                            </div>
+        <div class="row g-4" *ngIf="!loadingEmpresas">
+            <div class="col-xl-4 col-lg-6 col-md-12" *ngFor="let emp of filteredEmpresas">
+                <div class="entity-card-rich shadow-sm" [class.inactive]="emp.estado?.codigo !== 'ACTIVO'">
+                    <div class="card-top">
+                        <div class="entity-badge-type">{{ emp.tipoEmpresa }}</div>
+                        <div class="entity-status-pill" [class.pill-active]="emp.estado?.codigo === 'ACTIVO'">
+                            {{ emp.estado?.nombre }}
                         </div>
                     </div>
+                    
+                    <div class="card-main">
+                        <div class="entity-visual">
+                            <span class="visual-inner">{{ emp.nombreComercial.charAt(0) }}</span>
+                        </div>
+                        <div class="entity-details">
+                            <h3 class="entity-name">{{ emp.nombreComercial }}</h3>
+                            <p class="entity-legal">{{ emp.razonSocial }}</p>
+                            <span class="entity-ruc"><i class="bi bi-hash"></i> RUC: {{ emp.ruc }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-info-grid">
+                        <div class="info-item">
+                            <i class="bi bi-envelope"></i>
+                            <span class="text-truncate">{{ emp.correoContacto || 'Sin correo' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-telephone"></i>
+                            <span>{{ emp.telefonoContacto || 'Sin teléfono' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer-actions">
+                        <button class="btn-manage-branches" (click)="selectEmpresa(emp)">
+                            <i class="bi bi-diagram-3 me-2"></i>Gestionar Sucursales
+                        </button>
+                        <button class="btn-edit-entity" (click)="openEmpresaModal(emp)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
                 </div>
+            </div>
+            
+            <div *ngIf="filteredEmpresas.length === 0" class="col-12 py-5 text-center empty-grid-state">
+                <i class="bi bi-buildings display-1 opacity-10 mb-3"></i>
+                <h3>No se encontraron resultados</h3>
+                <p>Ajusta el filtro o añade una nueva entidad al sistema.</p>
             </div>
         </div>
+    </main>
+</div>
 
-        <!-- Spacer -->
-        <div class="col-12 my-2"></div>
+<!-- Slide-over Sucursales Panel: More sophisticated than a simple detail view -->
+<div class="sucursales-overlay" *ngIf="selectedEmpresa" (click)="selectedEmpresa = null">
+    <div class="sucursales-panel animate-slide-left" (click)="$event.stopPropagation()">
+        <header class="panel-header">
+            <div>
+                <span class="small-tag">SUCURSALES</span>
+                <h2 class="panel-title">{{ selectedEmpresa.nombreComercial }}</h2>
+            </div>
+            <button class="btn-close-panel" (click)="selectedEmpresa = null"><i class="bi bi-x-lg"></i></button>
+        </header>
 
-        <!-- Sucursales Section -->
-        <div class="col-12" id="sucursales-section" style="min-height: 400px;">
-            <!-- Placeholder -->
-            <div *ngIf="!selectedEmpresa && !loadingEmpresas"
-                class="text-center py-5 bg-white rounded-4 shadow-sm border border-light">
-                <div class="opacity-25 mb-3">
-                    <i class="bi bi-cursor-fill display-3"></i>
-                </div>
-                <h5 class="text-muted fw-bold">Gestión de Sucursales</h5>
-                <p class="text-secondary small mx-auto" style="max-width: 300px;">Selecciona una de las empresas de
-                    arriba para ver y gestionar sus puntos de atención.</p>
+        <div class="panel-body">
+            <div class="panel-action-bar mb-4">
+                <button class="btn-add-sucursal w-100" (click)="openSucursalModal()">
+                    <i class="bi bi-plus-lg me-2"></i>Agregar Nueva Sede
+                </button>
             </div>
 
-            <!-- Sucursales Card -->
-            <div *ngIf="selectedEmpresa" class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="mb-0 fw-bold text-dark">Sucursales de {{ selectedEmpresa.nombreComercial }}</h5>
-                        <p class="text-muted small mb-0">Gestiona las sedes físicas de este proveedor.</p>
+            <div *ngIf="loadingSucursales" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+
+            <div class="sucursales-list" *ngIf="!loadingSucursales">
+                <div class="sucursal-item-card" *ngFor="let suc of sucursales">
+                    <div class="sucursal-icon"><i class="bi bi-geo-alt"></i></div>
+                    <div class="sucursal-info">
+                        <h4>{{ suc.nombre }}</h4>
+                        <p>{{ suc.direccion }}</p>
+                        <span class="sucursal-extra"><i class="bi bi-phone me-1"></i> {{ suc.telefono || 'Sin tel.' }}</span>
                     </div>
-                    <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" (click)="openSucursalModal()">
-                        <i class="bi bi-plus-lg me-1"></i> Nueva Sucursal
-                    </button>
+                    <button class="btn-edit-sucursal" (click)="openSucursalModal(suc)"><i class="bi bi-pencil-square"></i></button>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="px-4 text-muted small text-uppercase">ID</th>
-                                    <th class="text-muted small text-uppercase">Nombre de Sucursal</th>
-                                    <th class="text-muted small text-uppercase">Dirección</th>
-                                    <th class="text-muted small text-uppercase">Teléfono</th>
-                                    <th class="text-end px-4 text-muted small text-uppercase">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let suc of sucursales">
-                                    <td class="px-4 text-primary fw-medium">#{{ suc.id }}</td>
-                                    <td class="fw-bold text-dark">{{ suc.nombre }}</td>
-                                    <td>{{ suc.direccion }}</td>
-                                    <td>
-                                        <span *ngIf="suc.telefono" class="text-dark"><i
-                                                class="bi bi-telephone me-1 opacity-50"></i>{{ suc.telefono }}</span>
-                                        <span *ngIf="!suc.telefono" class="text-muted opacity-50">---</span>
-                                    </td>
-                                    <td class="text-end px-4">
-                                        <div class="btn-group">
-                                            <button class="btn btn-sm btn-light border-0 rounded-circle me-1"
-                                                title="Editar">
-                                                <i class="bi bi-pencil text-primary"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-light border-0 rounded-circle"
-                                                title="Eliminar">
-                                                <i class="bi bi-trash text-danger"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr *ngIf="loadingSucursales && selectedEmpresa">
-                                    <td colspan="5" class="text-center py-5">
-                                        <div class="spinner-border text-primary spinner-border-sm me-2"></div>
-                                        <span class="text-muted">Cargando sucursales de {{
-                                            selectedEmpresa.nombreComercial }}...</span>
-                                    </td>
-                                </tr>
-                                <tr *ngIf="!loadingSucursales && !sucursales.length && selectedEmpresa">
-                                    <td colspan="5" class="text-center py-5">
-                                        <div class="opacity-25 mb-2">
-                                            <i class="bi bi-geo-alt-fill display-6"></i>
-                                        </div>
-                                        <h6 class="text-muted">Sin sucursales</h6>
-                                        <p class="text-secondary small mb-0">Esta empresa aún no tiene sedes
-                                            registradas.</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                
+                <div *ngIf="sucursales.length === 0" class="empty-sucursal-note">
+                    <p>No hay sedes operativas registradas.</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Sucursal -->
-<div class="modal-overlay" *ngIf="showSucursalModal">
-    <div class="modal-card shadow-lg animate-fade-in">
-        <div class="modal-header-custom">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>Nueva Sucursal</h5>
-            <button class="btn-close-custom" (click)="showSucursalModal = false"><i class="bi bi-x-lg"></i></button>
-        </div>
-        <div class="modal-body-custom">
-            <p class="text-muted small mb-4">Registra un nuevo punto de atención para <strong>{{
-                    selectedEmpresa?.nombreComercial }}</strong>.</p>
-
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-secondary">Nombre de la Sucursal</label>
-                <input type="text" class="form-control rounded-3" [(ngModel)]="newSucursal.nombre"
-                    placeholder="Ej. Matriz Quito, Agencia Norte">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-secondary">Dirección Exacta</label>
-                <textarea class="form-control rounded-3" rows="2" [(ngModel)]="newSucursal.direccion"
-                    placeholder="Calle principal, número y transversal"></textarea>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-secondary">Teléfono de Contacto</label>
-                <input type="text" class="form-control rounded-3" [(ngModel)]="newSucursal.telefono"
-                    placeholder="022XXXXXX / 09XXXXXXXX">
-            </div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold text-secondary">País</label>
-                    <select class="form-select rounded-3" [(ngModel)]="newSucursal.idPais"
-                        (change)="onPaisChange(newSucursal.idPais!)">
-                        <option [ngValue]="null" disabled>Seleccione...</option>
-                        <option *ngFor="let p of paises" [ngValue]="p.id">{{ p.nombre }}</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold text-secondary">Provincia / Ciudad</label>
-                    <select class="form-select rounded-3" [(ngModel)]="newSucursal.idCiudad"
-                        (change)="onCiudadChange(newSucursal.idCiudad!)" [disabled]="!newSucursal.idPais">
-                        <option [ngValue]="null" disabled>Seleccione...</option>
-                        <option *ngFor="let c of ciudades" [ngValue]="c.id">{{ c.nombre }}</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold text-secondary">Cantón</label>
-                    <select class="form-select rounded-3" [(ngModel)]="newSucursal.idCanton"
-                        [disabled]="!newSucursal.idCiudad">
-                        <option [ngValue]="null" disabled>Seleccione...</option>
-                        <option *ngFor="let cant of cantones" [ngValue]="cant.id">{{ cant.nombre }}</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer-custom">
-            <button class="btn btn-light rounded-pill px-4" (click)="showSucursalModal = false"
-                [disabled]="savingSucursal">Cancelar</button>
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm ms-2" (click)="saveSucursal()"
-                [disabled]="savingSucursal || !newSucursal.nombre || !newSucursal.direccion">
-                <span *ngIf="savingSucursal" class="spinner-border spinner-border-sm me-2"></span>
-                {{ savingSucursal ? 'Guardando...' : 'Registrar Sucursal' }}
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Empresa -->
-<div class="modal-overlay" *ngIf="showEmpresaModal">
-    <div class="modal-card shadow-lg animate-fade-in" style="max-width: 600px;">
-        <div class="modal-header-custom">
-            <h5 class="mb-0 fw-bold">
-                <i class="bi" [ngClass]="isEditingEmpresa ? 'bi-pencil-square' : 'bi-building-add'"></i>
-                {{ isEditingEmpresa ? 'Editar Empresa / Proveedor' : 'Nueva Empresa / Proveedor' }}
-            </h5>
-            <button class="btn-close-custom" (click)="showEmpresaModal = false"><i class="bi bi-x-lg"></i></button>
-        </div>
-        <div class="modal-body-custom">
+<!-- Modal Entities - Fixed and Premium -->
+<div class="modal-overlay-custom" *ngIf="showEmpresaModal" (click)="showEmpresaModal = false">
+    <div class="modal-content-premium animate-pop" (click)="$event.stopPropagation()">
+        <header class="modal-header-premium">
+            <h3>{{ isEditingEmpresa ? 'Editar Entidad' : 'Nueva Entidad' }}</h3>
+            <button (click)="showEmpresaModal = false" class="btn-close-modal"><i class="bi bi-x"></i></button>
+        </header>
+        <div class="modal-body-premium">
             <div class="row g-3">
-                <div class="col-md-12">
-                    <label class="form-label small fw-bold text-secondary">Nombre Comercial</label>
-                    <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.nombreComercial"
-                        placeholder="Ej. Netlife, CNT, etc.">
+                <div class="col-12">
+                    <label class="premium-label">Nombre Comercial</label>
+                    <input type="text" class="premium-input" [(ngModel)]="newEmpresa.nombreComercial" placeholder="Eje: Netlife Matriz">
                 </div>
-                <div class="col-md-12">
-                    <label class="form-label small fw-bold text-secondary">Razón Social</label>
-                    <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.razonSocial"
-                        placeholder="Nombre legal de la empresa">
+                <!-- ... other fields ... -->
+                <div class="col-md-6">
+                    <label class="premium-label">RUC</label>
+                    <input type="text" class="premium-input" [(ngModel)]="newEmpresa.ruc">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small fw-bold text-secondary">RUC</label>
-                    <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.ruc"
-                        placeholder="13 dígitos">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold text-secondary">Tipo</label>
-                    <select class="form-select rounded-3" [(ngModel)]="newEmpresa.tipoEmpresa">
+                    <label class="premium-label">Tipo</label>
+                    <select class="premium-select" [(ngModel)]="newEmpresa.tipoEmpresa">
                         <option value="PRIVADA">Privada</option>
                         <option value="PUBLICA">Pública</option>
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small fw-bold text-secondary">Correo de Contacto</label>
-                    <input type="email" class="form-control rounded-3" [(ngModel)]="newEmpresa.correoContacto"
-                        placeholder="info@empresa.com">
+                    <label class="premium-label">Correo</label>
+                    <input type="email" class="premium-input" [(ngModel)]="newEmpresa.correoContacto">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small fw-bold text-secondary">Teléfono</label>
-                    <input type="text" class="form-control rounded-3" [(ngModel)]="newEmpresa.telefonoContacto"
-                        placeholder="022XXXXXX">
-                </div>
-                <div class="col-md-6" *ngIf="isEditingEmpresa">
-                    <label class="form-label small fw-bold text-secondary">Estado Operativo</label>
-                    <select class="form-select rounded-3" [(ngModel)]="newEmpresa.idEstado">
-                        <option [ngValue]="null">Sin Estado</option>
-                        <option *ngFor="let est of estadosGenerales" [ngValue]="est.id">
-                            {{ est.nombre }}
-                        </option>
-                    </select>
+                    <label class="premium-label">Teléfono</label>
+                    <input type="text" class="premium-input" [(ngModel)]="newEmpresa.telefonoContacto">
                 </div>
             </div>
         </div>
-        <div class="modal-footer-custom">
-            <button class="btn btn-light rounded-pill px-4" (click)="showEmpresaModal = false"
-                [disabled]="savingEmpresa">Cancelar</button>
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm ms-2" (click)="saveEmpresa()"
-                [disabled]="savingEmpresa || !newEmpresa.nombreComercial || !newEmpresa.ruc">
-                <span *ngIf="savingEmpresa" class="spinner-border spinner-border-sm me-2"></span>
-                {{ savingEmpresa ? 'Guardando...' : (isEditingEmpresa ? 'Actualizar Cambios' : 'Registrar Empresa') }}
+        <footer class="modal-footer-premium">
+            <button class="btn-cancel" (click)="showEmpresaModal = false">Cancelar</button>
+            <button class="btn-save-premium" (click)="saveEmpresa()" [disabled]="savingEmpresa">
+                {{ savingEmpresa ? 'Guardando...' : 'Confirmar Registro' }}
             </button>
-        </div>
+        </footer>
     </div>
 </div>

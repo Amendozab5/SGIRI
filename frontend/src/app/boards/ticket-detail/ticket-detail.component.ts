@@ -988,4 +988,20 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         this.techFormError = '';
         this.techFormSuccess = false;
     }
+
+    isMe(comment: any): boolean {
+        if (!this.currentUser || !comment.usuario) return false;
+        return comment.usuario.id === this.currentUser.id || 
+               comment.usuario.username === this.currentUser.username;
+    }
+
+    getInitials(user: any): string {
+        if (!user) return 'U';
+        const name = user.nombre || user.persona?.nombre || '';
+        const lastName = user.apellido || user.persona?.apellido || '';
+        if (name && lastName) return (name.substring(0, 1) + lastName.substring(0, 1)).toUpperCase();
+        const username = user.username || '';
+        if (username.length >= 2) return username.substring(0, 2).toUpperCase();
+        return username.substring(0, 1).toUpperCase() || 'U';
+    }
 }
