@@ -14,18 +14,30 @@
             <!-- Ticket Selection -->
             <div class="col-md-12">
               <label class="form-label fw-bold">Ticket / Cliente</label>
-              <select class="form-select custom-select shadow-sm" formControlName="idTicket">
-                <option value="" disabled selected>Seleccione un ticket abierto...</option>
-                <option *ngFor="let t of tickets" [value]="t.idTicket">
-                  #{{t.idTicket}} - {{t.asunto}} ({{t.cliente?.persona?.nombre}} {{t.cliente?.persona?.apellido}})
-                </option>
-                <!-- Opción de respaldo si el ticket no está en la lista de pendientes (ej: carga desde edición) -->
-                <option *ngIf="currentTicket && !tickets.find(t => t.idTicket == currentTicket!.idTicket)"
-                  [value]="currentTicket.idTicket">
-                  #{{currentTicket.idTicket}} - {{currentTicket.asunto}} ({{currentTicket.cliente?.persona?.nombre}}
-                  {{currentTicket.cliente?.persona?.apellido}})
-                </option>
-              </select>
+
+              <ng-container *ngIf="!isTicketFixed; else fixedTicketLabel">
+                <select class="form-select custom-select shadow-sm" formControlName="idTicket">
+                  <option value="" disabled selected>Seleccione un ticket abierto...</option>
+                  <option *ngFor="let t of tickets" [value]="t.idTicket">
+                    #{{t.idTicket}} - {{t.asunto}} ({{t.cliente?.persona?.nombre}} {{t.cliente?.persona?.apellido}})
+                  </option>
+                  <!-- Opción de respaldo si el ticket no está en la lista de pendientes (ej: carga desde edición) -->
+                  <option *ngIf="currentTicket && !tickets.find(t => t.idTicket == currentTicket!.idTicket)"
+                    [value]="currentTicket.idTicket">
+                    #{{currentTicket.idTicket}} - {{currentTicket.asunto}} ({{currentTicket.cliente?.persona?.nombre}}
+                    {{currentTicket.cliente?.persona?.apellido}})
+                  </option>
+                </select>
+              </ng-container>
+
+              <ng-template #fixedTicketLabel>
+                <div class="form-control-plaintext bg-light border rounded-2 p-2 text-dark">
+                  <strong>Ticket #{{ getSelectedTicket()?.idTicket || fixedTicketId }}</strong>
+                  <span class="text-muted">
+                    - {{ getSelectedTicket()?.cliente?.persona?.nombre || '...'}} {{ getSelectedTicket()?.cliente?.persona?.apellido || '' }}
+                  </span>
+                </div>
+              </ng-template>
 
               <!-- Detalles del Ticket Seleccionado -->
               <div class="mt-3 p-3 bg-light rounded-3 border" *ngIf="getSelectedTicket() as selectedTicket">
@@ -137,9 +149,11 @@
         <div class="modal-footer bg-light border-0 d-flex justify-content-between">
           <div>
             <span *ngIf="isLocked" class="badge bg-warning text-dark p-2">
-              <i class="bi bi-lock-fill"></i> {{ isTechnician ? 'Vista de Solo Lectura' : 'Visita Finalizada/Cancelada
-              (Solo lectura)' }}
+              <i class="bi bi-lock-fill"></i> {{ isTechnician ? 'Vista de Solo Lectura' : 'Visita Finalizada/Cancelada (Solo lectura)' }}
             </span>
+            <button type="button" class="btn btn-danger px-4" *ngIf="isEditMode && !isTechnician" (click)="onDelete()">
+              <i class="bi bi-trash"></i> Remover de Agenda
+            </button>
           </div>
           <div class="d-flex gap-2">
             <button type="button" class="btn btn-outline-secondary px-4" (click)="hide()">Cerrar</button>

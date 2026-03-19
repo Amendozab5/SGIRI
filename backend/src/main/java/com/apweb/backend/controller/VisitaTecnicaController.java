@@ -104,4 +104,11 @@ public class VisitaTecnicaController {
     public ResponseEntity<List<VisitaTecnica>> getTicketHistory(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(visitaTecnicaService.getVisitasByTicket(id));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+    public ResponseEntity<?> deleteVisita(@PathVariable("id") Integer id) {
+        visitaTecnicaService.deleteVisita(id);
+        return ResponseEntity.ok(new MessageResponse("Visita removida de la agenda exitosamente"));
+    }
 }

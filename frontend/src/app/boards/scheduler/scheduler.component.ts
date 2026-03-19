@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { VisitaService } from '../../_services/visita.service';
 import { TicketService } from '../../_services/ticket.service';
@@ -48,6 +48,7 @@ export class SchedulerComponent implements OnInit {
         private userService: UserService,
         private tokenService: TokenStorageService,
         private route: ActivatedRoute,
+        private router: Router,
         private cdr: ChangeDetectorRef // Inyectar ChangeDetectorRef
     ) { }
 
@@ -74,16 +75,17 @@ export class SchedulerComponent implements OnInit {
                 // Check for ticketId in query params to open modal directly
                 this.route.queryParams.subscribe(params => {
                     const ticketId = params['ticketId'];
+                    const tecnicoId = params['tecnicoId'];
                     if (ticketId) {
                         const ticketToOpen = this.tickets.find(t => t.idTicket === +ticketId);
                         if (ticketToOpen) {
-                            this.onPendingTicketClick(ticketToOpen);
+                            this.onPendingTicketClick(ticketToOpen, tecnicoId ? +tecnicoId : undefined);
                         } else {
                             // SI el ticket no está en pendientes (ej: viene de detalle sin ser REQUIERE_VISITA aún)
                             // lo cargamos directamente para poder agendarlo.
                              this.ticketService.getTicketById(+ticketId).subscribe(t => {
                                  if (t) {
-                                     this.onPendingTicketClick(t);
+                                     this.onPendingTicketClick(t, tecnicoId ? +tecnicoId : undefined);
                                  }
                              });
                         }
@@ -196,10 +198,10 @@ export class SchedulerComponent implements OnInit {
         this.visitaFormModal.open(undefined, this.formatDate(day.date));
     }
 
-    onPendingTicketClick(ticket: Ticket): void {
+    onPendingTicketClick(ticket: Ticket, tecnicoId?: number): void {
         const today = new Date();
         const dateStr = this.formatDate(today);
-        this.visitaFormModal.open(undefined, dateStr, ticket.idTicket);
+        this.visitaFormModal.open(undefined, dateStr, ticket.idTicket, tecnicoId);
     }
 
     // CDK Drag and Drop Handlers
@@ -217,10 +219,18 @@ export class SchedulerComponent implements OnInit {
         this.visitaFormModal.open(visita);
     }
 
+    private clearParams(): void {
+        this.router.navigate([], {
+            queryParams: { ticketId: null, tecnicoId: null },
+            queryParamsHandling: 'merge'
+        });
+    }
+
     onSaveVisita({ request, id }: { request: VisitaRequest, id: number | null }): void {
         if (id) {
             this.visitaService.updateVisita(id, request).subscribe({
                 next: () => {
+                    this.clearParams();
                     this.loadVisitas();
                     this.loadInitialData(); // Reload pending list
                     this.visitaFormModal.hide();
@@ -236,6 +246,7 @@ export class SchedulerComponent implements OnInit {
             
             this.visitaService.createVisita(request).subscribe({
                 next: () => {
+                    this.clearParams();
                     // Actualizar el estado del ticket para cumplir el flujo ITSM
                     this.ticketService.updateStatus(request.idTicket, 'REQUIERE_VISITA', 'Visita agendada oficialmente por el administrador.').subscribe({
                         next: () => {
@@ -258,6 +269,28 @@ export class SchedulerComponent implements OnInit {
                 }
             });
         }
+    }
+
+    onDeleteVisita(id: number): void {
+        this.visitaService.deleteVisita(id).subscribe({
+            next: () => {
+                this.clearParams();
+                this.loadVisitas();
+                this.loadInitialData();
+                this.visitaFormModal.hide();
+            },
+            error: (err) => {
+                alert('Error al cancelar la visita: ' + (err.error?.message || err.message));
+            }
+        });
+    }
+
+    trackByVisita(index: number, item: VisitaTecnica): number {
+        return item.idVisita!;
+    }
+
+    trackByDay(index: number, item: DayCell): string {
+        return item.date.toISOString();
     }
 
     getStatusColor(codigo: string): string {

@@ -10,9 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.apweb.backend.util.AuditAccion;
 import com.apweb.backend.util.AuditModulo;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class VisitaTecnicaService {
@@ -96,6 +101,13 @@ public class VisitaTecnicaService {
 
                 VisitaTecnica savedVisita = visitaTecnicaRepository.save(visita);
 
+                // --- CRITICO: Asegurar que el ticket esté asignado al técnico de la visita ---
+                // Si el ticket no tenía técnico (por remoción previa) o tenía otro, lo actualizamos.
+                if (ticket.getUsuarioAsignado() == null || !ticket.getUsuarioAsignado().getId().equals(tecnico.getId())) {
+                    ticket.setUsuarioAsignado(tecnico);
+                    ticketRepository.save(ticket);
+                }
+
                 // Notificar al técnico (Web Interactiva)
                 String rutaTecnico = "/home/agenda";
                 notificacionServiceApp.crearNotificacionWeb(
@@ -149,18 +161,27 @@ public class VisitaTecnicaService {
         public VisitaTecnica updateVisita(Integer id, VisitaRequest request, User updater) {
                 VisitaTecnica visita = getVisitaById(id);
 
-                CatalogoItem estadoNuevo = catalogoItemRepository
-                                .findByCatalogo_NombreAndCodigo("ESTADO_VISITA", request.getCodigoEstado())
-                                .orElseThrow(() -> new RuntimeException("Error: Estado de visita no encontrado"));
-
-                visita.setFechaVisita(request.getFechaVisita());
-                visita.setHoraInicio(request.getHoraInicio());
-                visita.setHoraFin(request.getHoraFin());
-                visita.setEstado(estadoNuevo);
-                visita.setReporteVisita(request.getReporteVisita());
+                if (request.getFechaVisita() != null) {
+                        visita.setFechaVisita(request.getFechaVisita());
+                }
+                if (request.getHoraInicio() != null) {
+                        visita.setHoraInicio(request.getHoraInicio());
+                }
+                if (request.getHoraFin() != null) {
+                        visita.setHoraFin(request.getHoraFin());
+                }
+                if (request.getCodigoEstado() != null) {
+                        CatalogoItem estadoNuevo = catalogoItemRepository
+                                        .findByCatalogo_NombreAndCodigo("ESTADO_VISITA", request.getCodigoEstado())
+                                        .orElseThrow(() -> new RuntimeException("Error: Estado de visita no encontrado"));
+                        visita.setEstado(estadoNuevo);
+                }
+                if (request.getReporteVisita() != null) {
+                        visita.setReporteVisita(request.getReporteVisita());
+                }
 
                 // Si se cambia el técnico, notificar al nuevo
-                if (!visita.getTecnico().getId().equals(request.getIdTecnico())) {
+                if (request.getIdTecnico() != null && !visita.getTecnico().getId().equals(request.getIdTecnico())) {
                         User nuevoTecnico = userRepository.findById(request.getIdTecnico())
                                         .orElseThrow(() -> new RuntimeException("Error: Nuevo técnico no encontrado"));
                         visita.setTecnico(nuevoTecnico);
@@ -176,8 +197,15 @@ public class VisitaTecnicaService {
 
                 VisitaTecnica savedVisita = visitaTecnicaRepository.save(visita);
 
-                // Notificar al CLIENTE de la actualización/reprogramación
+                // --- CRITICO: Asegurar que el ticket esté asignado al técnico de la visita ---
+                // Si el ticket no tenía técnico (por remoción/cancelación previa de visita) o tenía otro, lo actualizamos.
                 Ticket ticket = savedVisita.getTicket();
+                if (ticket.getUsuarioAsignado() == null || !ticket.getUsuarioAsignado().getId().equals(savedVisita.getTecnico().getId())) {
+                    ticket.setUsuarioAsignado(savedVisita.getTecnico());
+                    ticketRepository.save(ticket);
+                }
+
+                // Notificar al CLIENTE de la actualización/reprogramación
                 User clienteApp = ticket.getUsuarioCreador();
                 if (clienteApp != null && clienteApp.getPersona() != null) {
                         String emailCliente = clienteApp.getPersona().getCorreo();
@@ -244,6 +272,75 @@ public class VisitaTecnicaService {
                     loadVisitaDeep(v);
                 }
                 return visitas;
+        }
+
+        @Transactional
+        @Scheduled(cron = "0 0 1 * * ?") // Ejecutar cada día a la 1 AM
+        public void processExpiredVisits() {
+                LocalDate today = LocalDate.now();
+                List<VisitaTecnica> pendingOrProgrammed = visitaTecnicaRepository.findAll().stream()
+                        .filter(v -> v.getFechaVisita().isBefore(today))
+                        .filter(v -> !v.getEstado().getCodigo().equals("FINALIZADA") && 
+                                    !v.getEstado().getCodigo().equals("CANCELADA") &&
+                                    !v.getEstado().getCodigo().equals("EXPIRADA"))
+                        .toList();
+
+                if (pendingOrProgrammed.isEmpty()) return;
+
+                CatalogoItem estadoExpirado = catalogoItemRepository
+                        .findByCatalogo_NombreAndCodigo("ESTADO_VISITA", "EXPIRADA")
+                        .orElseThrow(() -> new RuntimeException("Error: Estado EXPIRADA no encontrado"));
+
+                for (VisitaTecnica v : pendingOrProgrammed) {
+                        v.setEstado(estadoExpirado);
+                        visitaTecnicaRepository.save(v);
+
+                        Ticket t = v.getTicket();
+                        if (t != null) {
+                                t.setUsuarioAsignado(null);
+                                ticketRepository.save(t);
+                        }
+                        
+                        auditService.registrarEventoContextual(
+                                AuditModulo.VISITAS,
+                                "sistema", "visita_tecnica",
+                                v.getIdVisita(),
+                                AuditAccion.UPDATE,
+                                "Visita marcada como EXPIRADA automáticamente por el sistema.",
+                                null, null);
+                }
+        }
+
+        @Transactional
+        public void deleteVisita(Integer idVisita) {
+                VisitaTecnica visita = getVisitaById(idVisita);
+                Ticket ticket = visita.getTicket();
+
+                // 1. Marcar la visita como CANCELADA en el catálogo
+                CatalogoItem estadoCancelado = catalogoItemRepository
+                                .findByCatalogo_NombreAndCodigo("ESTADO_VISITA", "CANCELADA")
+                                .orElseThrow(() -> new RuntimeException("Error: Estado CANCELADA no encontrado"));
+                visita.setEstado(estadoCancelado);
+                visitaTecnicaRepository.save(visita);
+
+                // 2. Desvincular al técnico del ticket para que vuelva a estar totalmente pendiente
+                if (ticket != null) {
+                        ticket.setUsuarioAsignado(null);
+                        ticketRepository.save(ticket);
+                }
+
+                // 3. Registrar en Auditoría
+                auditService.registrarEventoContextual(
+                                AuditModulo.VISITAS,
+                                "soporte", "visita_tecnica",
+                                visita.getIdVisita(),
+                                AuditAccion.DELETE,
+                                "Visita técnica removida de la agenda (ID: " + idVisita + "). Ticket #"
+                                                + (ticket != null ? ticket.getIdTicket() : "N/A"),
+                                null,
+                                java.util.Map.of(
+                                                "id_ticket", (ticket != null ? ticket.getIdTicket() : "N/A"),
+                                                "id_tecnico_anterior", visita.getTecnico().getId()));
         }
 
         private void loadVisitaDeep(VisitaTecnica v) {
