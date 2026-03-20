@@ -37,6 +37,11 @@ export class ReportIncidentComponent implements OnInit {
   isCliente = false;
   showSucursal = true;
   isSubmitting = false;
+  
+  // File upload state
+  selectedFile: File | null = null;
+  imagePreview: string | ArrayBuffer | null = null;
+  isUploading = false;
 
   constructor(
     private ticketService: TicketService,
@@ -101,10 +106,56 @@ export class ReportIncidentComponent implements OnInit {
     }
   }
 
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (!file.type.match('image.*')) {
+        alert('Por favor selecciona una imagen válida (JPG, PNG).');
+        return;
+      }
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result;
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeImage(event: Event): void {
+    event.stopPropagation();
+    this.selectedFile = null;
+    this.imagePreview = null;
+    this.cdr.detectChanges();
+  }
+
   onSubmit(): void {
     if (this.isSubmitting) return;
 
     this.isSubmitting = true;
+    this.isUploading = !!this.selectedFile;
+
+    if (this.selectedFile) {
+      this.ticketService.uploadEvidence(this.selectedFile).subscribe({
+        next: (response) => {
+          this.form.rutaEvidencia = response.url;
+          this.isUploading = false;
+          this.createNewTicket();
+        },
+        error: (err) => {
+          this.errorMessage = 'Falló la subida de la imagen. Verifica tu conexión.';
+          this.isReportFailed = true;
+          this.isSubmitting = false;
+          this.isUploading = false;
+        }
+      });
+    } else {
+      this.createNewTicket();
+    }
+  }
+
+  private createNewTicket(): void {
     this.ticketService.createTicket(this.form).subscribe({
       next: (data: any) => {
         this.isSuccessful = true;

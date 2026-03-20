@@ -80,6 +80,9 @@ public class TicketService {
         @Autowired
         private InventarioUsadoTicketRepository inventarioUsadoTicketRepository;
 
+        @Autowired
+        private DocumentoTicketRepository documentoTicketRepository;
+
         @Transactional(readOnly = true)
         public List<Ticket> getAllTickets() {
                 List<Ticket> tickets = ticketRepository.findAllWithAssociations();
@@ -625,7 +628,62 @@ public class TicketService {
                                 java.util.Map.of("id_cliente", cliente.getIdCliente(), "asunto", ticket.getAsunto()));
                 // ────────────────────────────────────────────────────────────────────
 
+                // 6. Handle initial evidence if provided in the request
+                if (ticketRequest.getRutaEvidencia() != null && !ticketRequest.getRutaEvidencia().trim().isEmpty()) {
+                        saveInitialEvidence(savedTicket, user, ticketRequest.getRutaEvidencia());
+                }
+
                 return savedTicket;
+        }
+
+        private void saveInitialEvidence(Ticket ticket, User user, String url) {
+                try {
+                        // 1. Buscamos el tipo de documento correcto ('DOC_CLIENTE' es el que existe en el SQL, ID 23)
+                        CatalogoItem tipoEvidencia = catalogoItemRepository
+                                        .findByCatalogo_NombreAndCodigo("TIPO_DOCUMENTO_TICKET", "DOC_CLIENTE")
+                                        .or(() -> catalogoItemRepository.findByCodigo("DOC_CLIENTE"))
+                                        .or(() -> catalogoItemRepository.findByCodigo("EVIDENCIA_TECNICA"))
+                                        .orElse(null);
+
+                        // 2. Buscamos el estado 'ACTIVO' (ID 27 en el SQL para el catálogo 7)
+                        CatalogoItem estadoActivo = catalogoItemRepository
+                                        .findByCatalogo_NombreAndCodigo("ESTADO_DOCUMENTO", "ACTIVO")
+                                        .or(() -> catalogoItemRepository.findByCodigo("ACTIVO"))
+                                        .orElse(null);
+
+                        // 3. VALIDACIÓN PREVENTIVA: Si falta el tipo de documento, NO hacemos el save.
+                        // Esto evita que JPA lance una excepción de SQL que rompa la transacción (Rollback).
+                        if (tipoEvidencia == null || estadoActivo == null) {
+                                System.err.println("ADVERTENCIA: No se pudo guardar la evidencia porque falta un código en el catálogo (DOC_CLIENTE o ACTIVO). El ticket se creará sin la foto para evitar errores.");
+                                return;
+                        }
+
+                        DocumentoTicket doc = new DocumentoTicket();
+                        doc.setTicket(ticket);
+                        doc.setUsuario(user);
+                        doc.setRutaArchivo(url);
+                        
+                        // Intentamos extraer la extensión del archivo de la URL
+                        String ext = "png";
+                        try {
+                            if (url != null && url.contains(".")) {
+                                ext = url.substring(url.lastIndexOf(".") + 1);
+                                if (ext.contains("?")) ext = ext.substring(0, ext.indexOf("?"));
+                            }
+                        } catch (Exception e) { ext = "png"; }
+                        
+                        doc.setNombreArchivo("Evidencia_Inicial_" + ticket.getIdTicket() + "." + ext);
+                        doc.setTipoDocumento(tipoEvidencia);
+                        doc.setEstado(estadoActivo);
+                        doc.setFechaSubida(LocalDateTime.now());
+                        doc.setDescripcion("Evidencia adjuntada por el cliente al reportar la incidencia.");
+
+                        documentoTicketRepository.save(doc);
+                        System.out.println("LOG: Evidencia vinculada correctamente al ticket #" + ticket.getIdTicket());
+                } catch (Exception e) {
+                        // Fallback final: si algo falla aquí, solo lo logueamos para no romper el flujo principal
+                        System.err.println("Error al guardar evidencia (el ticket se creó con éxito): " + e.getMessage());
+                }
         }
 
         @Transactional

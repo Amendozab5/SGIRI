@@ -30,4 +30,7 @@ public class TicketRequest {
     private Integer idEmpresa;
     private Integer idCliente;
     private Integer idEmpleado;
+    
+    // URL from Cloudinary if an evidence file was uploaded
+    private String rutaEvidencia;
 }

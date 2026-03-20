@@ -13,7 +13,9 @@ import com.apweb.backend.payload.request.TicketRequest;
 import com.apweb.backend.payload.response.MessageResponse;
 import com.apweb.backend.repository.*;
 import com.apweb.backend.service.TicketService;
+import com.apweb.backend.service.CloudinaryService;
 import jakarta.validation.Valid;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,6 +40,9 @@ public class TicketController {
         @Autowired
         private UserRepository userRepository;
 
+        @Autowired
+        private CloudinaryService cloudinaryService;
+
         @PostMapping
         @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
         public ResponseEntity<?> createTicket(@Valid @RequestBody TicketRequest ticketRequest) {
@@ -52,6 +57,13 @@ public class TicketController {
 
                 return ResponseEntity
                                 .ok(new MessageResponse("Ticket creado exitosamente con ID: " + ticket.getIdTicket()));
+        }
+
+        @PostMapping("/upload-evidence")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
+        public ResponseEntity<?> uploadEvidence(@RequestParam("file") MultipartFile file) {
+            String url = cloudinaryService.upload(file, "evidencias_tickets");
+            return ResponseEntity.ok(java.util.Map.of("url", url));
         }
 
         @GetMapping("/all")

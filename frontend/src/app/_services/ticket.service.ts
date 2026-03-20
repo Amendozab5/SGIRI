@@ -117,4 +117,10 @@ export class TicketService {
   reassignTicket(id: number, userId: number, notaReasignacion: string): Observable<any> {
     return this.http.post(API_URL + `/${id}/reassign`, { userId, notaReasignacion });
   }
+
+  uploadEvidence(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${API_URL}/upload-evidence`, formData);
+  }
 }
