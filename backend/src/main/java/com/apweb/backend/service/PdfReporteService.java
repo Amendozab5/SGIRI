@@ -5,6 +5,7 @@ import com.lowagie.text.*;
 import com.lowagie.text.Font;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.*;
+import com.lowagie.text.pdf.draw.LineSeparator;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -419,6 +420,314 @@ public class PdfReporteService {
             document.close();
         } catch (Exception e) { e.printStackTrace(); }
         return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    // ─── Hoja de Servicio Digital con Firma ─────────────────────────────────
+
+    public ByteArrayInputStream generateHojaServicio(Ticket ticket,
+            List<InformeTrabajoTecnico> informes,
+            com.apweb.backend.model.VisitaTecnica visita,
+            List<InventarioUsadoTicket> inventarioUsado,
+            byte[] signatureCliente,
+            byte[] signatureTecnico) {
+
+        Document document = new Document(PageSize.A4);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            writer.setPageEvent(new PageFooter());
+            document.open();
+
+            Font titleFont   = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, WHITE);
+            Font subheadFont = FontFactory.getFont(FontFactory.HELVETICA, 9, new Color(210, 210, 210));
+            Font sectionFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, BLUE_HEADER);
+            Font labelFont   = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, Color.DARK_GRAY);
+            Font valueFont   = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.BLACK);
+            Font smallGray   = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, Color.GRAY);
+
+            // ── HEADER BANNER ────────────────────────────────────────────────
+            PdfPTable headerBanner = new PdfPTable(1);
+            headerBanner.setWidthPercentage(100);
+            headerBanner.setSpacingAfter(12);
+
+            PdfPCell bannerCell = new PdfPCell();
+            bannerCell.setBackgroundColor(DARK_BG);
+            bannerCell.setPadding(16);
+            bannerCell.setBorder(Rectangle.NO_BORDER);
+
+            Paragraph titlePara = new Paragraph();
+            titlePara.add(new Chunk("HOJA DE SERVICIO TÉCNICO\n", titleFont));
+            titlePara.add(new Chunk(
+                "SGIRI · Ticket #" + ticket.getIdTicket() + "  ·  Generado: " +
+                LocalDateTime.now().format(fmt), subheadFont));
+            bannerCell.addElement(titlePara);
+            headerBanner.addCell(bannerCell);
+            document.add(headerBanner);
+
+            // ── SECCIÓN 1: DATOS DEL CLIENTE Y LA VISITA ─────────────────────
+            document.add(new Paragraph("DATOS DEL CLIENTE Y LA VISITA", sectionFont));
+            document.add(new Chunk(new LineSeparator(0.5f, 100, DARK_BG, Element.ALIGN_CENTER, -2)));
+            Paragraph spacer = new Paragraph(" ");
+            spacer.setSpacingAfter(6);
+            document.add(spacer);
+
+            PdfPTable clientGrid = new PdfPTable(2);
+            clientGrid.setWidthPercentage(100);
+            clientGrid.setSpacingBefore(6);
+            clientGrid.setSpacingAfter(14);
+
+            // Left: Client info
+            String clienteNombre  = getClienteNombre(ticket.getCliente());
+            String clienteEmail   = getClienteEmail(ticket.getCliente());
+            String clienteTel     = getClienteTelefono(ticket.getCliente());
+            String clienteDir     = (ticket.getCliente() != null &&
+                                     ticket.getCliente().getPersona() != null &&
+                                     ticket.getCliente().getPersona().getDireccion() != null)
+                                   ? ticket.getCliente().getPersona().getDireccion() : "-";
+            String sucursalNombre = ticket.getSucursal() != null ? ticket.getSucursal().getNombre() : "-";
+
+            PdfPCell leftInfoCell = new PdfPCell();
+            leftInfoCell.setBorder(Rectangle.NO_BORDER);
+            leftInfoCell.setPadding(4);
+            leftInfoCell.addElement(buildLabelValue("Cliente:", clienteNombre, labelFont, valueFont));
+            leftInfoCell.addElement(buildLabelValue("Correo:", clienteEmail, labelFont, valueFont));
+            leftInfoCell.addElement(buildLabelValue("Teléfono:", clienteTel, labelFont, valueFont));
+            leftInfoCell.addElement(buildLabelValue("Dirección:", clienteDir, labelFont, valueFont));
+            leftInfoCell.addElement(buildLabelValue("Sucursal:", sucursalNombre, labelFont, valueFont));
+            clientGrid.addCell(leftInfoCell);
+
+            // Right: Visit info
+            String visitFecha    = "-";
+            String visitHoraIn   = "-";
+            String visitHoraOut  = "-";
+            String visitTecnico  = getUserNombre(ticket.getUsuarioAsignado());
+            if (visita != null) {
+                visitFecha   = visita.getFechaVisita() != null ? visita.getFechaVisita().format(dateFmt) : "-";
+                visitHoraIn  = visita.getHoraInicio() != null ? visita.getHoraInicio().toString().substring(0, 5) : "-";
+                visitHoraOut = visita.getHoraFin() != null ? visita.getHoraFin().toString().substring(0, 5) : "En curso";
+            }
+
+            PdfPCell rightInfoCell = new PdfPCell();
+            rightInfoCell.setBorder(Rectangle.NO_BORDER);
+            rightInfoCell.setPadding(4);
+            rightInfoCell.addElement(buildLabelValue("Fecha de Visita:", visitFecha, labelFont, valueFont));
+            rightInfoCell.addElement(buildLabelValue("Hora Inicio:", visitHoraIn, labelFont, valueFont));
+            rightInfoCell.addElement(buildLabelValue("Hora Fin:", visitHoraOut, labelFont, valueFont));
+            rightInfoCell.addElement(buildLabelValue("Técnico Responsable:", visitTecnico, labelFont, valueFont));
+            rightInfoCell.addElement(buildLabelValue("Servicio:", ticket.getServicio() != null ? ticket.getServicio().getNombre() : "-", labelFont, valueFont));
+            clientGrid.addCell(rightInfoCell);
+            document.add(clientGrid);
+
+            // ── SECCIÓN 2: DESCRIPCIÓN DEL PROBLEMA ──────────────────────────
+            document.add(new Paragraph("DESCRIPCIÓN DEL PROBLEMA", sectionFont));
+            document.add(new Chunk(new LineSeparator(0.5f, 100, DARK_BG, Element.ALIGN_CENTER, -2)));
+            Paragraph descPara = new Paragraph(ticket.getDescripcion() != null ? ticket.getDescripcion() : "-", valueFont);
+            descPara.setSpacingBefore(8);
+            descPara.setSpacingAfter(14);
+            document.add(descPara);
+
+            // ── SECCIÓN 3: TRABAJO TÉCNICO REALIZADO ─────────────────────────
+            if (informes != null && !informes.isEmpty()) {
+                document.add(new Paragraph("TRABAJO TÉCNICO REALIZADO", sectionFont));
+                document.add(new Chunk(new LineSeparator(0.5f, 100, DARK_BG, Element.ALIGN_CENTER, -2)));
+                Paragraph spacer2 = new Paragraph(" "); spacer2.setSpacingAfter(6); document.add(spacer2);
+
+                InformeTrabajoTecnico inf = informes.get(0); // El más reciente (ordenado DESC)
+                PdfPTable workGrid = new PdfPTable(2);
+                workGrid.setWidthPercentage(100);
+                workGrid.setSpacingBefore(4);
+                workGrid.setSpacingAfter(10);
+
+                PdfPCell wLeft = new PdfPCell();
+                wLeft.setBorder(Rectangle.NO_BORDER);
+                wLeft.setPadding(4);
+                wLeft.addElement(buildLabelValue("Problema Identificado:", inf.getProblemasEncontrados(), labelFont, valueFont));
+                wLeft.addElement(buildLabelValue("Solución Aplicada:", inf.getSolucionAplicada(), labelFont, valueFont));
+                wLeft.addElement(buildLabelValue("Pruebas Realizadas:", inf.getPruebasRealizadas(), labelFont, valueFont));
+                workGrid.addCell(wLeft);
+
+                PdfPCell wRight = new PdfPCell();
+                wRight.setBorder(Rectangle.NO_BORDER);
+                wRight.setPadding(4);
+                wRight.addElement(buildLabelValue("Implementos Usados:", inf.getImplementosUsados(), labelFont, valueFont));
+                wRight.addElement(buildLabelValue("Tiempo de Trabajo:", inf.getTiempoTrabajoMinutos() != null ? inf.getTiempoTrabajoMinutos() + " minutos" : "-", labelFont, valueFont));
+
+                // Resultado Badge
+                String resultadoText = "RESUELTO".equals(inf.getResultado()) ? "✔ RESUELTO" : "✖ NO RESUELTO";
+                Color resultadoColor = "RESUELTO".equals(inf.getResultado()) ? new Color(0, 128, 0) : new Color(200, 0, 0);
+                Font resultFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, resultadoColor);
+                Paragraph resultPara = new Paragraph();
+                resultPara.add(new Chunk("Resultado: ", labelFont));
+                resultPara.add(new Chunk(resultadoText, resultFont));
+                wRight.addElement(resultPara);
+                workGrid.addCell(wRight);
+                document.add(workGrid);
+
+                if (inf.getComentarioTecnico() != null && !inf.getComentarioTecnico().isEmpty()) {
+                    document.add(buildLabelValue("Comentario del Técnico: ", inf.getComentarioTecnico(), labelFont, valueFont));
+                }
+                Paragraph spacer3 = new Paragraph(" "); spacer3.setSpacingAfter(10); document.add(spacer3);
+            }
+
+            // ── SECCIÓN 4: INVENTARIO / REPUESTOS UTILIZADOS ─────────────────
+            if (inventarioUsado != null && !inventarioUsado.isEmpty()) {
+                document.add(new Paragraph("REPUESTOS / INVENTARIO UTILIZADO", sectionFont));
+                document.add(new Chunk(new LineSeparator(0.5f, 100, DARK_BG, Element.ALIGN_CENTER, -2)));
+                Paragraph spacerInv = new Paragraph(" "); spacerInv.setSpacingAfter(6); document.add(spacerInv);
+
+                PdfPTable invTable = new PdfPTable(3);
+                invTable.setWidthPercentage(100);
+                invTable.setWidths(new float[]{3f, 2f, 1.5f});
+                invTable.setSpacingBefore(6);
+                invTable.setSpacingAfter(14);
+
+                invTable.addCell(getHeaderCell("Ítem / Descripción"));
+                invTable.addCell(getHeaderCell("Código"));
+                invTable.addCell(getHeaderCell("Cantidad"));
+
+                int idx = 0;
+                for (InventarioUsadoTicket uso : inventarioUsado) {
+                    boolean z = (idx++ % 2 == 1);
+                    String nombre = uso.getInventario() != null ? uso.getInventario().getNombre() : "-";
+                    String codigo = uso.getInventario() != null && uso.getInventario().getCodigo() != null ? uso.getInventario().getCodigo() : "-";
+                    invTable.addCell(getDataCell(nombre, z));
+                    invTable.addCell(getDataCell(codigo, z));
+                    invTable.addCell(getDataCell(String.valueOf(uso.getCantidad()), z));
+                }
+                document.add(invTable);
+            }
+
+            // ── SECCIÓN 5: CONFORMIDAD Y FIRMAS ──────────────────────────────
+            document.add(new Paragraph("CONFORMIDAD Y FIRMAS", sectionFont));
+            document.add(new Chunk(new LineSeparator(0.5f, 100, DARK_BG, Element.ALIGN_CENTER, -2)));
+
+            Paragraph conformidadText = new Paragraph(
+                "Yo, " + getClienteNombre(ticket.getCliente()) +
+                ", con número de cédula " + getClienteCedula(ticket.getCliente()) +
+                ", manifiesto haber recibido la visita técnica y confirmo la información descrita en este documento.",
+                valueFont);
+            conformidadText.setSpacingBefore(10);
+            conformidadText.setSpacingAfter(16);
+            document.add(conformidadText);
+
+            PdfPTable signaturesTable = new PdfPTable(2);
+            signaturesTable.setWidthPercentage(100);
+            signaturesTable.setWidths(new float[]{1f, 1f});
+            signaturesTable.setSpacingBefore(10);
+            signaturesTable.setSpacingAfter(10);
+
+            // Left: Client signature
+            PdfPCell clientSigCell = new PdfPCell();
+            clientSigCell.setBorder(Rectangle.NO_BORDER);
+            clientSigCell.setPadding(8);
+            clientSigCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+
+            if (signatureCliente != null && signatureCliente.length > 0) {
+                try {
+                    com.lowagie.text.Image sigImage = com.lowagie.text.Image.getInstance(signatureCliente);
+                    sigImage.setAlignment(Element.ALIGN_CENTER);
+                    float maxW = 160f, maxH = 65f;
+                    float scale = Math.min(maxW / sigImage.getWidth(), maxH / sigImage.getHeight());
+                    sigImage.scaleAbsolute(sigImage.getWidth() * scale, sigImage.getHeight() * scale);
+                    clientSigCell.addElement(sigImage);
+                } catch (Exception e) {
+                    clientSigCell.addElement(new Paragraph("(Firma no disponible)", smallGray));
+                }
+            } else {
+                for (int li = 0; li < 4; li++) clientSigCell.addElement(new Paragraph(" ", valueFont));
+            }
+
+            // Client Line
+            PdfPTable sigLineTable = new PdfPTable(1);
+            sigLineTable.setWidthPercentage(80);
+            PdfPCell sigLine = new PdfPCell(new Phrase("_______________________________", labelFont));
+            sigLine.setBorder(Rectangle.NO_BORDER);
+            sigLine.setHorizontalAlignment(Element.ALIGN_CENTER);
+            sigLineTable.addCell(sigLine);
+            PdfPCell sigLabel = new PdfPCell(new Phrase("Firma del Cliente", smallGray));
+            sigLabel.setBorder(Rectangle.NO_BORDER);
+            sigLabel.setHorizontalAlignment(Element.ALIGN_CENTER);
+            sigLineTable.addCell(sigLabel);
+            PdfPCell sigNameLabel = new PdfPCell(new Phrase(getClienteNombre(ticket.getCliente()), valueFont));
+            sigNameLabel.setBorder(Rectangle.NO_BORDER);
+            sigNameLabel.setHorizontalAlignment(Element.ALIGN_CENTER);
+            sigLineTable.addCell(sigNameLabel);
+            clientSigCell.addElement(sigLineTable);
+            signaturesTable.addCell(clientSigCell);
+
+            // Right: Technician signature
+            PdfPCell techSigCell = new PdfPCell();
+            techSigCell.setBorder(Rectangle.NO_BORDER);
+            techSigCell.setPadding(8);
+            techSigCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+
+            if (signatureTecnico != null && signatureTecnico.length > 0) {
+                try {
+                    com.lowagie.text.Image sigImage = com.lowagie.text.Image.getInstance(signatureTecnico);
+                    sigImage.setAlignment(Element.ALIGN_CENTER);
+                    float maxW = 160f, maxH = 65f;
+                    float scale = Math.min(maxW / sigImage.getWidth(), maxH / sigImage.getHeight());
+                    sigImage.scaleAbsolute(sigImage.getWidth() * scale, sigImage.getHeight() * scale);
+                    techSigCell.addElement(sigImage);
+                } catch (Exception e) {
+                    techSigCell.addElement(new Paragraph("(Firma no disponible)", smallGray));
+                }
+            } else {
+                for (int li = 0; li < 4; li++) techSigCell.addElement(new Paragraph(" ", valueFont));
+            }
+
+            // Tech Line
+            PdfPTable techSigLineTable = new PdfPTable(1);
+            techSigLineTable.setWidthPercentage(80);
+            PdfPCell techLine = new PdfPCell(new Phrase("_______________________________", labelFont));
+            techLine.setBorder(Rectangle.NO_BORDER);
+            techLine.setHorizontalAlignment(Element.ALIGN_CENTER);
+            techSigLineTable.addCell(techLine);
+            PdfPCell techLabel = new PdfPCell(new Phrase("Firma del Técnico Responsable", smallGray));
+            techLabel.setBorder(Rectangle.NO_BORDER);
+            techLabel.setHorizontalAlignment(Element.ALIGN_CENTER);
+            techSigLineTable.addCell(techLabel);
+            PdfPCell techNameLabel = new PdfPCell(new Phrase(getUserNombre(ticket.getUsuarioAsignado()), valueFont));
+            techNameLabel.setBorder(Rectangle.NO_BORDER);
+            techNameLabel.setHorizontalAlignment(Element.ALIGN_CENTER);
+            techSigLineTable.addCell(techNameLabel);
+            techSigCell.addElement(techSigLineTable);
+            signaturesTable.addCell(techSigCell);
+
+            document.add(signaturesTable);
+
+            // ── DISCLAIMER ────────────────────────────────────────────────────
+            Paragraph disclaimer = new Paragraph(
+                "Documento generado automáticamente por SGIRI — Sistema de Gestión de Incidencias de la Red de Internet. " +
+                "Fecha y hora de emisión: " + LocalDateTime.now().format(fmt),
+                smallGray);
+            disclaimer.setAlignment(Element.ALIGN_CENTER);
+            disclaimer.setSpacingBefore(10);
+            document.add(disclaimer);
+
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    private Paragraph buildLabelValue(String label, String value, Font labelFont, Font valueFont) {
+        Paragraph p = new Paragraph();
+        p.add(new Chunk(label + " ", labelFont));
+        p.add(new Chunk(value != null && !value.isEmpty() ? value : "-", valueFont));
+        p.setSpacingAfter(3);
+        return p;
+    }
+
+    private String getClienteCedula(Cliente cliente) {
+        if (cliente == null) return "-";
+        if (cliente.getPersona() != null && cliente.getPersona().getCedula() != null)
+            return cliente.getPersona().getCedula();
+        return "-";
     }
 
     private PdfPCell createLabelValueCell(String label, String value, Font labelFont, Font valueFont) {

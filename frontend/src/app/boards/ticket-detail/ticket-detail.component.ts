@@ -6,13 +6,13 @@ import { FormsModule } from '@angular/forms';
 import { TokenStorageService } from '../../_services/token-storage.service';
 import { HttpClient } from '@angular/common/http';
 import { VisitaService } from '../../_services/visita.service';
-
 import { MasterDataService } from '../../_services/master-data.service';
+import { SignaturePadComponent } from '../signature-pad/signature-pad.component';
 
 @Component({
     selector: 'app-ticket-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule],
+    imports: [CommonModule, RouterModule, FormsModule, SignaturePadComponent],
     templateUrl: './ticket-detail.component.html',
     styleUrls: ['./ticket-detail.component.css']
 })
@@ -64,6 +64,14 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
     reassignSearchTerm: string = '';
     selectedTechForPreview: any = null;
     loadingTechnicians = false;
+
+    // ─── Hoja de Servicio Digital ───────────────────────────────────────────────
+    showSignatureModal = false;
+    signatureStep: number = 1; // 1: Técnico, 2: Cliente
+    signatureTecnicoBlob: Blob | null = null;
+    hojaServicioGenerating = false;
+    hojaServicioError = '';
+    hojaServicioSuccess = false;
 
     // ─── Tech Work Form State ──────────────────────────────────────────────────
     formStep: number = 1; // 1: selections, 2: result/comments
@@ -1003,5 +1011,81 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         const username = user.username || '';
         if (username.length >= 2) return username.substring(0, 2).toUpperCase();
         return username.substring(0, 1).toUpperCase() || 'U';
+    }
+
+    // ─── Hoja de Servicio Digital ─────────────────────────────────────────────
+
+    /** Visible para TÉCNICO o ADMIN_MASTER únicamente cuando el ticket ha sido marcado como RESUELTO (Firma de Conformidad) */
+    get canShowHojaServicio(): boolean {
+        if (!this.ticket || !this.currentUser) return false;
+        const roles = this.currentUser.roles || [];
+        const isTechOrAdmin = roles.includes('ROLE_TECNICO') || roles.includes('ROLE_ADMIN_MASTER') || roles.includes('ROLE_ADMIN_TECNICOS');
+        if (!isTechOrAdmin) return false;
+        const status = this.ticket.estadoItem?.codigo;
+        return status === 'RESUELTO';
+    }
+
+    openSignatureModal(): void {
+        this.hojaServicioError = '';
+        this.hojaServicioSuccess = false;
+        this.showSignatureModal = true;
+    }
+
+    @ViewChild(SignaturePadComponent) private signaturePad!: SignaturePadComponent;
+
+    closeSignatureModal(): void {
+        this.showSignatureModal = false;
+        this.signatureStep = 1;
+        this.signatureTecnicoBlob = null;
+    }
+
+    onFirmaConfirmada(firmaBlob: Blob): void {
+        if (this.signatureStep === 1) {
+            // Captured technician signature
+            this.signatureTecnicoBlob = firmaBlob;
+            this.signatureStep = 2;
+            // Clear pad for client signature
+            if (this.signaturePad) {
+                this.signaturePad.limpiar();
+            }
+            this.cdr.detectChanges();
+        } else {
+            // Captured client signature, now generate
+            this.showSignatureModal = false;
+            this.hojaServicioGenerating = true;
+            this.hojaServicioError = '';
+            this.cdr.detectChanges();
+
+            this.ticketService.generateHojaServicio(this.ticket.idTicket, firmaBlob, this.signatureTecnicoBlob).subscribe({
+                next: (pdfBlob: Blob) => {
+                    this.zone.run(() => {
+                        const url = window.URL.createObjectURL(pdfBlob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `hoja_servicio_${this.ticket.idTicket}.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+
+                        this.hojaServicioGenerating = false;
+                        this.hojaServicioSuccess = true;
+                        this.signatureStep = 1;
+                        this.signatureTecnicoBlob = null;
+                        setTimeout(() => this.hojaServicioSuccess = false, 6000);
+                        this.cdr.detectChanges();
+                    });
+                },
+                error: (err: any) => {
+                    this.zone.run(() => {
+                        this.hojaServicioError = err?.error?.message || 'Error al generar la Hoja de Servicio. Intente de nuevo.';
+                        this.hojaServicioGenerating = false;
+                        this.signatureStep = 1;
+                        this.signatureTecnicoBlob = null;
+                        this.cdr.detectChanges();
+                    });
+                }
+            });
+        }
     }
 }

@@ -83,6 +83,9 @@ public class TicketService {
         @Autowired
         private DocumentoTicketRepository documentoTicketRepository;
 
+        @Autowired
+        private CloudinaryService cloudinaryService;
+
         @Transactional(readOnly = true)
         public List<Ticket> getAllTickets() {
                 List<Ticket> tickets = ticketRepository.findAllWithAssociations();
@@ -1115,6 +1118,9 @@ public class TicketService {
         @Autowired
         private PdfReporteService pdfReporteService;
 
+        @Autowired
+        private VisitaTecnicaRepository visitaTecnicaRepository;
+
         @Transactional
         public ByteArrayInputStream generateTicketPdf(Integer idTicket) {
                 Ticket ticket = getTicketById(idTicket);
@@ -1138,6 +1144,79 @@ public class TicketService {
 
                 return pdfReporteService.generateTicketDetailReport(ticket, informes, historial, comentarios,
                                 inventarioUsado);
+        }
+
+        // ─── Hoja de Servicio con Firma del Cliente ───────────────────────────────
+
+        @Transactional
+        public ByteArrayInputStream generateHojaServicioPdf(Integer idTicket, byte[] signatureCliente, byte[] signatureTecnico, User requestingUser) {
+                Ticket ticket = getTicketById(idTicket);
+
+                // Validate state: allow EN_PROCESO, RESUELTO, CERRADO, REPROGRAMADA
+                String code = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
+                boolean canGenerate = "EN_PROCESO".equals(code) || "RESUELTO".equals(code)
+                        || "CERRADO".equals(code) || "REPROGRAMADA".equals(code);
+
+                if (!canGenerate) {
+                        throw new ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                                "La Hoja de Servicio solo puede generarse cuando el ticket está EN_PROCESO, RESUELTO, CERRADO o REPROGRAMADA.");
+                }
+
+                // Load related data
+                List<InformeTrabajoTecnico> informes = getInformeTecnico(idTicket);
+                List<InventarioUsadoTicket> inventarioUsado = getInventarioUsado(idTicket);
+
+                // Latest visit
+                java.util.List<VisitaTecnica> visitas = visitaTecnicaRepository
+                        .findByTicket_IdTicketOrderByFechaVisitaDesc(idTicket);
+                VisitaTecnica ultimaVisita = (visitas != null && !visitas.isEmpty()) ? visitas.get(0) : null;
+
+                // Generate PDF
+                ByteArrayInputStream pdfStream = pdfReporteService.generateHojaServicio(
+                        ticket, informes, ultimaVisita, inventarioUsado, signatureCliente, signatureTecnico);
+
+                // Upload PDF to Cloudinary
+                byte[] pdfBytes = pdfStream.readAllBytes();
+                String pdfFileName = "hoja_servicio_" + idTicket + ".pdf";
+                String cloudinaryUrl = null;
+                try {
+                        cloudinaryUrl = cloudinaryService.uploadPdf(pdfBytes, "hojas_servicio", pdfFileName);
+                } catch (Exception e) {
+                        // Log but don't fail — the download still works even if Cloudinary upload fails
+                        System.err.println("ADVERTENCIA: No se pudo subir la Hoja de Servicio a Cloudinary: " + e.getMessage());
+                }
+
+                // Save reference in soporte.documento_ticket
+                try {
+                        CatalogoItem tipoHoja = catalogoItemRepository
+                                .findByCatalogo_NombreAndCodigo("TIPO_DOCUMENTO_TICKET", "HOJA_SERVICIO")
+                                .or(() -> catalogoItemRepository.findByCodigo("HOJA_SERVICIO"))
+                                .orElse(null);
+
+                        CatalogoItem estadoActivo = catalogoItemRepository
+                                .findByCatalogo_NombreAndCodigo("ESTADO_DOCUMENTO", "ACTIVO")
+                                .or(() -> catalogoItemRepository.findByCodigo("ACTIVO"))
+                                .orElse(null);
+
+                        if (tipoHoja != null && estadoActivo != null && cloudinaryUrl != null) {
+                                DocumentoTicket doc = new DocumentoTicket();
+                                doc.setTicket(ticket);
+                                doc.setUsuario(requestingUser);
+                                doc.setNombreArchivo(pdfFileName);
+                                doc.setRutaArchivo(cloudinaryUrl);
+                                doc.setTipoDocumento(tipoHoja);
+                                doc.setEstado(estadoActivo);
+                                doc.setFechaSubida(LocalDateTime.now());
+                                doc.setDescripcion("Hoja de Servicio Digital firmada por el cliente.");
+                                documentoTicketRepository.save(doc);
+                                System.out.println("LOG: Hoja de Servicio guardada para ticket #" + idTicket + " → " + cloudinaryUrl);
+                        }
+                } catch (Exception e) {
+                        System.err.println("ADVERTENCIA: No se pudo registrar la Hoja de Servicio en documento_ticket: " + e.getMessage());
+                }
+
+                // Return fresh stream for the HTTP response
+                return new ByteArrayInputStream(pdfBytes);
         }
 
         /**

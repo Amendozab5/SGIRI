@@ -123,4 +123,20 @@ export class TicketService {
     formData.append('file', file);
     return this.http.post(`${API_URL}/upload-evidence`, formData);
   }
+
+  /**
+   * Genera la Hoja de Servicio Digital con las firmas del cliente y el técnico.
+   */
+  generateHojaServicio(ticketId: number, firmaCliente: Blob | null, firmaTecnico: Blob | null): Observable<Blob> {
+    const formData = new FormData();
+    if (firmaCliente) {
+      formData.append('firmaCliente', firmaCliente, 'firma_cliente.png');
+    }
+    if (firmaTecnico) {
+      formData.append('firmaTecnico', firmaTecnico, 'firma_tecnico.png');
+    }
+    return this.http.post(`${API_URL}/${ticketId}/hoja-servicio`, formData, {
+      responseType: 'blob'
+    });
+  }
 }

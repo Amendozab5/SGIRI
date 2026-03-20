@@ -72,22 +72,48 @@
       </div>
     </div>
 
-    <!-- Filter Toolbar -->
-    <div class="filter-toolbar">
-      <div class="search-box">
+    <!-- Modern Filter Section -->
+    <div class="filter-section">
+      <!-- Search Input -->
+      <div class="search-field-modern">
         <i class="bi bi-search"></i>
         <input type="text" [(ngModel)]="searchTerm" (keyup.enter)="onSearch()"
-          placeholder="Buscar por código o asunto...">
+          placeholder="¿Qué incidencia estás buscando? (código o asunto)">
       </div>
-      <div class="filter-group">
-        <select [(ngModel)]="selectedStatusId" (change)="onFilterChange()" class="filter-select">
-          <option [ngValue]="null">Todos los Estados</option>
-          <option *ngFor="let s of availableStatuses" [ngValue]="s.id">{{ s.nombre }}</option>
-        </select>
-        <select [(ngModel)]="selectedCategoryId" (change)="onFilterChange()" class="filter-select">
-          <option [ngValue]="null">Todas las Categorías</option>
-          <option *ngFor="let c of availableCategories" [ngValue]="c.id">{{ c.nombre }}</option>
-        </select>
+
+      <div class="filters-row">
+        <!-- Status Filters -->
+        <div class="filter-row-group">
+          <span class="filter-label-v2">Filtrar por Estado</span>
+          <div class="chips-container">
+            <button class="filter-chip" [class.active]="selectedStatusId === null" (click)="selectStatus(null)">
+              <i class="bi bi-grid"></i> Todas
+            </button>
+            <button *ngFor="let status of availableStatuses" 
+                    class="filter-chip"
+                    [class.active]="selectedStatusId === status.id"
+                    (click)="selectStatus(status.id)">
+              <i class="bi" [ngClass]="getStatusIcon(status.codigo)"></i>
+              {{ status.nombre }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="filter-row-group">
+          <span class="filter-label-v2">Por Categoría</span>
+          <div class="chips-container">
+            <button class="filter-chip category-chip" [class.active]="selectedCategoryId === null" (click)="selectCategory(null)">
+              General
+            </button>
+            <button *ngFor="let cat of availableCategories" 
+                    class="filter-chip category-chip"
+                    [class.active]="selectedCategoryId === cat.id"
+                    (click)="selectCategory(cat.id)">
+              {{ cat.nombre }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -212,8 +238,8 @@
           <div class="info-row border-0">
             <span class="info-label">Técnico Asignado</span>
             <div class="d-flex align-items-center mt-2">
-              <div class="tech-avatar-mini" [style.background-color]="getAvatarColor(selectedVisitForDetails.tecnico.fullName)">
-                {{ getInitials(selectedVisitForDetails.tecnico.fullName) }}
+              <div class="tech-avatar-mini" [style.background-color]="getAvatarColor(selectedVisitForDetails.tecnico?.persona?.nombre || selectedVisitForDetails.tecnico?.fullName || 'Técnico')">
+                {{ getInitials(selectedVisitForDetails.tecnico?.persona?.nombre || selectedVisitForDetails.tecnico?.fullName || 'Técnico') }}
               </div>
               <div class="ms-3">
                 <span class="info-value d-block">{{ selectedVisitForDetails.tecnico.persona?.nombre || selectedVisitForDetails.tecnico.fullName }} {{ selectedVisitForDetails.tecnico.persona?.apellido || '' }}</span>

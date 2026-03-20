@@ -1,0 +1,48 @@
+<div class="sig-overlay" (click)="cancelar()">
+  <div class="sig-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="sig-header">
+      <div class="sig-header-icon">✍️</div>
+      <div>
+        <h2 class="sig-title">{{ title }}</h2>
+        <p class="sig-subtitle">{{ subtitle }}</p>
+      </div>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="sig-canvas-wrapper">
+      <div class="sig-guide-text" *ngIf="isEmpty">Dibuje aquí su firma →</div>
+      <canvas
+        #signatureCanvas
+        class="sig-canvas"
+        (mousedown)="onMouseDown($event)"
+        (mousemove)="onMouseMove($event)"
+        (mouseup)="onMouseUp()"
+        (mouseleave)="onMouseLeave()"
+        (touchstart)="onTouchStart($event)"
+        (touchmove)="onTouchMove($event)"
+        (touchend)="onTouchEnd()"
+      ></canvas>
+    </div>
+
+    <!-- Actions -->
+    <div class="sig-actions">
+      <button class="sig-btn sig-btn-clear" (click)="limpiar()">
+        🗑️ Limpiar
+      </button>
+      <div class="sig-actions-right">
+        <button class="sig-btn sig-btn-cancel" (click)="cancelar()">
+          Cancelar
+        </button>
+        <button
+          class="sig-btn sig-btn-confirm"
+          [disabled]="isEmpty"
+          (click)="confirmar()">
+          📄 {{ confirmLabel }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

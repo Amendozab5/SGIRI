@@ -98,4 +98,24 @@ public class CloudinaryService {
         
         return publicIdBase;
     }
+
+    /**
+     * Sube un PDF como bytes crudos a Cloudinary y retorna la URL segura.
+     * Útil para subir PDFs generados en memoria (ej. Hoja de Servicio).
+     */
+    public String uploadPdf(byte[] pdfBytes, String folder, String fileName) {
+        try {
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(pdfBytes,
+                    ObjectUtils.asMap(
+                        "folder", folder,
+                        "resource_type", "raw",
+                        "public_id", folder + "/" + fileName,
+                        "use_filename", true,
+                        "unique_filename", false
+                    ));
+            return uploadResult.get("secure_url").toString();
+        } catch (IOException e) {
+            throw new RuntimeException("Error al subir PDF a Cloudinary: " + e.getMessage());
+        }
+    }
 }

@@ -352,4 +352,47 @@ public class TicketController {
         public ResponseEntity<List<Ticket>> getTicketsPendingVisit() {
                 return ResponseEntity.ok(ticketService.getTicketsPendingVisit());
         }
+
+        /**
+         * Genera la Hoja de Servicio Digital firmada por el cliente.
+         * Recibe la firma como imagen PNG multipart, genera el PDF y lo devuelve como descarga.
+         * Además sube el PDF a Cloudinary y lo registra en soporte.documento_ticket.
+         */
+        @PostMapping("/{id:[0-9]+}/hoja-servicio")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<InputStreamResource> generarHojaServicio(
+                        @PathVariable("id") Integer id,
+                        @RequestParam(value = "firmaCliente", required = false) org.springframework.web.multipart.MultipartFile firmaClienteFile,
+                        @RequestParam(value = "firmaTecnico", required = false) org.springframework.web.multipart.MultipartFile firmaTecnicoFile) {
+
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentUserName = authentication.getName();
+                User currentUser = userRepository.findByUsername(currentUserName)
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                byte[] signatureClienteBytes = null;
+                if (firmaClienteFile != null && !firmaClienteFile.isEmpty()) {
+                        try {
+                                signatureClienteBytes = firmaClienteFile.getBytes();
+                        } catch (Exception e) {}
+                }
+
+                byte[] signatureTecnicoBytes = null;
+                if (firmaTecnicoFile != null && !firmaTecnicoFile.isEmpty()) {
+                        try {
+                                signatureTecnicoBytes = firmaTecnicoFile.getBytes();
+                        } catch (Exception e) {}
+                }
+
+                ByteArrayInputStream bis = ticketService.generateHojaServicioPdf(id, signatureClienteBytes, signatureTecnicoBytes, currentUser);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Content-Disposition", "attachment; filename=hoja_servicio_" + id + ".pdf");
+
+                return ResponseEntity
+                                .ok()
+                                .headers(headers)
+                                .contentType(MediaType.APPLICATION_PDF)
+                                .body(new InputStreamResource(bis));
+        }
 }

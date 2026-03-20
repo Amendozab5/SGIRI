@@ -176,6 +176,30 @@ export class BoardUserComponent implements OnInit, OnDestroy {
     this.loadIncidents();
   }
 
+  selectStatus(id: number | null): void {
+    this.selectedStatusId = id;
+    this.onFilterChange();
+  }
+
+  selectCategory(id: number | null): void {
+    this.selectedCategoryId = id;
+    this.onFilterChange();
+  }
+
+  getStatusIcon(code: string | undefined): string {
+    switch (code?.toUpperCase()) {
+      case 'ABIERTO': return 'bi-envelope';
+      case 'ASIGNADO': return 'bi-person-check';
+      case 'EN_PROCESO': return 'bi-gear-wide-connected';
+      case 'REPROGRAMADA': return 'bi-calendar-event';
+      case 'RESUELTO': return 'bi-check-circle-fill';
+      case 'CERRADO': return 'bi-shield-check';
+      case 'RECHAZADO': return 'bi-x-circle';
+      case 'REQUIERE_VISITA': return 'bi-truck';
+      default: return 'bi-tag';
+    }
+  }
+
   changePage(page: number): void {
     if (page >= 0 && page < this.totalPages) {
       this.currentPage = page;
@@ -228,19 +252,22 @@ export class BoardUserComponent implements OnInit, OnDestroy {
     }
   }
 
-  getInitials(name: string): string {
-    if (!name) return '??';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
+  getInitials(name: any): string {
+    const safeName = String(name || '');
+    if (!safeName || safeName === 'undefined' || safeName === 'null') return '??';
+    const parts = safeName.split(' ');
+    if (parts.length >= 2 && parts[0] && parts[1]) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase();
+    return safeName.substring(0, 2).toUpperCase();
   }
 
-  getAvatarColor(name: string): string {
+  getAvatarColor(name: any): string {
+    const safeName = String(name || '');
+    if (!safeName || safeName === 'undefined' || safeName === 'null') return '#64748b';
     let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < safeName.length; i++) {
+      hash = safeName.charCodeAt(i) + ((hash << 5) - hash);
     }
     const h = hash % 360;
     return `hsl(${h}, 60%, 45%)`;

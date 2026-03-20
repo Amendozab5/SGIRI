@@ -76,6 +76,17 @@
                             [disabled]="loading">
                             <i class="bi bi-arrow-left-right"></i> REASIGNAR
                         </button>
+
+                        <!-- HOJA DE SERVICIO DIGITAL: Para técnico/admin cuando EN_PROCESO, RESUELTO o CERRADO -->
+                        <button type="button" *ngIf="canShowHojaServicio"
+                            (click)="openSignatureModal()"
+                            class="btn-action btn-hoja-servicio"
+                            [disabled]="loading || hojaServicioGenerating">
+                            <span *ngIf="!hojaServicioGenerating">✍️ Hoja de Servicio</span>
+                            <span *ngIf="hojaServicioGenerating">
+                                <i class="bi bi-hourglass-split"></i> Generando...
+                            </span>
+                        </button>
                     </ng-container>
 
                     <div *ngIf="showPendingSchedulingNotice && !showOnlyCancellationNotice" class="alert alert-info mb-0 w-100 d-flex align-items-center gap-2">
@@ -827,7 +838,7 @@
                             <p class="fw-bold mb-0">Aún no hay mensajes.</p>
                             <small>Escribe abajo para iniciar.</small>
                         </div>
-                    </div>
+                    </div> <!-- closes chat-feed -->
 
                     <!-- Composer -->
                     <div class="chat-composer-floating border-top">
@@ -839,10 +850,31 @@
                             <span class="spinner-border spinner-border-sm text-primary" *ngIf="isSubmitting"></span>
                         </button>
                     </div>
-                </div>
-            </div>
+                </div> <!-- closes chat-window-floating -->
+            </div> <!-- closes floating-chat-container -->
 
-        </ng-container>
+        </ng-container> <!-- closes ng-container L18 -->
+    </div> <!-- closes ticket-detail-view L10 -->
+
+    <!-- Hoja de Servicio Digital — Signature Pad Modal -->
+    <app-signature-pad
+        *ngIf="showSignatureModal"
+        [title]="signatureStep === 1 ? 'Firma del Técnico' : 'Firma del Cliente'"
+        [subtitle]="signatureStep === 1 ? 'El técnico responsable debe firmar primero' : 'El cliente debe firmar para confirmar el servicio recibido'"
+        [confirmLabel]="signatureStep === 1 ? 'Continuar →' : 'Generar Hoja de Servicio'"
+        (firmaConfirmada)="onFirmaConfirmada($event)"
+        (cancelled)="closeSignatureModal()">
+    </app-signature-pad>
+
+    <!-- Feedback Toasts -->
+    <div *ngIf="hojaServicioSuccess" class="hoja-toast hoja-toast-success">
+        <i class="bi bi-check-circle-fill"></i>
+        ¡Hoja de Servicio generada! La descarga comenzó automáticamente. 📥
     </div>
 
+    <div *ngIf="hojaServicioError" class="hoja-toast hoja-toast-error">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ hojaServicioError }}
+        <button (click)="hojaServicioError = ''" class="hoja-toast-close">✕</button>
+    </div>
 </div>

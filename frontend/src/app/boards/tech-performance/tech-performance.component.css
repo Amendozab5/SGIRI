@@ -132,9 +132,9 @@
     font-size: 1.5rem;
 }
 
-.bg-soft-primary { background: #e0e7ff; color: #4338ca; }
-.bg-soft-warning { background: #fef3c7; color: #d97706; }
-.bg-soft-success { background: #dcfce7; color: #16a34a; }
+.bg-soft-primary { background: #eef2ff; color: #4338ca; }
+.bg-soft-warning { background: #fffbeb; color: #d97706; }
+.bg-soft-success { background: #f0fdf4; color: #16a34a; }
 
 .m-val {
     display: block;
