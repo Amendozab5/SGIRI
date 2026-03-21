@@ -81,7 +81,7 @@
 #networkMap {
   width: 100%;
   height: 100%;
-  background: #0f172a;
+  background: #1e293b;
 }
 
 .glass-morphism {
@@ -218,6 +218,34 @@
 .label { font-size: 0.8rem; flex-grow: 1; }
 .range { font-size: 0.7rem; color: var(--text-secondary); font-family: monospace; }
 
+/* Heatmap Legend Specifics */
+.color-gradient {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #feb24c, #fd8d3c, #f03b20, #bd0026);
+}
+
+.heatmap-labels {
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bi-fire { 
+  color: #fb923c; 
+  filter: drop-shadow(0 0 5px rgba(251, 146, 60, 0.5));
+  animation: pulse-fire 2s infinite;
+}
+
+@keyframes pulse-fire {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; text-shadow: 0 0 10px #f97316; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
 .map-actions {
   position: absolute;
   bottom: 30px;
@@ -246,7 +274,7 @@
 }
 
 ::ng-deep .leaflet-container { background: #0f172a !important; }
-::ng-deep .leaflet-tile-pane { filter: brightness(0.6) contrast(1.2) saturate(0.5); }
+::ng-deep .leaflet-tile-pane { filter: none; }
 
 ::ng-deep .noc-leaflet-tooltip {
   background: rgba(15, 23, 42, 0.95) !important;

@@ -67,6 +67,12 @@ public class Ticket {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
+    @Column(precision = 10, scale = 8)
+    private java.math.BigDecimal latitud;
+
+    @Column(precision = 11, scale = 8)
+    private java.math.BigDecimal longitud;
+
     @Column(name = "fecha_creacion", updatable = false)
     private LocalDateTime fechaCreacion;
 

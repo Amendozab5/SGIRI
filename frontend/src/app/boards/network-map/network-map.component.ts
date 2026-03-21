@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import * as L from 'leaflet';
-import { NetworkService, NetworkMapData } from '../../_services/network.service';
+import 'leaflet.heat'; // We installed this earlier
+import { NetworkService, NetworkMapData, HeatmapPoint } from '../../_services/network.service';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 
@@ -17,8 +18,11 @@ import { Subscription } from 'rxjs';
 export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
     private map: L.Map | undefined;
     private geojsonLayer: L.GeoJSON | undefined;
+    private heatLayer: any;
+    private heatmapMarkersLayer: L.LayerGroup | undefined;
 
     private networkData: NetworkMapData[] = [];
+    private heatmapData: HeatmapPoint[] = [];
     private dataMap: Map<string, NetworkMapData> = new Map();
 
     private aliasMap: Map<string, string> = new Map([
@@ -30,6 +34,7 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
     ]);
 
     private dataSubscription: Subscription | undefined;
+    private heatmapSubscription: Subscription | undefined;
 
     public overallLatency: number = 0;
     public dataSourceStatus: string = '';
@@ -37,6 +42,7 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
     public isFullscreen: boolean = false;
     public isLoading: boolean = false;
     public errorLoading: boolean = false;
+    public mapMode: 'CHOROPLETH' | 'HEATMAP' = 'CHOROPLETH';
 
     constructor(
         private networkService: NetworkService,
@@ -57,9 +63,8 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        if (this.dataSubscription) {
-            this.dataSubscription.unsubscribe();
-        }
+        if (this.dataSubscription) this.dataSubscription.unsubscribe();
+        if (this.heatmapSubscription) this.heatmapSubscription.unsubscribe();
     }
 
     private loadGeoJSON(): void {
@@ -81,7 +86,16 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.dataSubscription = this.networkService.networkData$.subscribe(data => {
             if (data && data.length > 0) {
                 this.processNetworkData(data);
-                this.updateMapColors();
+                if (this.mapMode === 'CHOROPLETH') {
+                    this.updateMapColors();
+                }
+            }
+        });
+
+        this.heatmapSubscription = this.networkService.heatmapData$.subscribe(points => {
+            this.heatmapData = points;
+            if (this.mapMode === 'HEATMAP') {
+                this.renderHeatmap();
             }
         });
 
@@ -113,9 +127,17 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
             zoomControl: false
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
         }).addTo(this.map);
+
+        this.heatmapMarkersLayer = L.layerGroup();
+
+        this.map.on('zoomend', () => {
+            if (this.mapMode === 'HEATMAP') {
+                this.renderHeatmap();
+            }
+        });
 
         L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
@@ -134,8 +156,14 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
             onEachFeature: this.onEachFeature.bind(this)
         });
 
-        if (this.map) {
+        if (this.map && this.mapMode === 'CHOROPLETH') {
             this.geojsonLayer.addTo(this.map);
+            this.fitLayerBounds();
+        }
+    }
+
+    private fitLayerBounds(): void {
+        if (this.geojsonLayer && this.map) {
             try {
                 const bounds = this.geojsonLayer.getBounds();
                 if (bounds.isValid()) {
@@ -147,9 +175,89 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    public toggleMapMode(): void {
+        this.mapMode = this.mapMode === 'CHOROPLETH' ? 'HEATMAP' : 'CHOROPLETH';
+        
+        if (!this.map) return;
+
+        if (this.mapMode === 'HEATMAP') {
+            if (this.geojsonLayer) this.map.removeLayer(this.geojsonLayer);
+            this.renderHeatmap();
+        } else {
+            if (this.heatLayer) this.map.removeLayer(this.heatLayer);
+            if (this.heatmapMarkersLayer) this.map.removeLayer(this.heatmapMarkersLayer);
+            if (this.geojsonLayer) {
+                this.geojsonLayer.addTo(this.map);
+                this.updateMapColors();
+            }
+        }
+        
+        // Force redraw and fix layout
+        setTimeout(() => this.map?.invalidateSize(), 150);
+    }
+
+    private renderHeatmap(): void {
+        if (!this.map) return;
+
+        // Cleanup previous layers
+        if (this.heatLayer) this.map.removeLayer(this.heatLayer);
+        if (this.heatmapMarkersLayer) {
+            this.heatmapMarkersLayer.clearLayers();
+            this.heatmapMarkersLayer.addTo(this.map);
+        }
+
+        const currentZoom = this.map.getZoom();
+        // Dynamic radius: larger for better visibility
+        const dynamicRadius = Math.max(20, 35 + (currentZoom - 6) * 10);
+
+        const heatPoints = this.heatmapData.map(p => [p.lat, p.lng, p.intensity]);
+
+        // "Incendio" Gradient: Más intenso y brillante
+        this.heatLayer = (L as any).heatLayer(heatPoints, {
+            radius: dynamicRadius,
+            blur: dynamicRadius * 0.4,
+            maxZoom: 18,
+            gradient: {
+                0.2: '#feb24c', // Naranja suave
+                0.4: '#fd8d3c', // Naranja medio
+                0.6: '#f03b20', // Rojo
+                0.8: '#bd0026', // Granate intenso
+                1.0: '#800000'  // Sangre oscuro
+            }
+        }).addTo(this.map);
+
+        // Add invisible markers for tooltips
+        this.heatmapData.forEach(p => {
+            const marker = L.circleMarker([p.lat, p.lng], {
+                radius: dynamicRadius * 0.8,
+                fillColor: 'transparent',
+                fillOpacity: 0,
+                color: 'transparent',
+                opacity: 0,
+                stroke: false
+            });
+
+            let tooltipContent = `
+                <div class="noc-tooltip">
+                    <div class="tooltip-header">${p.label || 'Incidencia'}</div>
+                    <div class="tooltip-row"><span>Intensidad:</span> <span class="val-critical">${(p.intensity * 100).toFixed(0)}%</span></div>
+                    <div class="tooltip-footer">Coordenadas: ${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}</div>
+                </div>
+            `;
+            marker.bindTooltip(tooltipContent, { sticky: true, className: 'noc-leaflet-tooltip' });
+            this.heatmapMarkersLayer?.addLayer(marker);
+        });
+    }
+
     private updateMapColors(): void {
         if (this.geojsonLayer) {
             this.geojsonLayer.setStyle(this.getFeatureStyle.bind(this));
+            this.geojsonLayer.eachLayer((layer: any) => {
+                if (layer.feature) {
+                    const { geoName, data } = this.getGeoInfo(layer.feature);
+                    layer.setTooltipContent(this.createTooltipContent(geoName, data));
+                }
+            });
         }
     }
 
@@ -220,10 +328,8 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    private onEachFeature(feature: any, layer: L.Layer): void {
-        const { geoName, data } = this.getGeoInfo(feature);
+    private createTooltipContent(geoName: string, data: NetworkMapData | undefined): string {
         let tooltipContent = '<div class="noc-tooltip">';
-
         if (data) {
             const score = Number(data.scoreFinal ?? data.scoreTickets ?? 0);
             const level = this.getLevelFromScore(score);
@@ -240,11 +346,19 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
             tooltipContent += `<div class="tooltip-error">Sin datos de telemetría</div>`;
         }
         tooltipContent += '</div>';
+        return tooltipContent;
+    }
 
-        layer.bindTooltip(tooltipContent, { sticky: true, className: 'noc-leaflet-tooltip' });
+    private onEachFeature(feature: any, layer: L.Layer): void {
+        const { geoName, data } = this.getGeoInfo(feature);
+        layer.bindTooltip(this.createTooltipContent(geoName, data), { 
+            sticky: true, 
+            className: 'noc-leaflet-tooltip' 
+        });
 
         layer.on({
             mouseover: (e: any) => {
+                if (this.mapMode === 'HEATMAP') return;
                 const lyr = e.target;
                 lyr.setStyle({
                     weight: 4,
@@ -254,6 +368,7 @@ export class NetworkMapComponent implements OnInit, AfterViewInit, OnDestroy {
                 lyr.bringToFront();
             },
             mouseout: (e: any) => {
+                if (this.mapMode === 'HEATMAP') return;
                 if (this.geojsonLayer) {
                     this.geojsonLayer.resetStyle(e.target);
                 }

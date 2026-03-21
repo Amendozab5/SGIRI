@@ -35,6 +35,12 @@ public class Sucursal {
     @Column(name = "id_canton")
     private Integer idCanton;
 
+    @Column(precision = 10, scale = 8)
+    private java.math.BigDecimal latitud;
+
+    @Column(precision = 11, scale = 8)
+    private java.math.BigDecimal longitud;
+
     @Column(length = 50)
     private String telefono;
 

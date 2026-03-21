@@ -42,17 +42,6 @@
     margin-bottom: 2rem;
 }
 
-.welcome-text h1 {
-    font-size: 2rem;
-    font-weight: 850;
-    margin: 0;
-    letter-spacing: -1px;
-    background: linear-gradient(to right, #1e293b, #2563eb);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
 .welcome-text p {
     color: var(--text-muted);
     font-size: 0.95rem;

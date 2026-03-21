@@ -146,3 +146,16 @@ body {
 .navbar {
   z-index: 1050 !important;
 }
+
+/* --- Modern Page Title --- */
+.page-title-modern {
+    font-size: 2rem !important;
+    font-weight: 850 !important;
+    margin: 0;
+    letter-spacing: -1px;
+    background: linear-gradient(to right, #1e293b, #2563eb);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}

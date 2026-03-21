@@ -17,6 +17,13 @@ export interface NetworkMapData {
     lastSuccessfulCheckAt: string;
 }
 
+export interface HeatmapPoint {
+    lat: number;
+    lng: number;
+    intensity: number;
+    label?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -26,6 +33,9 @@ export class NetworkService {
     // State management
     private networkDataSubject = new BehaviorSubject<NetworkMapData[]>([]);
     public networkData$ = this.networkDataSubject.asObservable();
+
+    private heatmapDataSubject = new BehaviorSubject<HeatmapPoint[]>([]);
+    public heatmapData$ = this.heatmapDataSubject.asObservable();
     
     private loadingSubject = new BehaviorSubject<boolean>(false);
     public isLoading$ = this.loadingSubject.asObservable();
@@ -40,24 +50,29 @@ export class NetworkService {
     public startPolling(): void {
         if (this.pollingSub) return;
 
-        // Poll every 60 seconds, start immediately
+        // Poll every 60 seconds, start both datasets
         this.pollingSub = timer(0, 60000).pipe(
             tap(() => this.loadingSubject.next(true)),
-            switchMap(() => this.getNetworkMap('PROVINCIA').pipe(
-                retry(2),
-                tap({
-                    next: (data) => {
-                        this.networkDataSubject.next(data);
-                        this.loadingSubject.next(false);
-                    },
-                    error: () => this.loadingSubject.next(false)
-                })
-            ))
+            switchMap(() => {
+                // Fetch both in parallel
+                this.refreshHeatmap();
+                return this.getNetworkMap('PROVINCIA').pipe(
+                    retry(2),
+                    tap({
+                        next: (data) => {
+                            this.networkDataSubject.next(data);
+                            this.loadingSubject.next(false);
+                        },
+                        error: () => this.loadingSubject.next(false)
+                    })
+                );
+            })
         ).subscribe();
     }
 
     public refreshNow(): void {
         this.loadingSubject.next(true);
+        this.refreshHeatmap();
         this.getNetworkMap('PROVINCIA').subscribe({
             next: (data) => {
                 this.networkDataSubject.next(data);
@@ -67,8 +82,19 @@ export class NetworkService {
         });
     }
 
+    private refreshHeatmap(): void {
+        this.getHeatmap().subscribe({
+            next: (data) => this.heatmapDataSubject.next(data),
+            error: (err) => console.error('Error fetching heatmap', err)
+        });
+    }
+
     public getNetworkMap(zoneType: string = 'PROVINCIA'): Observable<NetworkMapData[]> {
         let params = new HttpParams().set('zoneType', zoneType);
         return this.http.get<NetworkMapData[]>(`${this.apiUrl}/map`, { params });
+    }
+
+    public getHeatmap(): Observable<HeatmapPoint[]> {
+        return this.http.get<HeatmapPoint[]>(`${this.apiUrl}/heatmap`);
     }
 }

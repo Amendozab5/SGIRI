@@ -53,8 +53,10 @@
 
     <!-- UI Overlay: Bottom Left Legend -->
     <div class="overlay-panel bottom-left-panel glass-morphism">
-      <h3>Niveles de Salud</h3>
-      <div class="legend-grid">
+      <h3>{{ mapMode === 'CHOROPLETH' ? 'Niveles de Salud Regional' : 'Intensidad de Incidencias' }}</h3>
+      
+      <!-- Choropleth Legend -->
+      <div class="legend-grid" *ngIf="mapMode === 'CHOROPLETH'">
         <div class="legend-row">
           <div class="color-dot good"></div>
           <span class="label">Operación Normal</span>
@@ -68,14 +70,29 @@
         <div class="legend-row">
           <div class="color-dot critical"></div>
           <span class="label">Crítico / Offline</span>
-          <span class="range">
-            < 50</span>
+          <span class="range">&lt; 50</span>
+        </div>
+      </div>
+
+      <!-- Heatmap Legend -->
+      <div class="legend-grid" *ngIf="mapMode === 'HEATMAP'">
+        <div class="legend-row">
+          <div class="color-gradient"></div>
+        </div>
+        <div class="legend-row heatmap-labels">
+          <span>Baja</span>
+          <span>Media</span>
+          <span>Alta</span>
         </div>
       </div>
     </div>
 
     <!-- Floating Map Controls -->
     <div class="map-actions">
+      <button class="action-btn glass-morphism" (click)="toggleMapMode()" 
+        [title]="mapMode === 'CHOROPLETH' ? 'Ver Mapa de Calor' : 'Ver Mapa Regional'">
+        <i class="bi" [ngClass]="mapMode === 'CHOROPLETH' ? 'bi-fire' : 'bi-map'"></i>
+      </button>
       <button class="action-btn glass-morphism" (click)="toggleFullscreen()" title="Pantalla Completa">
         <i class="bi" [ngClass]="isFullscreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'"></i>
       </button>
