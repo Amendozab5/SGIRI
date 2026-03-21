@@ -60,6 +60,9 @@ public class TicketService {
         private HistorialEstadoRepository historialEstadoRepository;
 
         @Autowired
+        private ChatbotService chatbotService;
+
+        @Autowired
         private UsuarioBdRepository usuarioBdRepository;
 
         @Autowired
@@ -738,6 +741,52 @@ public class TicketService {
                 // -----------------------------------
 
                 ComentarioTicket savedComentario = comentarioTicketRepository.save(comentario);
+
+                // ── AI CHATBOT TRIGGER: Solo si el ticket NO tiene técnico asignado y el autor es CLIENTE ─────
+                try {
+                    String roleLabel = (user.getRole() != null) ? user.getRole().getCodigo() : "N/A";
+                    boolean isClient = "CLIENTE".equals(roleLabel);
+                    boolean noTechnician = (ticket.getUsuarioAsignado() == null);
+                    
+                    System.out.println("[CHATBOT_LOG] Ticket #" + idTicket + " | User: " + user.getUsername() + " | Role: " + roleLabel + " | NoTech: " + noTechnician);
+
+                    // 1. Detect manual escalation from UI button
+                    if (text.contains("[CLIENTE_ESCALA]")) {
+                        System.out.println("[CHATBOT_LOG] Manual escalation detected for Ticket #" + idTicket);
+                        User botUser = chatbotService.getOrCreateBotUser();
+                        this.updateTicketStatus(idTicket, botUser, "REQUIERE_VISITA", "ESCALADO MANUAL: El cliente solicitó atención técnica en sitio.");
+                        return savedComentario;
+                    }
+
+                    // 2. Normal Chatbot Logic
+                    if (isClient && noTechnician && (esInterno == null || !esInterno) && !"SOPORTE_IA".equals(user.getUsername())) {
+                        String aiResponse = chatbotService.getAiResponse(ticket, text);
+                        
+                        if (!"ERROR: KEY_NOT_CONFIGURED".equals(aiResponse)) {
+                            User botUser = chatbotService.getOrCreateBotUser();
+                            
+                            // Process escalation flags
+                            boolean mustEscalate = aiResponse.contains("[ESCALAR_FISICO]") || aiResponse.contains("[ESCALAR_HUMANO]");
+                            String cleanResponse = aiResponse.replace("[ESCALAR_FISICO]", "").replace("[ESCALAR_HUMANO]", "").trim();
+                            
+                            // Add Bot Comment (calling recursively but with botUser, so it won't trigger itself)
+                            this.addComment(idTicket, botUser, cleanResponse, false);
+                            
+                            if (mustEscalate) {
+                                String reason = aiResponse.contains("[ESCALAR_FISICO]") ? "Detección de fallo físico" : "Solicitud del cliente";
+                                this.updateTicketStatus(idTicket, botUser, "REQUIERE_VISITA", "ESCALADO IA: " + reason);
+                            }
+                        } else {
+                            System.err.println("[CHATBOT_LOG] Key not configured for Ticket #" + idTicket);
+                        }
+                    } else if (noTechnician && isClient) {
+                         System.out.println("[CHATBOT_LOG] Skipping chatbot for internal comment or non-client user.");
+                    }
+                } catch (Exception e) {
+                    System.err.println("[CHATBOT_LOG] Error triggering AI Chatbot: " + e.getMessage());
+                    e.printStackTrace();
+                }
+                // ────────────────────────────────────────────────────────────────────
 
                 // ── AUDITORÍA: Creación de Comentario ────────────────────────────────
                 String obsComentario = (esInterno != null && esInterno)

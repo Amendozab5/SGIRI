@@ -1,6 +1,6 @@
 package com.apweb.backend.security.jwt;
 
-import com.apweb.backend.service.UserDetailsServiceImpl;
+
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +40,13 @@ public class JwtUtils {
     }
 
     public String getUserNameFromJwtToken(String token) {
-        return Jwts.parser().setSigningKey(key())
+        return Jwts.parserBuilder().setSigningKey(key()).build()
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
     public boolean validateJwtToken(String authToken) {
         try {
-            Jwts.parser().setSigningKey(key()).parse(authToken);
+            Jwts.parserBuilder().setSigningKey(key()).build().parse(authToken);
             return true;
         } catch (MalformedJwtException e) {
             logger.error("Invalid JWT token: {}", e.getMessage());
@@ -73,7 +73,7 @@ public class JwtUtils {
 
     public boolean validatePasswordResetToken(String token, String currentPasswordHash) {
         try {
-            Claims claims = Jwts.parser().setSigningKey(key()).parseClaimsJws(token).getBody();
+            Claims claims = Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token).getBody();
             String tokenState = claims.get("state", String.class);
             return currentPasswordHash.equals(tokenState);
         } catch (Exception e) {

@@ -159,6 +159,13 @@ export class TicketAssignmentComponent implements OnInit {
         return this.companiesMap.get(id) || 'Empresa Interna';
     }
 
+    getAssignedTechName(ticket: Ticket): string {
+        if (!ticket.usuarioAsignado) return 'Sin Especialista';
+        const p = ticket.usuarioAsignado.persona;
+        if (p && p.nombre) return `${p.nombre} ${p.apellido || ''}`.trim();
+        return ticket.usuarioAsignado.username || 'Especialista';
+    }
+
     getTechLoad(techId: number): number {
         return this.allTickets.filter(t => t.idUsuarioAsignado === techId && t.estadoItem?.codigo !== 'CERRADO' && t.estadoItem?.codigo !== 'RESUELTO').length;
     }

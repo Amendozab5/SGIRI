@@ -813,23 +813,40 @@
                         </div>
 
                         <div *ngFor="let comment of ticket.comentarios" class="chat-bubble"
-                            [ngClass]="isMe(comment) ? 'bubble-right' : 'bubble-left'">
+                            [ngClass]="isMe(comment) ? 'bubble-right' : (isBot(comment) ? 'bubble-left bubble-bot' : 'bubble-left')">
                             <div class="chat-avatar" *ngIf="!isMe(comment)">
-                                {{ getInitials(comment.usuario) }}
+                                <i class="bi bi-robot text-primary fs-4" *ngIf="isBot(comment)"></i>
+                                <span *ngIf="!isBot(comment)">{{ getInitials(comment.usuario) }}</span>
                             </div>
                             <div class="bubble-wrapper">
                                 <div class="bubble-content shadow-sm">
-                                    {{ comment.comentario }}
+                                    {{ isBot(comment) ? cleanBotText(comment.comentario) : comment.comentario }}
+                                    
+                                    <!-- Bot Quick Actions / Buttons -->
+                                    <div class="bot-quick-actions mt-2 d-flex flex-wrap gap-1" *ngIf="isBot(comment) && parseBotButtons(comment.comentario).length > 0">
+                                        <button *ngFor="let btn of parseBotButtons(comment.comentario)" 
+                                                class="btn btn-xs btn-outline-primary rounded-pill bg-white py-1 px-2"
+                                                (click)="onBotButtonClick(btn)">
+                                            {{ btn }}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="bubble-info">
                                     <span>{{ comment.fechaCreacion | date:'shortTime' }}</span>
                                 </div>
                             </div>
-                            <div class="chat-avatar" *ngIf="comment.usuario?.role?.codigo !== 'CLIENTE'">
+                            <div class="chat-avatar" *ngIf="comment.usuario?.role?.codigo !== 'CLIENTE' && !isBot(comment)">
                                 <i class="bi bi-shield-check"
                                     *ngIf="comment.usuario?.roles?.includes('ROLE_TECNICO')"></i>
                                 {{ comment.usuario?.username.slice(0, 2).toUpperCase() }}
                             </div>
+                        </div>
+
+                        <!-- Escape trigger for bot -->
+                        <div class="chat-system-msg text-center mb-3 px-3" *ngIf="isCliente && !ticket.usuarioAsignado && !hasRequestedEscalation()">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill mt-1 py-1" (click)="escalateToHuman()">
+                                <i class="bi bi-person-fill-up"></i> No pude resolverlo, hablar con un técnico
+                            </button>
                         </div>
 
                         <!-- Empty State -->

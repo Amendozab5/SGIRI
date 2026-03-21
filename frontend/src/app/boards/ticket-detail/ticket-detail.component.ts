@@ -154,9 +154,8 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
             this.loadTicket(+id);
             this.loadVisitHistory(+id);
         }
-        if (this.isTecnico || (this.currentUser && this.currentUser.roles?.includes('ROLE_ADMIN_MASTER'))) {
-            this.loadFrecuencias();
-            this.loadAvailableInventario();
+        // ONLY administrators or technicians load these catalogs
+        if (this.isAdmin || this.isTecnico) {
             this.loadCatalogos();
         }
     }
@@ -223,7 +222,14 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
                         next: (visitsData) => {
                             this.visits = visitsData;
                             this.loading = false;
-                            this.loadInformeTecnico(id);
+                            
+                            // ─── Permission Check for reports ───
+                            if (this.isAdmin || this.isTecnico) {
+                                this.loadInformeTecnico(id);
+                                this.loadAvailableInventario();
+                                this.loadFrecuencias();
+                            }
+                            
                             this.calculateUnreadMessages(id);
                             this.handleTimerLogic();
                             this.cdr.detectChanges();
@@ -406,14 +412,14 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
     get canAssign(): boolean {
         if (!this.currentUser || !this.ticket) return false;
         const status = this.ticket.estadoItem?.codigo;
-        // Administrator can: Assign tickets (usually ABIERTO or specifically REPROGRAMADA)
-        return this.isAdmin && (status === 'ABIERTO');
+        // Administrator can: Assign tickets (ABIERTO or AI-detected REQUIERE_VISITA)
+        return this.isAdmin && (status === 'ABIERTO' || status === 'REQUIERE_VISITA') && !this.ticket.usuarioAsignado;
     }
 
     get canReassign(): boolean {
         if (!this.isAdmin || !this.ticket) return false;
         const status = this.ticket.estadoItem?.codigo;
-        return status === 'ASIGNADO' || status === 'REPROGRAMADA' || status === 'REQUIERE_VISITA';
+        return (status === 'ASIGNADO' || status === 'REPROGRAMADA' || status === 'REQUIERE_VISITA') && !!this.ticket.usuarioAsignado;
     }
 
     get canClose(): boolean {
@@ -998,9 +1004,29 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
     }
 
     isMe(comment: any): boolean {
-        if (!this.currentUser || !comment.usuario) return false;
+        if (!this.currentUser || !comment.usuario || this.isBot(comment)) return false;
         return comment.usuario.id === this.currentUser.id || 
                comment.usuario.username === this.currentUser.username;
+    }
+
+    isBot(comment: any): boolean {
+        return comment.usuario?.username === 'SOPORTE_IA';
+    }
+
+    hasRequestedEscalation(): boolean {
+        if (!this.ticket?.comentarios) return false;
+        return this.ticket.comentarios.some((c: any) => c.comentario && c.comentario.includes('[CLIENTE_ESCALA]'));
+    }
+
+    escalateToHuman(): void {
+        this.isSubmitting = true;
+        this.ticketService.addComment(this.ticket.idTicket, "[CLIENTE_ESCALA] Solicito hablar con un técnico humano.").subscribe({
+            next: () => {
+                this.loadTicket(this.ticket.idTicket);
+                this.isSubmitting = false;
+            },
+            error: () => this.isSubmitting = false
+        });
     }
 
     getInitials(user: any): string {
@@ -1087,5 +1113,22 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
                 }
             });
         }
+    }
+
+    parseBotButtons(text: string): string[] {
+        const match = text.match(/\[BOT_BUTTONS:\s*(.*?)\]/);
+        if (match && match[1]) {
+            return match[1].split('|').map(b => b.trim());
+        }
+        return [];
+    }
+
+    cleanBotText(text: string): string {
+        return text.replace(/\[BOT_BUTTONS:\s*.*?\]/, '').trim();
+    }
+
+    onBotButtonClick(option: string): void {
+        this.commentText = option;
+        this.addComment();
     }
 }

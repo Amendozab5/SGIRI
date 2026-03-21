@@ -13,11 +13,7 @@ import com.apweb.backend.util.AuditModulo;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class VisitaTecnicaService {

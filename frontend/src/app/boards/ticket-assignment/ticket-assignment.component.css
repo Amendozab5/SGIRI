@@ -309,15 +309,42 @@
     gap: 1rem;
 }
 
-.modern-select {
-    min-width: 220px;
-    padding: 0.6rem 1rem;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #f8fafc;
+.tech-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1.25rem;
+    background: #f0f9ff;
+    color: #0369a1;
+    border-radius: 9999px;
     font-size: 0.85rem;
     font-weight: 600;
-    outline: none;
+    border: 1px solid #bae6fd;
+    min-width: 240px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(3, 105, 161, 0.05);
+}
+
+.tech-label i {
+    font-size: 1.1rem;
+    color: #0ea5e9;
+}
+
+.tech-label.unassigned {
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    font-style: italic;
+    box-shadow: none;
+}
+
+.tech-label.unassigned i {
+    color: #cbd5e1;
+}
+
+.tech-label:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(3, 105, 161, 0.08);
 }
 
 .btn-goto {

@@ -90,14 +90,10 @@
                     </div>
 
                     <div class="assignment-box">
-                        <select class="modern-select" [(ngModel)]="ticket.idUsuarioAsignado"
-                            (change)="assignTicket(ticket)"
-                            [disabled]="ticket.estadoItem?.codigo === 'CERRADO' || ticket.estadoItem?.codigo === 'RESUELTO'">
-                            <option [ngValue]="undefined" disabled>-- Asignar Especialista --</option>
-                            <option *ngFor="let tech of technicians" [ngValue]="tech.id">
-                                {{ tech.fullName || tech.username }} (Carga: {{ getTechLoad(tech.id) }})
-                            </option>
-                        </select>
+                        <div class="tech-label" [class.unassigned]="!ticket.usuarioAsignado">
+                            <i class="bi" [class]="ticket.usuarioAsignado ? 'bi-person-check-fill' : 'bi-person-dash'"></i>
+                            {{ getAssignedTechName(ticket) }}
+                        </div>
                         <button class="btn-goto" [routerLink]="['/home/user/ticket', ticket.idTicket]">
                             <i class="bi bi-box-arrow-in-right"></i>
                         </button>
