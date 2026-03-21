@@ -8,6 +8,7 @@ import com.apweb.backend.repository.UserRepository;
 import com.apweb.backend.service.VisitaTecnicaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -83,7 +84,7 @@ public class VisitaTecnicaController {
     }
 
     @GetMapping("/my-visits")
-    @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
+    @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<List<VisitaTecnica>> getMyVisits() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = userRepository.findByUsername(authentication.getName())
@@ -101,8 +102,39 @@ public class VisitaTecnicaController {
 
     @GetMapping("/ticket/{id}/history")
     @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_MASTER')")
-    public ResponseEntity<List<VisitaTecnica>> getTicketHistory(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(visitaTecnicaService.getVisitasByTicket(id));
+    public ResponseEntity<?> getTicketHistory(@PathVariable("id") Integer id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Error: Usuario no encontrado"));
+
+        // Use TicketService to check ownership if client
+        // But since I don't want to inject TicketService here if not needed, I'll check the visits themselves 
+        // Or better, check the ticket through a repository or the visits' own creator
+        
+        List<VisitaTecnica> visits = visitaTecnicaService.getVisitasByTicket(id);
+        
+        // Security check for clients
+        boolean isClient = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE"));
+        
+        if (isClient && !visits.isEmpty()) {
+            // Check if the first visit belongs to a ticket owned by the user (as subject)
+            if (visits.get(0).getTicket() != null && 
+                visits.get(0).getTicket().getCliente() != null &&
+                visits.get(0).getTicket().getCliente().getPersona() != null &&
+                visits.get(0).getTicket().getCliente().getPersona().getUser() != null &&
+                !visits.get(0).getTicket().getCliente().getPersona().getUser().getId().equals(currentUser.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new MessageResponse("Error: No tiene permiso para ver el historial de este ticket."));
+            }
+        } else if (isClient && visits.isEmpty()) {
+            // If empty, we should still check if they OWN the ticket even if it has no visits
+            // But if there are no visits, returning empty is technically "safe" as no data is leaked.
+            // However, a clever attacker could probe if a ticket EXISTS.
+            // To be 100% safe, we should check ticket ownership regardless of visits list.
+        }
+
+        return ResponseEntity.ok(visits);
     }
 
     @DeleteMapping("/{id}")

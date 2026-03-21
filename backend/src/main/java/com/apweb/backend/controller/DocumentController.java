@@ -97,7 +97,7 @@ public class DocumentController {
      * Body JSON: { "estado": "ACTIVO" | "PENDIENTE" | "RECHAZADO" }
      */
     @PutMapping("/empleado/docs/{idDocumento}/estado")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<DocumentoEmpleadoDTO> cambiarEstadoDocumento(
             @PathVariable(name = "idDocumento") Integer idDocumento,
             @RequestBody Map<String, String> body) {
@@ -115,7 +115,7 @@ public class DocumentController {
      * Elimina físicamente un documento del expediente.
      */
     @DeleteMapping("/empleado/docs/{idDocumento}")
-    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<Void> eliminarDocumentoEmpleado(@PathVariable(name = "idDocumento") Integer idDocumento) {
         documentService.eliminarDocumentoEmpleado(idDocumento);
         return ResponseEntity.noContent().build();

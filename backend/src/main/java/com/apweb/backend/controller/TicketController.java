@@ -17,6 +17,7 @@ import com.apweb.backend.service.CloudinaryService;
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -44,7 +45,7 @@ public class TicketController {
         private CloudinaryService cloudinaryService;
 
         @PostMapping
-        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> createTicket(@Valid @RequestBody TicketRequest ticketRequest) {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 String currentUserName = authentication.getName();
@@ -60,7 +61,7 @@ public class TicketController {
         }
 
         @PostMapping("/upload-evidence")
-        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> uploadEvidence(@RequestParam("file") MultipartFile file) {
             String url = cloudinaryService.upload(file, "evidencias_tickets");
             return ResponseEntity.ok(java.util.Map.of("url", url));
@@ -111,7 +112,7 @@ public class TicketController {
         }
 
         @PostMapping("/{id:[0-9]+}/reassign")
-        @PreAuthorize("hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> reassignTicket(@PathVariable("id") Integer id,
                         @RequestBody ReassignRequest payload) {
                 Integer userId = payload.getUserId();
@@ -146,7 +147,7 @@ public class TicketController {
         }
 
         @GetMapping("/my-tickets")
-        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<List<Ticket>> getMyTickets() {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 String currentUserName = authentication.getName();
@@ -160,7 +161,7 @@ public class TicketController {
         }
 
         @GetMapping("/my-tickets-paged")
-        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<org.springframework.data.domain.Page<Ticket>> getMyTicketsPaged(
                         @RequestParam(name = "page", defaultValue = "0") int page,
                         @RequestParam(name = "size", defaultValue = "10") int size,
@@ -182,7 +183,7 @@ public class TicketController {
         }
 
         @GetMapping("/assigned")
-        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> getAssignedTickets() {
                 try {
                         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -208,10 +209,20 @@ public class TicketController {
         public ResponseEntity<?> addComment(@PathVariable("id") Integer id,
                         @Valid @RequestBody CommentRequest commentRequest) {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                String currentUserName = authentication.getName();
-
-                User currentUser = userRepository.findByUsername(currentUserName)
+                User currentUser = userRepository.findByUsername(authentication.getName())
                                 .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                Ticket ticket = ticketService.getTicketById(id);
+                // Security check for clients
+                if (currentUser.getRole() != null && "CLIENTE".equals(currentUser.getRole().getCodigo())) {
+                    if (ticket.getCliente() == null || 
+                        ticket.getCliente().getPersona() == null || 
+                        ticket.getCliente().getPersona().getUser() == null || 
+                        !ticket.getCliente().getPersona().getUser().getId().equals(currentUser.getId())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                        .body(new MessageResponse("Error: No tiene permiso para comentar en este ticket."));
+                    }
+                }
 
                 ticketService.addComment(id, currentUser, commentRequest.getComentario(),
                                 commentRequest.getEsInterno());
@@ -220,8 +231,25 @@ public class TicketController {
 
         @GetMapping("/{id:[0-9]+}")
         @PreAuthorize("hasRole('CLIENTE') or hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
-        public ResponseEntity<Ticket> getTicketById(@PathVariable("id") Integer id) {
-                return ResponseEntity.ok(ticketService.getTicketById(id));
+        public ResponseEntity<?> getTicketById(@PathVariable("id") Integer id) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                User currentUser = userRepository.findByUsername(authentication.getName())
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                Ticket ticket = ticketService.getTicketById(id);
+
+                // Security Check: Clients only see their own tickets
+                if (currentUser.getRole() != null && "CLIENTE".equals(currentUser.getRole().getCodigo())) {
+                        if (ticket.getCliente() == null || 
+                            ticket.getCliente().getPersona() == null || 
+                            ticket.getCliente().getPersona().getUser() == null || 
+                            !ticket.getCliente().getPersona().getUser().getId().equals(currentUser.getId())) {
+                                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                                .body(new MessageResponse("Error: No tiene permiso para ver este ticket."));
+                        }
+                }
+
+                return ResponseEntity.ok(ticket);
         }
 
         @PutMapping("/{id:[0-9]+}/status")
@@ -246,7 +274,7 @@ public class TicketController {
         }
 
         @PostMapping("/{id:[0-9]+}/rating")
-        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> rateTicket(@PathVariable("id") Integer id,
                         @Valid @RequestBody RatingRequest ratingRequest) {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -287,7 +315,7 @@ public class TicketController {
          * On success, the ticket transitions to RESUELTO or ABIERTO (if not resolved).
          */
         @PostMapping("/{id:[0-9]+}/informe")
-        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> submitInforme(
                         @PathVariable("id") Integer id,
                         @RequestBody InformeTrabajoTecnicoRequest informeRequest) {
@@ -327,14 +355,30 @@ public class TicketController {
         }
 
         @GetMapping("/informe/frecuencias")
-        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER')")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
         public ResponseEntity<?> getFrecuencias() {
                 return ResponseEntity.ok(ticketService.getOptionFrequencies());
         }
 
         @GetMapping("/{id:[0-9]+}/pdf")
         @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('CLIENTE')")
-        public ResponseEntity<InputStreamResource> exportTicketPdf(@PathVariable("id") Integer id) {
+        public ResponseEntity<?> exportTicketPdf(@PathVariable("id") Integer id) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                User currentUser = userRepository.findByUsername(authentication.getName())
+                                .orElseThrow(() -> new RuntimeException("Error: User not found"));
+
+                Ticket ticket = ticketService.getTicketById(id);
+                // Security check for clients
+                if (currentUser.getRole() != null && "CLIENTE".equals(currentUser.getRole().getCodigo())) {
+                    if (ticket.getCliente() == null || 
+                        ticket.getCliente().getPersona() == null || 
+                        ticket.getCliente().getPersona().getUser() == null || 
+                        !ticket.getCliente().getPersona().getUser().getId().equals(currentUser.getId())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                        .body(new MessageResponse("Error: No tiene permiso para descargar este PDF."));
+                    }
+                }
+
                 ByteArrayInputStream bis = ticketService.generateTicketPdf(id);
 
                 HttpHeaders headers = new HttpHeaders();

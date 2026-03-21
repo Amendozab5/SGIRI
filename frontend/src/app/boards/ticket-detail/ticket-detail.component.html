@@ -504,7 +504,7 @@
 
                         <!-- Comment -->
                         <textarea class="form-control rounded-3 mb-3" rows="3" maxlength="500"
-                            placeholder="Comentario opcional sobre la atención del técnico..."
+                            [placeholder]="isResolvedByIA ? 'Comentario opcional sobre la ayuda de Giri...' : 'Comentario opcional sobre la atención del técnico...'"
                             [(ngModel)]="ratingComment"></textarea>
 
                         <!-- Error -->
@@ -576,14 +576,25 @@
                     <!-- Technician Assigned -->
                     <div class="sidebar-card">
                         <h3><i class="bi bi-headset"></i> Técnico Responsable</h3>
-                        <div class="tech-card-compact" *ngIf="ticket.usuarioAsignado">
+                        
+                        <div class="tech-card-compact" *ngIf="ticket.usuarioAsignado && !isResolvedByIA">
                             <div class="tech-avatar"><i class="bi bi-shield-check text-success"></i></div>
                             <div class="tech-info">
                                 <h4>{{ ticket.usuarioAsignado.username }}</h4>
                                 <p>Especialista en Soporte</p>
                             </div>
                         </div>
-                        <div class="text-center py-2 text-muted small" *ngIf="!ticket.usuarioAsignado">
+
+                        <!-- UI for IA resolved tickets -->
+                        <div class="tech-card-compact" *ngIf="isResolvedByIA">
+                            <div class="tech-avatar bg-primary-subtle"><i class="bi bi-robot text-primary"></i></div>
+                            <div class="tech-info">
+                                <h4>Soporte IA (Giri)</h4>
+                                <p>Asistente Virtual</p>
+                            </div>
+                        </div>
+
+                        <div class="text-center py-2 text-muted small" *ngIf="!ticket.usuarioAsignado && !isResolvedByIA">
                             <i class="bi bi-person-dash me-1"></i> Sin técnico asignado aún
                         </div>
                     </div>
@@ -842,12 +853,8 @@
                             </div>
                         </div>
 
-                        <!-- Escape trigger for bot -->
-                        <div class="chat-system-msg text-center mb-3 px-3" *ngIf="isCliente && !ticket.usuarioAsignado && !hasRequestedEscalation()">
-                            <button class="btn btn-sm btn-outline-primary rounded-pill mt-1 py-1" (click)="escalateToHuman()">
-                                <i class="bi bi-person-fill-up"></i> No pude resolverlo, hablar con un técnico
-                            </button>
-                        </div>
+                        <!-- Escape trigger for bot (Removed as requested) -->
+
 
                         <!-- Empty State -->
                         <div *ngIf="!ticket.comentarios?.length" class="text-center py-5 opacity-50 empty-chat">

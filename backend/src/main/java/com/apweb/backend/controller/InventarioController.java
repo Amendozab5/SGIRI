@@ -17,7 +17,7 @@ public class InventarioController {
     private final InventarioRepository inventarioRepository;
 
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_TECNICO') or hasRole('ROLE_ADMIN_MASTER')")
+    @PreAuthorize("hasRole('ROLE_TECNICO') or hasRole('ROLE_ADMIN_MASTER') or hasRole('ROLE_ADMIN_TECNICOS')")
     public ResponseEntity<List<Inventario>> getInventario() {
         return ResponseEntity.ok(inventarioRepository.findByActivoTrueOrderByNombreAsc());
     }

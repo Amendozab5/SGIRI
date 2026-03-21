@@ -116,7 +116,7 @@ public class PersonnelController {
     }
 
     @GetMapping("/clientes/empresa/{idEmpresa}")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS') or hasRole('ADMIN_TECNICOS')")
     public List<Cliente> getClientesByEmpresa(@PathVariable(name = "idEmpresa") Integer idEmpresa) {
         return personnelService.getClientesByEmpresa(idEmpresa);
     }
@@ -130,14 +130,14 @@ public class PersonnelController {
     }
 
     @PostMapping("/clientes")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<Cliente> crearCliente(@Valid @RequestBody com.apweb.backend.dto.ClienteCreateRequest request) {
         Cliente creado = personnelService.crearCliente(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PostMapping("/clientes/import")
-    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS') or hasRole('ADMIN_TECNICOS')")
     public ResponseEntity<List<Cliente>> importClientes(
             @RequestParam("file") MultipartFile file,
             @RequestParam("idSucursal") Integer idSucursal) throws java.io.IOException {

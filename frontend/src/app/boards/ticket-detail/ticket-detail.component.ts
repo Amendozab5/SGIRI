@@ -136,6 +136,22 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         this.scrollToBottom();
     }
 
+    get isResolvedByIA(): boolean {
+        if (!this.ticket) return false;
+        
+        // Case 1: Officially assigned to the bot
+        if (this.ticket.usuarioAsignado?.username === 'SOPORTE_IA') return true;
+        
+        // Case 2: Not assigned and closed/resolved (fallback for cases before official assignment)
+        const status = this.ticket.estadoItem?.codigo;
+        const isClosed = (status === 'RESUELTO' || status === 'CERRADO' || status === 'REPROGRAMADA');
+        const hasBotTraces = this.ticket.historialEstados?.some((h: any) => 
+            h.observacion?.includes('IA') || h.observacion?.includes('Chatbot')
+        );
+        
+        return !this.ticket.usuarioAsignado && isClosed && hasBotTraces;
+    }
+
     private scrollToBottom(): void {
         try {
             if (this.chatFeed && this.isChatOpen) {
@@ -1128,7 +1144,24 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
     }
 
     onBotButtonClick(option: string): void {
-        this.commentText = option;
-        this.addComment();
+        if (option === 'Solicitar Visita Técnica') {
+            this.escalateToHuman();
+        } else if (option === 'Finalizar chat') {
+            this.finalizeTicket();
+        } else {
+            this.commentText = option;
+            this.addComment();
+        }
+    }
+
+    finalizeTicket(): void {
+        this.isSubmitting = true;
+        this.ticketService.addComment(this.ticket.idTicket, "Finalizar chat").subscribe({
+            next: () => {
+                this.loadTicket(this.ticket.idTicket);
+                this.isSubmitting = false;
+            },
+            error: () => this.isSubmitting = false
+        });
     }
 }

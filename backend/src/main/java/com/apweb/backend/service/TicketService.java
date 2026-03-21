@@ -749,34 +749,55 @@ public class TicketService {
                     String roleLabel = (user.getRole() != null) ? user.getRole().getCodigo() : "N/A";
                     boolean isClient = "CLIENTE".equals(roleLabel);
                     boolean noTechnician = (ticket.getUsuarioAsignado() == null);
-                    
-                    System.out.println("[CHATBOT_LOG] Ticket #" + idTicket + " | User: " + user.getUsername() + " | Role: " + roleLabel + " | NoTech: " + noTechnician);
-
-                    // 1. Detect manual escalation from UI button
-                    if (text.contains("[CLIENTE_ESCALA]")) {
+                    // 1. Detect manual escalation from UI button or direct request
+                    if (text.contains("[CLIENTE_ESCALA]") || text.equalsIgnoreCase("Solicitar Visita Técnica")) {
                         System.out.println("[CHATBOT_LOG] Manual escalation detected for Ticket #" + idTicket);
                         User botUser = chatbotService.getOrCreateBotUser();
+                        
+                        // IMPORTANT: Unassign GIRI so administrators can see it as "Unassigned" and assign a human
+                        ticket.setUsuarioAsignado(null);
+                        ticketRepository.save(ticket);
+                        
                         this.updateTicketStatus(idTicket, botUser, "REQUIERE_VISITA", "ESCALADO MANUAL: El cliente solicitó atención técnica en sitio.");
                         return savedComentario;
                     }
 
-                    // 2. Normal Chatbot Logic
-                    if (isClient && noTechnician && (esInterno == null || !esInterno) && !"SOPORTE_IA".equals(user.getUsername())) {
+                    // 2. Detect manual resolution/closing from UI button or direct request
+                    if (text.contains("[CLIENTE_FINALIZA]") || text.equalsIgnoreCase("Finalizar chat")) {
+                        User botUser = chatbotService.getOrCreateBotUser();
+                        Ticket ticketToUpdate = getTicketById(idTicket);
+                        // Ensure it's assigned to bot during resolution if it wasn't already
+                        ticketToUpdate.setUsuarioAsignado(botUser);
+                        ticketRepository.save(ticketToUpdate);
+                        
+                        this.updateTicketStatus(idTicket, botUser, "RESUELTO", "RESOLUCIÓN POR CLIENTE: El cliente confirmó resolución via Chatbot.");
+                        return savedComentario;
+                    }
+
+                    // 3. Normal Chatbot Logic
+                    boolean isBotAssigned = ticket.getUsuarioAsignado() != null && "SOPORTE_IA".equals(ticket.getUsuarioAsignado().getUsername());
+                    String status = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
+                    boolean canBotWork = !"REQUIERE_VISITA".equals(status) && !"CERRADO".equals(status);
+
+                    if (isClient && (noTechnician || isBotAssigned) && canBotWork && (esInterno == null || !esInterno) && !"SOPORTE_IA".equals(user.getUsername())) {
+                        User botUser = chatbotService.getOrCreateBotUser();
+                        
+                        // ASIGNACIÓN INICIAL: Assign the bot as technician as soon as chat starts
+                        ticket.setUsuarioAsignado(botUser);
+                        ticketRepository.save(ticket);
+                        
                         String aiResponse = chatbotService.getAiResponse(ticket, text);
                         
                         if (!"ERROR: KEY_NOT_CONFIGURED".equals(aiResponse)) {
-                            User botUser = chatbotService.getOrCreateBotUser();
-                            
-                            // Process escalation flags
-                            boolean mustEscalate = aiResponse.contains("[ESCALAR_FISICO]") || aiResponse.contains("[ESCALAR_HUMANO]");
-                            String cleanResponse = aiResponse.replace("[ESCALAR_FISICO]", "").replace("[ESCALAR_HUMANO]", "").trim();
-                            
-                            // Add Bot Comment (calling recursively but with botUser, so it won't trigger itself)
+                            boolean mustResolve = aiResponse.contains("[RESOLUCION_SOPORTE]");
+                            String cleanResponse = aiResponse.replace("[ESCALAR_FISICO]", "")
+                                                             .replace("[ESCALAR_HUMANO]", "")
+                                                             .replace("[RESOLUCION_SOPORTE]", "")
+                                                             .trim();
                             this.addComment(idTicket, botUser, cleanResponse, false);
-                            
-                            if (mustEscalate) {
-                                String reason = aiResponse.contains("[ESCALAR_FISICO]") ? "Detección de fallo físico" : "Solicitud del cliente";
-                                this.updateTicketStatus(idTicket, botUser, "REQUIERE_VISITA", "ESCALADO IA: " + reason);
+
+                            if (mustResolve) {
+                                this.updateTicketStatus(idTicket, botUser, "RESUELTO", "RESOLUCIÓN IA: Resolución confirmada por el chatbot.");
                             }
                         } else {
                             System.err.println("[CHATBOT_LOG] Key not configured for Ticket #" + idTicket);
@@ -955,10 +976,12 @@ public class TicketService {
                 Ticket ticket = getTicketById(idTicket);
 
                 // 1. Verify the caller is the ticket owner
-                if (ticket.getUsuarioCreador() == null ||
-                                !ticket.getUsuarioCreador().getId().equals(user.getId())) {
+                if (ticket.getCliente() == null || 
+                    ticket.getCliente().getPersona() == null || 
+                    ticket.getCliente().getPersona().getUser() == null || 
+                    !ticket.getCliente().getPersona().getUser().getId().equals(user.getId())) {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                                        "Error: Solo el usuario que creó el ticket puede calificarlo");
+                                        "Error: Solo el usuario titular del ticket puede calificarlo");
                 }
 
                 // 2. Verify the ticket is closed or resolved
