@@ -43,7 +43,7 @@ public class AuditQueryService {
             Integer idRegistro,
             Pageable pageable) {
 
-        Specification<AuditTimelineView> spec = Specification.where(null);
+        Specification<AuditTimelineView> spec = Specification.allOf();
 
         if (startDate != null) {
             spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("fecha"), startDate));

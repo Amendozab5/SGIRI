@@ -474,7 +474,9 @@ public class TicketService {
                     try {
                         if (e == null) continue;
                         Persona persona = e.getPersona();
-                        User user = (persona != null) ? persona.getUser() : null;
+                        if (persona == null) continue;
+                        
+                        User user = persona.getUser();
                         
                         // Filter by role manually to be safe against JOIN FETCH complexities in WHERE
                         if (user == null || user.getRole() == null || !roleAllowed.contains(user.getRole().getCodigo())) {

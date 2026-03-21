@@ -36,7 +36,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,7 +52,6 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
     private final MailService mailService;
     private final ClienteRepository clienteRepository;
@@ -69,7 +67,6 @@ public class AuthController {
     public AuthController(AuthenticationManager authenticationManager,
             UserRepository userRepository,
             RoleRepository roleRepository,
-            PasswordEncoder encoder,
             JwtUtils jwtUtils,
             MailService mailService,
             ClienteRepository clienteRepository,
@@ -81,7 +78,6 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.encoder = encoder;
         this.jwtUtils = jwtUtils;
         this.mailService = mailService;
         this.clienteRepository = clienteRepository;

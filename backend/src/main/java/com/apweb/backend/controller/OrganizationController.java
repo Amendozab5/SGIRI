@@ -5,7 +5,6 @@ import com.apweb.backend.model.Cargo;
 import com.apweb.backend.model.TipoContrato;
 import com.apweb.backend.service.OrganizationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
