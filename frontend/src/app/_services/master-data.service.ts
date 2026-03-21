@@ -58,6 +58,21 @@ export class MasterDataService {
         return this.http.get<Cliente[]>(`${API_PERSONNEL}/clientes`);
     }
 
+    getClientesByEmpresa(empresaId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${API_PERSONNEL}/clientes/empresa/${empresaId}`);
+    }
+
+    crearCliente(cliente: any): Observable<any> {
+        return this.http.post<any>(`${API_PERSONNEL}/clientes`, cliente);
+    }
+
+    importClientes(file: File, idSucursal: number): Observable<any[]> {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('idSucursal', idSucursal.toString());
+        return this.http.post<any[]>(`${API_PERSONNEL}/clientes/import`, formData);
+    }
+
     // Empresas & Sucursales
     getEmpresas(): Observable<Empresa[]> {
         return this.http.get<Empresa[]>(API_EMPRESAS);

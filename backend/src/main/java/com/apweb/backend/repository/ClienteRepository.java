@@ -16,4 +16,6 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
     Boolean existsByPersona_Cedula(String cedula);
 
     Optional<Cliente> findByPersona_User(com.apweb.backend.model.User user);
+    
+    java.util.List<Cliente> findBySucursal_Empresa_Id(Integer idEmpresa);
 }

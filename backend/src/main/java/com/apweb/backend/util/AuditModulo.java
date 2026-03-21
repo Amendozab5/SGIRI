@@ -25,6 +25,9 @@ public final class AuditModulo {
     /** Gestión de empleados (alta laboral) */
     public static final String EMPLEADOS = "EMPLEADOS";
 
+    /** Gestión de clientes y suscripciones (activaciones) */
+    public static final String CLIENTES = "CLIENTES";
+
     /** Documentos laborales de empleados y documentos relacionados */
     public static final String DOCUMENTOS = "DOCUMENTOS";
 

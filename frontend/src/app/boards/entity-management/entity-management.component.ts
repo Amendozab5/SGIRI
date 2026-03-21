@@ -14,6 +14,7 @@ import { finalize } from 'rxjs/operators';
     styleUrls: ['./entity-management.component.css']
 })
 export class EntityManagementComponent implements OnInit {
+    // Component for managing entities (ISPs, public entities) and their branches/clients
     empresas: Empresa[] = [];
     filteredEmpresas: Empresa[] = []; // Added
     sucursales: Sucursal[] = [];
@@ -32,6 +33,27 @@ export class EntityManagementComponent implements OnInit {
     selectedSucursal: Sucursal | null = null;
     totalActivas = 0;
     totalInactivas = 0;
+
+    // Client Management State
+    viewMode: 'SUCURSALES' | 'CLIENTES' = 'SUCURSALES';
+    clientes: any[] = [];
+    loadingClientes = false;
+    showClienteModal = false;
+    savingCliente = false;
+    importingClientes = false; // Added
+    importMessage: string | null = null; // Added
+    importError = false; // Added
+    newCliente = {
+        cedula: '',
+        nombre: '',
+        apellido: '',
+        correo: '',
+        celular: '',
+        fechaNacimiento: null as string | null,
+        idSucursal: null as number | null,
+        fechaInicioContrato: null as string | null,
+        fechaFinContrato: null as string | null
+    };
 
     estadosGenerales: any[] = [];
 
@@ -251,6 +273,68 @@ export class EntityManagementComponent implements OnInit {
             });
     }
 
+    // Client Management Methods
+    setViewMode(mode: 'SUCURSALES' | 'CLIENTES'): void {
+        this.viewMode = mode;
+        if (mode === 'CLIENTES' && this.selectedEmpresa) {
+            this.loadClientes();
+        }
+    }
+
+    loadClientes(): void {
+        if (!this.selectedEmpresa) return;
+        this.loadingClientes = true;
+        this.masterDataService.getClientesByEmpresa(this.selectedEmpresa.id)
+            .pipe(finalize(() => {
+                this.loadingClientes = false;
+                this.cdr.detectChanges();
+            }))
+            .subscribe({
+                next: (data) => this.clientes = data,
+                error: (err) => console.error('Error loading clientes:', err)
+            });
+    }
+
+    openClienteModal(): void {
+        this.newCliente = {
+            cedula: '',
+            nombre: '',
+            apellido: '',
+            correo: '',
+            celular: '',
+            fechaNacimiento: null,
+            idSucursal: this.sucursales.length > 0 ? this.sucursales[0].id : null,
+            fechaInicioContrato: new Date().toISOString().split('T')[0],
+            fechaFinContrato: null
+        };
+        this.showClienteModal = true;
+    }
+
+    saveCliente(): void {
+        if (!this.newCliente.idSucursal) {
+            alert('Debe seleccionar una sucursal para el cliente.');
+            return;
+        }
+
+        this.savingCliente = true;
+        this.masterDataService.crearCliente(this.newCliente)
+            .pipe(finalize(() => {
+                this.savingCliente = false;
+                this.cdr.detectChanges();
+            }))
+            .subscribe({
+                next: (data) => {
+                    this.loadClientes();
+                    this.showClienteModal = false;
+                    alert('Cliente pre-registrado exitosamente.');
+                },
+                error: (err) => {
+                    console.error('Error saving cliente:', err);
+                    alert(err.error?.message || 'Error al guardar el cliente.');
+                }
+            });
+    }
+
     loadEmpresas(): void {
         this.loadingEmpresas = true;
         this.error = '';
@@ -343,5 +427,45 @@ export class EntityManagementComponent implements OnInit {
         this.totalInactivas = this.empresas.filter(e => e.estado?.codigo === 'INACTIVO').length;
         
         this.cdr.detectChanges();
+    }
+
+    onClientImportSelected(event: any): void {
+        const file: File = event.target.files[0];
+        if (!file) return;
+
+        // Validamos que haya una sucursal seleccionada (tomamos la primera si no hay una modal abierta)
+        const idSucursal = this.sucursales.length > 0 ? this.sucursales[0].id : null;
+        
+        if (!idSucursal) {
+            this.importMessage = 'Primero debe crear al menos una sucursal.';
+            this.importError = true;
+            return;
+        }
+
+        this.importingClientes = true;
+        this.importMessage = 'Procesando archivo excel...';
+        this.importError = false;
+
+        this.masterDataService.importClientes(file, idSucursal).subscribe({
+            next: (result) => {
+                this.importingClientes = false;
+                this.importMessage = `¡Éxito! Se importaron ${result.length} clientes.`;
+                this.importError = false;
+                this.loadClientes(); // Corrected call (no arguments)
+                
+                // Limpiar mensaje después de 5 segundos
+                setTimeout(() => this.importMessage = null, 5000);
+            },
+            error: (err) => {
+                this.importingClientes = false;
+                this.importMessage = 'Error al importar archivo. Verifique el formato.';
+                this.importError = true;
+                console.error('Import error:', err);
+                setTimeout(() => this.importMessage = null, 8000);
+            }
+        });
+
+        // Reset input
+        event.target.value = '';
     }
 }

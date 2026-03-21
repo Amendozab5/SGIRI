@@ -8,12 +8,14 @@ import com.apweb.backend.model.Cliente;
 import com.apweb.backend.model.Persona;
 import com.apweb.backend.payload.response.UserAdminView;
 import com.apweb.backend.service.PersonnelService;
+import com.apweb.backend.service.ExcelImportService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,6 +25,9 @@ public class PersonnelController {
 
     @Autowired
     private PersonnelService personnelService;
+
+    @Autowired
+    private ExcelImportService excelImportService;
 
     // ─── Personas ─────────────────────────────────────────────────────────────
 
@@ -110,11 +115,33 @@ public class PersonnelController {
         return personnelService.getAllClientes();
     }
 
+    @GetMapping("/clientes/empresa/{idEmpresa}")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
+    public List<Cliente> getClientesByEmpresa(@PathVariable(name = "idEmpresa") Integer idEmpresa) {
+        return personnelService.getClientesByEmpresa(idEmpresa);
+    }
+
     @GetMapping("/clientes/{cedula}")
     @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('ADMIN_CONTRATOS')")
     public ResponseEntity<Cliente> getCliente(@PathVariable(name = "cedula") String cedula) {
         return personnelService.getClienteByCedula(cedula)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/clientes")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
+    public ResponseEntity<Cliente> crearCliente(@Valid @RequestBody com.apweb.backend.dto.ClienteCreateRequest request) {
+        Cliente creado = personnelService.crearCliente(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+    }
+
+    @PostMapping("/clientes/import")
+    @PreAuthorize("hasRole('ADMIN_MASTER') or hasRole('ADMIN_CONTRATOS')")
+    public ResponseEntity<List<Cliente>> importClientes(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("idSucursal") Integer idSucursal) throws java.io.IOException {
+        List<Cliente> result = excelImportService.importClientesExcel(file, idSucursal);
+        return ResponseEntity.ok(result);
     }
 }

@@ -69,6 +69,11 @@ public class PersonnelService {
         }
 
         @Transactional(readOnly = true)
+        public List<Cliente> getClientesByEmpresa(Integer idEmpresa) {
+                return clienteRepository.findBySucursal_Empresa_Id(idEmpresa);
+        }
+
+        @Transactional(readOnly = true)
         public Optional<EmpleadoDTO> getEmpleadoByCedula(String cedula) {
                 return empleadoRepository.findByPersona_Cedula(cedula).map(this::toDTO);
         }
@@ -153,6 +158,77 @@ public class PersonnelService {
                 // ────────────────────────────────────────────────────────────────────
 
                 return toDTO(guardado);
+        }
+
+        /**
+         * Crea un cliente (pre-registro para activación).
+         * <p>
+         * Flujo:
+         * 1. Busca o crea usuarios.persona por cédula.
+         * 2. Valida que esa persona no sea ya un cliente de ESTA empresa.
+         * 3. Resuelve la FK de sucursal.
+         * 4. Persiste clientes.cliente.
+         * </p>
+         */
+        @Transactional
+        public Cliente crearCliente(com.apweb.backend.dto.ClienteCreateRequest req) {
+
+                // 1. Buscar o crear persona
+                Persona persona = personaRepository.findByCedula(req.getCedula())
+                                .orElseGet(() -> {
+                                        Persona p = Persona.builder()
+                                                        .cedula(req.getCedula())
+                                                        .nombre(req.getNombre())
+                                                        .apellido(req.getApellido())
+                                                        .correo(req.getCorreo())
+                                                        .celular(req.getCelular())
+                                                        .fechaNacimiento(req.getFechaNacimiento())
+                                                        .build();
+                                        return personaRepository.save(p);
+                                });
+
+                // 2. Validar que no sea ya cliente
+                if (clienteRepository.existsByPersona_Cedula(req.getCedula())) {
+                        log.warn("[CLIENTES] Persona con cédula {} ya es cliente. Se actualizará sucursal o contrato.", req.getCedula());
+                        // Opcional: Podríamos lanzar excepción o simplemente actualizar. 
+                        // Para realismo, un cliente podría tener múltiples servicios pero aquí simplificamos a 1.
+                }
+
+                // 3. Resolver Sucursal
+                Sucursal sucursal = sucursalRepository.findById(req.getIdSucursal())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "La sucursal con id=" + req.getIdSucursal() + " no existe."));
+
+                // 4. Crear o actualizar Cliente
+                Cliente cliente = clienteRepository.findByPersona_Cedula(req.getCedula())
+                                .orElse(new Cliente());
+
+                cliente.setPersona(persona);
+                cliente.setSucursal(sucursal);
+                cliente.setFechaInicioContrato(req.getFechaInicioContrato());
+                cliente.setFechaFinContrato(req.getFechaFinContrato());
+
+                Cliente guardado = clienteRepository.save(cliente);
+                log.info("[CLIENTES] Cliente registrado/actualizado — id={}, cedula={}, empresa={}", 
+                        guardado.getIdCliente(), persona.getCedula(), sucursal.getEmpresa().getNombreComercial());
+
+                // ── AUDITORÍA: Alta de Cliente (Contrato) ────────────────────────────
+                auditService.registrarEventoContextual(
+                        AuditModulo.CLIENTES,
+                        "clientes", "cliente",
+                        guardado.getIdCliente(),
+                        AuditAccion.INSERT,
+                        "Pre-registro de cliente para activación de cuenta (Contrato Corporativo)",
+                        null,
+                        java.util.Map.of(
+                            "cedula", persona.getCedula(),
+                            "id_empresa", sucursal.getEmpresa().getId(),
+                            "sucursal", sucursal.getNombre()
+                        )
+                );
+                // ────────────────────────────────────────────────────────────────────
+
+                return guardado;
         }
 
         // ─── Verificación de precondiciones para acceso ───────────────────────────

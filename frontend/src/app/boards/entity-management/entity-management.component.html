@@ -104,32 +104,159 @@
         </header>
 
         <div class="panel-body">
-            <div class="panel-action-bar mb-4">
-                <button class="btn-add-sucursal w-100" (click)="openSucursalModal()">
-                    <i class="bi bi-plus-lg me-2"></i>Agregar Nueva Sede
+            <div class="panel-navigation-premium mb-4">
+                <button class="nav-segment" [class.active]="viewMode === 'SUCURSALES'" (click)="setViewMode('SUCURSALES')">
+                    <i class="bi bi-diagram-3 me-2"></i>Sedes / Sucursales
+                </button>
+                <button class="nav-segment" [class.active]="viewMode === 'CLIENTES'" (click)="setViewMode('CLIENTES')">
+                    <i class="bi bi-people me-2"></i>Clientes / Contratos
                 </button>
             </div>
 
-            <div *ngIf="loadingSucursales" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
+            <!-- Branch List View -->
+            <div *ngIf="viewMode === 'SUCURSALES'" class="animate-fade-in">
+                <div class="panel-action-bar mb-4">
+                    <button class="btn-add-sucursal w-100" (click)="openSucursalModal()">
+                        <i class="bi bi-plus-lg me-2"></i>Agregar Nueva Sede
+                    </button>
+                </div>
+
+                <div *ngIf="loadingSucursales" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+
+                <div class="sucursales-list" *ngIf="!loadingSucursales">
+                    <div class="sucursal-item-card" *ngFor="let suc of sucursales">
+                        <div class="sucursal-icon"><i class="bi bi-geo-alt"></i></div>
+                        <div class="sucursal-info">
+                            <h4>{{ suc.nombre }}</h4>
+                            <p>{{ suc.direccion }}</p>
+                            <span class="sucursal-extra"><i class="bi bi-phone me-1"></i> {{ suc.telefono || 'Sin tel.' }}</span>
+                        </div>
+                        <button class="btn-edit-sucursal" (click)="openSucursalModal(suc)"><i class="bi bi-pencil-square"></i></button>
+                    </div>
+                    
+                    <div *ngIf="sucursales.length === 0" class="empty-sucursal-note">
+                        <p>No hay sedes operativas registradas.</p>
+                    </div>
+                </div>
             </div>
 
-            <div class="sucursales-list" *ngIf="!loadingSucursales">
-                <div class="sucursal-item-card" *ngFor="let suc of sucursales">
-                    <div class="sucursal-icon"><i class="bi bi-geo-alt"></i></div>
-                    <div class="sucursal-info">
-                        <h4>{{ suc.nombre }}</h4>
-                        <p>{{ suc.direccion }}</p>
-                        <span class="sucursal-extra"><i class="bi bi-phone me-1"></i> {{ suc.telefono || 'Sin tel.' }}</span>
-                    </div>
-                    <button class="btn-edit-sucursal" (click)="openSucursalModal(suc)"><i class="bi bi-pencil-square"></i></button>
+            <!-- Client List View -->
+            <div *ngIf="viewMode === 'CLIENTES'" class="animate-fade-in">
+                <div class="panel-action-bar mb-4 d-flex gap-2">
+                    <button class="btn-add-client-premium flex-grow-1" (click)="openClienteModal()">
+                        <i class="bi bi-person-plus-fill me-2"></i>Pre-registrar
+                    </button>
+                    <button class="btn-import-excel" (click)="fileInput.click()" [disabled]="importingClientes">
+                        <i class="bi bi-file-earmark-excel me-2"></i>
+                        {{ importingClientes ? 'Cargando...' : 'Importar' }}
+                    </button>
+                    <input type="file" #fileInput (change)="onClientImportSelected($event)" accept=".xlsx, .xls, .csv" style="display: none">
                 </div>
-                
-                <div *ngIf="sucursales.length === 0" class="empty-sucursal-note">
-                    <p>No hay sedes operativas registradas.</p>
+
+                <div *ngIf="importMessage" class="import-feedback animate-fade-in" [class.error]="importError">
+                    <i class="bi" [class.bi-check-circle-fill]="!importError" [class.bi-exclamation-triangle-fill]="importError"></i>
+                    {{ importMessage }}
+                </div>
+
+                <div *ngIf="loadingClientes" class="text-center py-5">
+                    <div class="spinner-premium mx-auto"></div>
+                    <p class="mt-2 text-muted">Cargando contratos activos...</p>
+                </div>
+
+                <div class="clients-list" *ngIf="!loadingClientes">
+                    <div class="client-contract-card" *ngFor="let cl of clientes">
+                        <div class="client-info">
+                            <div class="client-name-row">
+                                <span class="client-name">{{ cl.persona?.nombre }} {{ cl.persona?.apellido }}</span>
+                                <span class="contract-status-pill">CONTRATO ACTIVO</span>
+                            </div>
+                            <div class="client-id"><i class="bi bi-card-text me-1"></i> {{ cl.persona?.cedula }}</div>
+                            <div class="client-email"><i class="bi bi-envelope me-1"></i> {{ cl.persona?.correo || 'Sin correo' }}</div>
+                            <div class="client-sucursal-tag"><i class="bi bi-building me-1"></i> {{ cl.sucursal?.nombre }}</div>
+                        </div>
+                    </div>
+                    
+                    <div *ngIf="clientes.length === 0" class="empty-state-clients text-center py-5">
+                        <i class="bi bi-people display-4 opacity-10 mb-2"></i>
+                        <p>No hay clientes registrados bajo esta entidad.</p>
+                        <small class="text-muted">Añada clientes para que puedan activar su cuenta en el portal.</small>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal Pre-registro de Clientes -->
+<div class="modal-overlay-custom" *ngIf="showClienteModal" (click)='showClienteModal = false'>
+    <div class="modal-content-premium animate-pop client-modal-size" (click)="$event.stopPropagation()">
+        <header class="modal-header-premium client-header">
+            <div class="d-flex align-items-center">
+                <div class="header-icon-client me-3"><i class="bi bi-person-check-fill"></i></div>
+                <div>
+                    <h3 class="mb-0">Pre-registro de Cliente</h3>
+                    <p class="mb-0 small opacity-75">Habilita la activación para este ciudadano</p>
+                </div>
+            </div>
+            <button (click)="showClienteModal = false" class="btn-close-modal"><i class="bi bi-x"></i></button>
+        </header>
+        
+        <div class="modal-body-premium">
+            <div class="form-section-title">Datos Personales</div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-12">
+                    <label class="premium-label">Cédula de Identidad / RUC</label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-card-text"></i>
+                        <input type="text" class="premium-input ps-5" [(ngModel)]="newCliente.cedula" placeholder="17xxxxxxx">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="premium-label">Nombres</label>
+                    <input type="text" class="premium-input" [(ngModel)]="newCliente.nombre">
+                </div>
+                <div class="col-md-6">
+                    <label class="premium-label">Apellidos</label>
+                    <input type="text" class="premium-input" [(ngModel)]="newCliente.apellido">
+                </div>
+                <div class="col-md-6">
+                    <label class="premium-label">Correo Electrónico</label>
+                    <input type="email" class="premium-input" [(ngModel)]="newCliente.correo">
+                </div>
+                <div class="col-md-6">
+                    <label class="premium-label">Número de Celular</label>
+                    <input type="text" class="premium-input" [(ngModel)]="newCliente.celular">
+                </div>
+            </div>
+
+            <div class="form-section-title">Detalles del Contrato / Servicio</div>
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="premium-label">Sede / Sucursal de Atención</label>
+                    <select class="premium-select" [(ngModel)]="newCliente.idSucursal">
+                        <option *ngFor="let suc of sucursales" [value]="suc.id">{{ suc.nombre }}</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="premium-label">Fecha Inicio Contrato</label>
+                    <input type="date" class="premium-input" [(ngModel)]="newCliente.fechaInicioContrato">
+                </div>
+                <div class="col-md-6">
+                    <label class="premium-label">Fecha Fin (Opcional)</label>
+                    <input type="date" class="premium-input" [(ngModel)]="newCliente.fechaFinContrato">
+                </div>
+            </div>
+        </div>
+
+        <footer class="modal-footer-premium">
+            <button class="btn-cancel" (click)="showClienteModal = false">Descartar</button>
+            <button class="btn-save-client-premium" (click)="saveCliente()" [disabled]="savingCliente">
+                <i class="bi bi-check2-circle me-2"></i>
+                {{ savingCliente ? 'Procesando...' : 'Pre-registrar Cliente' }}
+            </button>
+        </footer>
     </div>
 </div>
 
@@ -141,30 +268,45 @@
             <button (click)="showEmpresaModal = false" class="btn-close-modal"><i class="bi bi-x"></i></button>
         </header>
         <div class="modal-body-premium">
-            <div class="row g-3">
-                <div class="col-12">
+            <div class="row g-4">
+                <div class="col-md-12">
                     <label class="premium-label">Nombre Comercial</label>
                     <input type="text" class="premium-input" [(ngModel)]="newEmpresa.nombreComercial" placeholder="Eje: Netlife Matriz">
                 </div>
-                <!-- ... other fields ... -->
-                <div class="col-md-6">
-                    <label class="premium-label">RUC</label>
-                    <input type="text" class="premium-input" [(ngModel)]="newEmpresa.ruc">
+                
+                <div class="col-md-12">
+                    <label class="premium-label">Razón Social</label>
+                    <input type="text" class="premium-input" [(ngModel)]="newEmpresa.razonSocial" placeholder="Nombre legal completo">
                 </div>
+
                 <div class="col-md-6">
-                    <label class="premium-label">Tipo</label>
+                    <label class="premium-label">RUC / Identificación</label>
+                    <input type="text" class="premium-input" [(ngModel)]="newEmpresa.ruc" placeholder="17xxxxxxxx001">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="premium-label">Tipo de Entidad</label>
                     <select class="premium-select" [(ngModel)]="newEmpresa.tipoEmpresa">
-                        <option value="PRIVADA">Privada</option>
-                        <option value="PUBLICA">Pública</option>
+                        <option value="PRIVADA">Privada / ISP</option>
+                        <option value="PUBLICA">Pública / Estatal</option>
                     </select>
                 </div>
+
                 <div class="col-md-6">
-                    <label class="premium-label">Correo</label>
-                    <input type="email" class="premium-input" [(ngModel)]="newEmpresa.correoContacto">
+                    <label class="premium-label">Correo de Contacto</label>
+                    <input type="email" class="premium-input" [(ngModel)]="newEmpresa.correoContacto" placeholder="admin@empresa.com">
                 </div>
+
                 <div class="col-md-6">
                     <label class="premium-label">Teléfono</label>
-                    <input type="text" class="premium-input" [(ngModel)]="newEmpresa.telefonoContacto">
+                    <input type="text" class="premium-input" [(ngModel)]="newEmpresa.telefonoContacto" placeholder="+593 ...">
+                </div>
+
+                <div class="col-md-12" *ngIf="isEditingEmpresa">
+                    <label class="premium-label">Estado Operativo</label>
+                    <select class="premium-select" [(ngModel)]="newEmpresa.idEstado">
+                        <option *ngFor="let est of estadosGenerales" [value]="est.id">{{ est.nombre }}</option>
+                    </select>
                 </div>
             </div>
         </div>
