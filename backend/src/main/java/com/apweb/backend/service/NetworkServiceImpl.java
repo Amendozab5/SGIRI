@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,10 @@ public class NetworkServiceImpl implements NetworkService {
 
     @Override
     public List<NetworkMapDTO> getNetworkMapData(String zoneType) {
+        // --- SEGURIDAD: Los clientes no tienen acceso a datos de mapas globales ---
+        if (isCliente()) {
+            return new ArrayList<>();
+        }
 
         // 1. Fetch latest network stats
         Optional<NetworkProbeRun> latestRunOpt = runRepository.findTopByOrderByCreatedAtDesc();
@@ -234,6 +240,10 @@ public class NetworkServiceImpl implements NetworkService {
 
     @Override
     public List<HeatmapPointDTO> getHeatmapData() {
+        // --- SEGURIDAD: Los clientes no tienen acceso a datos de mapas globales ---
+        if (isCliente()) {
+            return new ArrayList<>();
+        }
         List<HeatmapPointDTO> points = new ArrayList<>();
         String ticketSql = "SELECT t.asunto as label, " +
                 "COALESCE(t.latitud, s.latitud) as latitud, " +
@@ -264,5 +274,12 @@ public class NetworkServiceImpl implements NetworkService {
             points.add(new HeatmapPointDTO(new java.math.BigDecimal("-0.9621"), new java.math.BigDecimal("-80.7127"), 0.6, "Manta (MOCK)"));
         }
         return points;
+    }
+
+    private boolean isCliente() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE"));
     }
 }

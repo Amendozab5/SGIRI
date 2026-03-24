@@ -53,9 +53,17 @@ public class UserService {
                                 : Collections.emptyList();
 
                 Long conteoIncidencias = ticketRepository.countTicketsByTecnico(user);
-                String nombreArea = empleadoRepository.findByPersona_User_Id(user.getId())
-                                .map(e -> e.getArea() != null ? e.getArea().getNombre() : "N/A")
-                                .orElse("N/A");
+                
+                // --- MEJORA PROFESIONAL: Solo buscar área si NO es cliente ---
+                String nombreArea = "N/A";
+                boolean esCliente = user.getRole() != null && "CLIENTE".equals(user.getRole().getCodigo());
+
+                if (!esCliente) {
+                    nombreArea = empleadoRepository.findByPersona_User_Id(user.getId())
+                                    .map(e -> e.getArea() != null ? e.getArea().getNombre() : "N/A")
+                                    .orElse("N/A");
+                }
+                // -----------------------------------------------------------
 
                 if (persona != null) {
                         return new UserProfileResponse(

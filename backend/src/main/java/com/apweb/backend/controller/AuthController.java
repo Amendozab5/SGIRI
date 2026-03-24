@@ -201,20 +201,11 @@ public class AuthController {
             }
 
             // Continuar con la creación del usuario si todo es válido
-            // Llamar a las funciones de PostgreSQL para obtener el username y password
-            // según las nuevas reglas de la base de datos "virgen"
+            // Invocamos a la función de base de datos que crea el usuario aplicativo, relacional y físico (PostgreSQL ROLE)
+            log.info("Invocando fn_crear_usuario_cliente para cedula: {} con Rol: {}", cedula, "CLIENTE");
+            
             int anioNacimiento = (persona.getFechaNacimiento() != null) ? persona.getFechaNacimiento().getYear() : 1990;
-
-            Query query = entityManager.createNativeQuery(
-                    "SELECT f.r_username, f.r_password_plano, f.r_password_hash FROM usuarios.fn_generar_credenciales(:cedula, :anio) f");
-            query.setParameter("cedula", persona.getCedula());
-            query.setParameter("anio", anioNacimiento);
-
-            Object[] results = (Object[]) query.getSingleResult();
-            String generatedUsername = (String) results[0];
-            String tempPassword = (String) results[1]; // Password plano para el correo
-            String passwordHash = (String) results[2]; // Password ya hasheado por la DB
-
+            
             Role userRole = roleRepository.findByCodigo("CLIENTE")
                     .orElseThrow(() -> new RuntimeException(
                             "Error: Rol 'CLIENTE' no encontrado en la base de datos. Verifique la tabla usuarios.rol."));
@@ -222,19 +213,30 @@ public class AuthController {
             com.apweb.backend.model.CatalogoItem estadoActivo = catalogoItemRepository.findFirstByCodigo("ACTIVO")
                     .orElseThrow(() -> new RuntimeException("Error: Estado 'ACTIVO' no encontrado."));
 
-            User user = new User();
-            user.setUsername(generatedUsername);
-            user.setPassword(passwordHash); // Usamos el hash que generó la DB
-            user.setRole(userRole);
-            user.setEstado(estadoActivo);
-            user.setPrimerLogin(true);
-            user.setIdEmpresa(idEmpresa);
+            Query creationQuery = entityManager.createNativeQuery(
+                    "SELECT r_id_usuario, r_username, r_password_plano FROM usuarios.fn_crear_usuario_cliente(:cedula, :anio, :idRol, :idEmpresa, :idEstado)");
+            
+            creationQuery.setParameter("cedula", persona.getCedula());
+            creationQuery.setParameter("anio", anioNacimiento);
+            creationQuery.setParameter("idRol", userRole.getId());
+            creationQuery.setParameter("idEmpresa", idEmpresa);
+            creationQuery.setParameter("idEstado", estadoActivo.getId());
 
-            User savedUser = userRepository.save(user);
+            Object[] results = (Object[]) creationQuery.getSingleResult();
+            
+            Integer idUsuarioCreado = (Integer) results[0];
+            String generatedUsername = (String) results[1];
+            String tempPassword = (String) results[2]; 
 
-            // Actualizar la persona para vincularla al nuevo usuario
+            log.info("Usuario creado por DB con ID: {} y Username: {}", idUsuarioCreado, generatedUsername);
+
+            // Vinculamos la Persona con el nuevo Usuario creado (el ID ya existe en usuarios.usuario)
+            User savedUser = userRepository.findById(idUsuarioCreado)
+                    .orElseThrow(() -> new RuntimeException("Error: El usuario no fue encontrado tras su creación en DB."));
+            
             persona.setUser(savedUser);
             personaRepository.save(persona);
+
 
             log.info("User created successfully: {}. Attempting to send welcome email...", generatedUsername);
 

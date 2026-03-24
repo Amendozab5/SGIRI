@@ -11,6 +11,7 @@ import java.util.List;
 public interface InformeTrabajoTecnicoRepository extends JpaRepository<InformeTrabajoTecnico, Integer> {
     Optional<InformeTrabajoTecnico> findByTicket_IdTicket(Integer idTicket);
     List<InformeTrabajoTecnico> findByTicket_IdTicketOrderByIdInformeDesc(Integer idTicket);
+    List<InformeTrabajoTecnico> findByResultado(String resultado);
 
     @org.springframework.data.jpa.repository.Query("SELECT i.implementosUsados FROM InformeTrabajoTecnico i WHERE i.resultado = 'RESUELTO'")
     List<String> findAllResolvedImplementos();

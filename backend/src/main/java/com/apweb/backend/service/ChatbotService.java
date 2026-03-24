@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.apweb.backend.repository.RoleRepository;
+import com.apweb.backend.repository.InformeTrabajoTecnicoRepository;
+import com.apweb.backend.model.InformeTrabajoTecnico;
 import java.util.*;
 
 @Service
@@ -29,22 +31,27 @@ public class ChatbotService {
     @Autowired
     private CatalogoItemRepository catalogoItemRepository;
 
+    @Autowired
+    private InformeTrabajoTecnicoRepository informeRepository;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=";
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=";
 
     private static final String SYSTEM_PROMPT = 
-        "Eres 'Giri', el asistente virtual de soporte técnico de SGIRI. " +
-        "Tu personalidad es amable, servicial y ligeramente tecnológica (puedes usar algún emoji ocasionalmente). " +
-        "Tu objetivo es ayudar al cliente a resolver problemas de internet remotamente.\n\n" +
+        "Eres 'Giri', el asistente virtual experto de soporte técnico de SGIRI. " +
+        "Tu misión es ayudar a los clientes a resolver problemas con su servicio de Internet, basándote PRIMERO en el historial de soluciones exitosas de la empresa.\n\n" +
+        "CONOCIMIENTO MAESTRO (Base de Datos de SGIRI):\n" +
+        "A continuación se te proporcionarán ejemplos de reportes técnicos reales de incidencias pasadas y cómo se resolvieron. " +
+        "Siempre que el problema del cliente coincida con algún reporte histórico, DEBES sugerir los pasos que el técnico aplicó en ese entonces.\n\n" +
         "REGLAS DE RESPUESTA:\n" +
-        "1. SALUDO: Si el usuario te saluda, salúdalo amablemente por su nombre (si lo sabes) o como 'estimado cliente'. NO escales a técnico en este primer paso aunque veas problemas en la descripción inicial; primero interactúa.\n" +
-        "2. BOTONES: Siempre que ofrezcas opciones o pasos a seguir, añade al final de tu mensaje una lista de botones en este formato exacto: " +
-        "[BOT_BUTTONS: Opción 1 | Opción 2 | Opción 3]. Esto ayuda al usuario a responder rápido.\n" +
-        "3. RESTRICCIÓN: Solo hablas de servicios de internet/red de SGIRI. Si preguntan otra cosa, declina amablemente.\n" +
-        "4. ESCALADO: Si detectas un daño físico irreparable (cables rotos, equipos quemados) o si el usuario pide un humano tras 2 intentos fallidos, informa al usuario que el caso requiere ser atendido presencialmente y ofrece el botón 'Solicitar Visita Técnica'.\n" +
-        "5. RESOLUCIÓN: Si el usuario confirma que el problema se solucionó o agradece porque ya tiene servicio, despídete amablemente. Usa el botón 'Finalizar chat' y añade la etiqueta: [RESOLUCION_SOPORTE].\n" +
-        "6. Sé conciso: Máximo 2 párrafos cortos por respuesta.";
+        "1. PRIORIDAD: Usa el historial técnico adjunto antes que cualquier conocimiento general. No digas 'Busqué en nuestra base de datos', simplemente actúa como el experto que ya sabe la solución.\n" +
+        "2. SALUDO: Sé amable. Saluda al cliente por su nombre si está disponible.\n" +
+        "3. INTERACCIÓN: No escales a visita técnica de inmediato. Intenta guiar al usuario a través de 1 o 2 pasos de solución lógica basados en el conocimiento previo.\n" +
+        "4. BOTONES: Siempre incluye botones de respuesta rápida al final: [BOT_BUTTONS: Sí, funcionó | Sigo sin internet | Hablar con un técnico].\n" +
+        "5. ESCALADO: Si detectas que el problema requiere intervención física (ej: cambio de cable, equipo quemado) o el usuario no logra resolverlo tras tus sugerencias, ofrece el botón 'Solicitar Visita Técnica'.\n" +
+        "6. CIERRE: Si el problema se resuelve, usa [RESOLUCION_SOPORTE] y el botón 'Finalizar chat'.\n" +
+        "7. CONCISIÓN: Máximo 2 párrafos cortos.";
 
 
     public String getAiResponse(Ticket ticket, String clientMessage) {
@@ -54,26 +61,50 @@ public class ChatbotService {
             return "ERROR: KEY_NOT_CONFIGURED";
         }
 
-        // 1. Prepare context
+        // 1. Prepare context with RAG
         String context = buildContext(ticket, clientMessage);
-        System.out.println("[CHATBOT_LOG] Context built. Size: " + context.length());
-
+        
         // 2. Call Gemini
-        String response = callGemini(context);
-        System.out.println("[CHATBOT_LOG] AI Response received (first 50 chars): " + (response.length() > 50 ? response.substring(0, 50) : response));
-        return response;
+        return callGemini(context);
     }
 
     private String buildContext(Ticket ticket, String currentMessage) {
         StringBuilder sb = new StringBuilder();
+        
+        // 1. Start with the Core Identity
         sb.append(SYSTEM_PROMPT).append("\n\n");
-        sb.append("Detalles del Ticket:\n");
-        sb.append("Asunto: ").append(ticket.getAsunto()).append("\n");
-        sb.append("Descripción Inicial: ").append(ticket.getDescripcion()).append("\n\n");
-        sb.append("Historial de chat:\n");
+        
+        // 2. Add Knowledge Base (RAG Part)
+        sb.append("--- BASE DE CONOCIMIENTO TÉCNICO (Casos Reales de SGIRI) ---\n");
+        List<InformeTrabajoTecnico> historico = informeRepository.findByResultado("RESUELTO");
+        if (historico.isEmpty()) {
+            sb.append("- No hay reportes técnicos previos aún.\n");
+        } else {
+            // Include only the last 10 historical cases to keep prompt size reasonable
+            int limit = Math.min(historico.size(), 10);
+            for (int i = 0; i < limit; i++) {
+                InformeTrabajoTecnico inf = historico.get(i);
+                sb.append("CASO ").append(i + 1).append(":\n");
+                sb.append("- Problema hallado: ").append(inf.getProblemasEncontrados()).append("\n");
+                sb.append("- Solución aplicada: ").append(inf.getSolucionAplicada()).append("\n");
+                sb.append("- Detalle técnico: ").append(inf.getComentarioTecnico()).append("\n");
+                sb.append("----------------------------\n");
+            }
+        }
+        sb.append("\n");
 
+        // 3. Current Ticket Context
+        sb.append("--- CONTEXTO DEL CASO ACTUAL ---\n");
+        String clientName = (ticket.getCliente() != null && ticket.getCliente().getPersona() != null) 
+            ? ticket.getCliente().getPersona().getNombre() + " " + ticket.getCliente().getPersona().getApellido()
+            : "Cliente Desconocido";
+        sb.append("Nombre del Cliente: ").append(clientName).append("\n");
+        sb.append("Asunto: ").append(ticket.getAsunto()).append("\n");
+        sb.append("Descripción del problema: ").append(ticket.getDescripcion()).append("\n\n");
+        
+        // 4. Chat History
+        sb.append("--- HISTORIAL DE ESTA CONVERSACIÓN ---\n");
         if (ticket.getComentarios() != null) {
-            // Sort comments by date to ensure context order
             List<ComentarioTicket> comments = new ArrayList<>(ticket.getComentarios());
             comments.sort(Comparator.comparing(ComentarioTicket::getFechaCreacion));
             
@@ -86,11 +117,17 @@ public class ChatbotService {
         }
         sb.append("CLIENTE: ").append(currentMessage).append("\n");
         sb.append("BOT: ");
+        
         return sb.toString();
     }
 
     private String callGemini(String prompt) {
         try {
+            // LOG the full prompt
+            System.out.println("--- PROMPT ENVIADO A GEMINI ---");
+            System.out.println(prompt);
+            System.out.println("--- FIN DEL PROMPT ---");
+
             String url = GEMINI_URL + apiKey;
 
             Map<String, Object> part = new HashMap<>();

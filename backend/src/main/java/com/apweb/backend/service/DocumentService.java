@@ -76,74 +76,84 @@ public class DocumentService {
         CatalogoItem estadoActivo = catalogoItemRepository.findFirstByCodigo("ACTIVO")
                 .orElseThrow(() -> new RuntimeException("Estado 'ACTIVO' no encontrado."));
 
-        // Check if user is Empleado
-        Optional<Empleado> empleadoOpt = empleadoRepository.findByPersona_Cedula(persona.getCedula());
-        if (empleadoOpt.isPresent()) {
-            Empleado empleado = empleadoOpt.get();
-            DocumentoEmpleado doc = documentoEmpleadoRepository
-                    .findByEmpleado_IdEmpleadoAndTipoDocumento_Codigo(empleado.getIdEmpleado(), "FOTO")
-                    .orElse(new DocumentoEmpleado());
+        // --- MEJORA PROFESIONAL: Solo buscar rastro de Empleado si NO es cliente ---
+        boolean esCliente = user.getRole() != null && "CLIENTE".equals(user.getRole().getCodigo());
 
-            // Si ya tiene una foto en Cloudinary, borrarla
-            if (doc.getRutaArchivo() != null) {
-                cloudinaryService.delete(doc.getRutaArchivo());
+        if (!esCliente) {
+            // Check if user is Empleado
+            Optional<Empleado> empleadoOpt = empleadoRepository.findByPersona_Cedula(persona.getCedula());
+            if (empleadoOpt.isPresent()) {
+                Empleado empleado = empleadoOpt.get();
+                DocumentoEmpleado doc = documentoEmpleadoRepository
+                        .findByEmpleado_IdEmpleadoAndTipoDocumento_Codigo(empleado.getIdEmpleado(), "FOTO")
+                        .orElse(new DocumentoEmpleado());
+
+                // Si ya tiene una foto en Cloudinary, borrarla
+                if (doc.getRutaArchivo() != null) {
+                    cloudinaryService.delete(doc.getRutaArchivo());
+                }
+
+                doc.setEmpleado(empleado);
+                doc.setTipoDocumento(tipoDoc);
+                doc.setRutaArchivo(fileName);
+                doc.setCedulaEmpleado(persona.getCedula());
+                doc.setNumeroDocumento(persona.getCedula()); // Requerido por la restricción NOT NULL
+                doc.setDescripcion("Foto de perfil");
+                doc.setEstado(estadoActivo);
+                documentoEmpleadoRepository.save(doc);
+
+                // ── AUDITORÍA: Foto Perfil Empleado ──────────────────────────────────
+                auditService.registrarEventoContextual(
+                        AuditModulo.PERFIL,
+                        "empleados", "documento_empleado",
+                        empleado.getIdEmpleado(),
+                        AuditAccion.UPLOAD_DOCUMENTO,
+                        "Carga de foto de perfil (Empleado)",
+                        null,
+                        java.util.Map.of("unique_filename", fileName)
+                );
+                return;
             }
-
-            doc.setEmpleado(empleado);
-            doc.setTipoDocumento(tipoDoc);
-            doc.setRutaArchivo(fileName);
-            doc.setCedulaEmpleado(persona.getCedula());
-            doc.setNumeroDocumento(persona.getCedula()); // Requerido por la restricción NOT NULL
-            doc.setDescripcion("Foto de perfil");
-            doc.setEstado(estadoActivo);
-            documentoEmpleadoRepository.save(doc);
-
-            // ── AUDITORÍA: Foto Perfil Empleado ──────────────────────────────────
-            auditService.registrarEventoContextual(
-                    AuditModulo.PERFIL,
-                    "empleados", "documento_empleado",
-                    empleado.getIdEmpleado(),
-                    AuditAccion.UPLOAD_DOCUMENTO,
-                    "Carga de foto de perfil (Empleado)",
-                    null,
-                    java.util.Map.of("unique_filename", fileName)
-            );
-            return;
         }
+        // -------------------------------------------------------------------------
 
-        // Check if user is Cliente
-        Optional<Cliente> clienteOpt = clienteRepository.findByPersona_Cedula(persona.getCedula());
-        if (clienteOpt.isPresent()) {
-            Cliente cliente = clienteOpt.get();
-            DocumentoCliente doc = documentoClienteRepository
-                    .findByCliente_IdClienteAndTipoDocumento_Codigo(cliente.getIdCliente(), "FOTO")
-                    .orElse(new DocumentoCliente());
+        // --- MEJORA PROFESIONAL: Solo buscar rastro de Cliente si ES cliente ---
+        if (esCliente) {
+            // Check if user is Cliente
+            Optional<Cliente> clienteOpt = clienteRepository.findByPersona_Cedula(persona.getCedula());
+            if (clienteOpt.isPresent()) {
+                Cliente cliente = clienteOpt.get();
+                DocumentoCliente doc = documentoClienteRepository
+                        .findByCliente_IdClienteAndTipoDocumento_Codigo(cliente.getIdCliente(), "FOTO")
+                        .orElse(new DocumentoCliente());
 
-            // Si ya tiene una foto en Cloudinary, borrarla
-            if (doc.getRutaArchivo() != null) {
-                cloudinaryService.delete(doc.getRutaArchivo());
+                // Si ya tiene una foto en Cloudinary, borrarla
+                if (doc.getRutaArchivo() != null) {
+                    cloudinaryService.delete(doc.getRutaArchivo());
+                }
+
+                doc.setCliente(cliente);
+                doc.setTipoDocumento(tipoDoc);
+                doc.setRutaArchivo(fileName);
+                doc.setNumeroDocumento(persona.getCedula());
+                doc.setDescripcion("Foto de perfil");
+                doc.setEstado(estadoActivo);
+                documentoClienteRepository.save(doc);
+
+                // ── AUDITORÍA: Foto Perfil Cliente ───────────────────────────────────
+                auditService.registrarEventoContextual(
+                        AuditModulo.PERFIL,
+                        "catalogos", "documento_cliente",
+                        cliente.getIdCliente(),
+                        AuditAccion.UPLOAD_DOCUMENTO,
+                        "Carga de foto de perfil (Cliente)",
+                        null,
+                        java.util.Map.of("unique_filename", fileName)
+                );
+                return;
             }
-
-            doc.setCliente(cliente);
-            doc.setTipoDocumento(tipoDoc);
-            doc.setRutaArchivo(fileName);
-            doc.setNumeroDocumento(persona.getCedula());
-            doc.setDescripcion("Foto de perfil");
-            doc.setEstado(estadoActivo);
-            documentoClienteRepository.save(doc);
-
-            // ── AUDITORÍA: Foto Perfil Cliente ───────────────────────────────────
-            auditService.registrarEventoContextual(
-                    AuditModulo.PERFIL,
-                    "catalogos", "documento_cliente",
-                    cliente.getIdCliente(),
-                    AuditAccion.UPLOAD_DOCUMENTO,
-                    "Carga de foto de perfil (Cliente)",
-                    null,
-                    java.util.Map.of("unique_filename", fileName)
-            );
-            return;
         }
+        // -------------------------------------------------------------------------
 
         throw new RuntimeException(
                 "El usuario no está registrado como Empleado o Cliente para asignar documentos.");
@@ -155,21 +165,26 @@ public class DocumentService {
         if (user == null || user.getPersona() == null) return null;
 
         Persona persona = user.getPersona();
+        boolean esCliente = user.getRole() != null && "CLIENTE".equals(user.getRole().getCodigo());
 
-        Optional<Empleado> empleadoOpt = empleadoRepository.findByPersona_Cedula(persona.getCedula());
-        if (empleadoOpt.isPresent()) {
-            Optional<DocumentoEmpleado> doc = documentoEmpleadoRepository
-                    .findByEmpleado_IdEmpleadoAndTipoDocumento_Codigo(
-                            empleadoOpt.get().getIdEmpleado(), "FOTO");
-            if (doc.isPresent()) return doc.get().getRutaArchivo();
+        if (!esCliente) {
+            Optional<Empleado> empleadoOpt = empleadoRepository.findByPersona_Cedula(persona.getCedula());
+            if (empleadoOpt.isPresent()) {
+                Optional<DocumentoEmpleado> doc = documentoEmpleadoRepository
+                        .findByEmpleado_IdEmpleadoAndTipoDocumento_Codigo(
+                                empleadoOpt.get().getIdEmpleado(), "FOTO");
+                if (doc.isPresent()) return doc.get().getRutaArchivo();
+            }
         }
 
-        Optional<Cliente> clienteOpt = clienteRepository.findByPersona_Cedula(persona.getCedula());
-        if (clienteOpt.isPresent()) {
-            Optional<DocumentoCliente> doc = documentoClienteRepository
-                    .findByCliente_IdClienteAndTipoDocumento_Codigo(
-                            clienteOpt.get().getIdCliente(), "FOTO");
-            if (doc.isPresent()) return doc.get().getRutaArchivo();
+        if (esCliente) {
+            Optional<Cliente> clienteOpt = clienteRepository.findByPersona_Cedula(persona.getCedula());
+            if (clienteOpt.isPresent()) {
+                Optional<DocumentoCliente> doc = documentoClienteRepository
+                        .findByCliente_IdClienteAndTipoDocumento_Codigo(
+                                clienteOpt.get().getIdCliente(), "FOTO");
+                if (doc.isPresent()) return doc.get().getRutaArchivo();
+            }
         }
 
         return null;
