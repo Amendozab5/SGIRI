@@ -36,7 +36,7 @@ public class ChatbotService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=";
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=";
 
     private static final String SYSTEM_PROMPT = 
         "Eres 'Giri', el asistente virtual experto de soporte técnico de SGIRI. " +
