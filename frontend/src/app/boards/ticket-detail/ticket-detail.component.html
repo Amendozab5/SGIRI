@@ -77,15 +77,15 @@
                             <i class="bi bi-arrow-left-right"></i> REASIGNAR
                         </button>
 
-                        <!-- HOJA DE SERVICIO DIGITAL: Para técnico/admin cuando EN_PROCESO, RESUELTO o CERRADO -->
-                        <button type="button" *ngIf="canShowHojaServicio"
-                            (click)="openSignatureModal()"
-                            class="btn-action btn-hoja-servicio"
-                            [disabled]="loading || hojaServicioGenerating">
-                            <span *ngIf="!hojaServicioGenerating">✍️ Hoja de Servicio</span>
-                            <span *ngIf="hojaServicioGenerating">
-                                <i class="bi bi-hourglass-split"></i> Generando...
-                            </span>
+                        <!-- HOJA DE SERVICIO DIGITAL -->
+                        <button type="button" *ngIf="canShowHojaServicio" (click)="openSignatureModal()" class="btn-action btn-hoja-servicio" [disabled]="loading || hojaServicioGenerating">
+                            <span *ngIf="!hojaServicioGenerating">✍️ {{ isCliente ? 'Confirmar Servicio' : 'Hoja de Servicio' }}</span>
+                            <span *ngIf="hojaServicioGenerating"><i class="bi bi-hourglass-split"></i> {{ isCliente ? 'Enviando...' : 'Generando...' }}</span>
+                        </button>
+
+                        <!-- FINAL REPORT GENERATION (Only if both signatures are present) -->
+                        <button type="button" *ngIf="canGenerateFinalPdf" (click)="generarHojaFinal()" class="btn-action btn-final-report animate-pulse" [disabled]="loading || hojaServicioGenerating">
+                            <span>📄 Generar PDF Final</span>
                         </button>
                     </ng-container>
 
@@ -880,15 +880,98 @@
         </ng-container> <!-- closes ng-container L18 -->
     </div> <!-- closes ticket-detail-view L10 -->
 
-    <!-- Hoja de Servicio Digital — Signature Pad Modal -->
-    <app-signature-pad
-        *ngIf="showSignatureModal"
-        [title]="signatureStep === 1 ? 'Firma del Técnico' : 'Firma del Cliente'"
-        [subtitle]="signatureStep === 1 ? 'El técnico responsable debe firmar primero' : 'El cliente debe firmar para confirmar el servicio recibido'"
-        [confirmLabel]="signatureStep === 1 ? 'Continuar →' : 'Generar Hoja de Servicio'"
-        (firmaConfirmada)="onFirmaConfirmada($event)"
-        (cancelled)="closeSignatureModal()">
-    </app-signature-pad>
+    <!-- Hoja de Servicio Digital — Multi-step Signature Workflow -->
+    <ng-container *ngIf="showSignatureModal">
+        <!-- Step 1: Technician Signature -->
+        <app-signature-pad
+            *ngIf="signatureStep === 1"
+            title="Firma del Técnico"
+            subtitle="El técnico responsable debe firmar primero para avalar el reporte del servicio"
+            confirmLabel="Continuar →"
+            (firmaConfirmada)="onFirmaConfirmada($event)"
+            (cancelled)="closeSignatureModal()">
+        </app-signature-pad>
+
+        <!-- Step 2: Remote/Presencial Choice -->
+        <div class="sig-overlay" *ngIf="signatureStep === 2" (click)="closeSignatureModal()">
+            <div class="sig-modal" (click)="$event.stopPropagation()">
+                <div class="sig-header">
+                    <div class="sig-header-icon">📍</div>
+                    <div>
+                        <h2 class="sig-title">Tipo de Atención</h2>
+                        <p class="sig-subtitle">¿Cómo se realizó la solución de este ticket?</p>
+                    </div>
+                </div>
+                
+                <div class="p-3 border rounded-3 bg-light">
+                    <div class="form-check form-switch mb-3 d-flex align-items-center gap-3">
+                        <input class="form-check-input custom-switch-lg" type="checkbox" id="remoteSwitch" [(ngModel)]="isRemoteService">
+                        <label class="form-check-label fw-bold mb-0" for="remoteSwitch" style="font-size: 1.1rem; color: #1e2a4a;">
+                            {{ isRemoteService ? '🚀 Solución Remota' : '🏠 Solución Presencial' }}
+                        </label>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        {{ isRemoteService 
+                            ? 'Se generará el reporte sin firma del cliente inmediata. Se marcará como atención remota.' 
+                            : 'Se requerirá que el cliente ingrese sus credenciales (Login) para validar su identidad y firmar ahora.' }}
+                    </p>
+                </div>
+
+                <div class="sig-actions">
+                    <button class="sig-btn sig-btn-cancel" (click)="signatureStep = 1">Volver</button>
+                    <button class="sig-btn sig-btn-confirm" (click)="onRemoteSelectionConfirm()">
+                        Continuar <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Client Authentication -->
+        <div class="sig-overlay" *ngIf="signatureStep === 3" (click)="closeSignatureModal()">
+            <div class="sig-modal" (click)="$event.stopPropagation()">
+                <div class="sig-header">
+                    <div class="sig-header-icon">🔐</div>
+                    <div>
+                        <h2 class="sig-title">Validación del Cliente</h2>
+                        <p class="sig-subtitle">El cliente debe ingresar sus credenciales para firmar la conformidad.</p>
+                    </div>
+                </div>
+
+                <div class="auth-form-container p-2">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold uppercase">Nombre de Usuario / Correo</label>
+                        <input type="text" class="form-control rounded-pill px-3" [(ngModel)]="clientAuthUsername" placeholder="Ej: jper_ez" (keyup.enter)="loginClient()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold uppercase">Contraseña del Cliente</label>
+                        <input type="password" class="form-control rounded-pill px-3" [(ngModel)]="clientAuthPassword" placeholder="••••••••" (keyup.enter)="loginClient()">
+                    </div>
+                    
+                    <div *ngIf="clientAuthError" class="alert alert-danger py-2 mb-0 rounded-3 animate-fade-in">
+                        <i class="bi bi-exclamation-circle me-1"></i> {{ clientAuthError }}
+                    </div>
+                </div>
+
+                <div class="sig-actions">
+                    <button class="sig-btn sig-btn-cancel" (click)="signatureStep = 2" [disabled]="isAuthenticatingClient">Volver</button>
+                    <button class="sig-btn sig-btn-confirm" (click)="loginClient()" [disabled]="isAuthenticatingClient">
+                        <span *ngIf="!isAuthenticatingClient">Verificar Identidad <i class="bi bi-shield-lock-fill ms-1"></i></span>
+                        <span *ngIf="isAuthenticatingClient"><span class="spinner-border spinner-border-sm me-2"></span> Verificando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Client Signature -->
+        <app-signature-pad
+            *ngIf="signatureStep === 4"
+            title="Firma de Conformidad"
+            subtitle="El cliente debe firmar para confirmar la recepción satisfactoria del servicio"
+            confirmLabel="Finalizar y Generar Hoja"
+            (firmaConfirmada)="onFirmaConfirmada($event)"
+            (cancelled)="isCliente ? closeSignatureModal() : (signatureStep = 3)">
+        </app-signature-pad>
+    </ng-container>
 
     <!-- Feedback Toasts -->
     <div *ngIf="hojaServicioSuccess" class="hoja-toast hoja-toast-success">

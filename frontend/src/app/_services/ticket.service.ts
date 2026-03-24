@@ -139,4 +139,17 @@ export class TicketService {
       responseType: 'blob'
     });
   }
+
+  //Capturar los Blob para enviarla a las peticiones
+  saveFirmaTecnico(ticketId: number, firma: Blob): Observable<any> {
+    const formData = new FormData();
+    formData.append('firma', firma, 'firma_tecnico.png');
+    return this.http.post(`${API_URL}/${ticketId}/firma-tecnico`, formData);
+  }
+
+  saveFirmaCliente(ticketId: number, firma: Blob): Observable<any> {
+    const formData = new FormData();
+    formData.append('firma', firma, 'firma_cliente.png');
+    return this.http.post(`${API_URL}/${ticketId}/firma-cliente`, formData);
+  }
 }

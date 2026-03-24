@@ -399,11 +399,27 @@ public class TicketController {
 
         /**
          * Genera la Hoja de Servicio Digital firmada por el cliente.
-         * Recibe la firma como imagen PNG multipart, genera el PDF y lo devuelve como descarga.
+         * Recibe la firma como imagen PNG/Blob y genera el PDF
          * Además sube el PDF a Cloudinary y lo registra en soporte.documento_ticket.
          */
-        @PostMapping("/{id:[0-9]+}/hoja-servicio")
+        @PostMapping("/{id:[0-9]+}/firma-tecnico")
         @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS')")
+        public ResponseEntity<?> subirFirmaTecnico(@PathVariable("id") Integer id, @RequestParam("firma") MultipartFile file) {
+                String url = cloudinaryService.upload(file, "firmas_tecnicos");
+                ticketService.updateFirmaTecnico(id, url);
+                return ResponseEntity.ok(new MessageResponse("Firma técnica guardada exitosamente"));
+        }
+
+        @PostMapping("/{id:[0-9]+}/firma-cliente")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('CLIENTE')")
+        public ResponseEntity<?> subirFirmaCliente(@PathVariable("id") Integer id, @RequestParam("firma") MultipartFile file) {
+                String url = cloudinaryService.upload(file, "firmas_clientes");
+                ticketService.updateFirmaCliente(id, url);
+                return ResponseEntity.ok(new MessageResponse("Firma del cliente enviada exitosamente"));
+        }
+
+        @PostMapping("/{id:[0-9]+}/hoja-servicio")
+        @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN_MASTER') or hasRole('ADMIN_TECNICOS') or hasRole('CLIENTE')")
         public ResponseEntity<InputStreamResource> generarHojaServicio(
                         @PathVariable("id") Integer id,
                         @RequestParam(value = "firmaCliente", required = false) org.springframework.web.multipart.MultipartFile firmaClienteFile,

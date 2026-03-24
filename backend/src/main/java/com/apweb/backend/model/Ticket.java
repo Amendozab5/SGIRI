@@ -88,6 +88,13 @@ public class Ticket {
     @Column(name = "comentario_calificacion", columnDefinition = "TEXT")
     private String comentarioCalificacion;
 
+    //Capturar las firmas
+    @Column(name = "firma_tecnico_url", columnDefinition = "TEXT")
+    private String firmaTecnicoUrl;
+
+    @Column(name = "firma_cliente_url", columnDefinition = "TEXT")
+    private String firmaClienteUrl;
+
     @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude

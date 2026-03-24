@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { VisitaService } from '../../_services/visita.service';
 import { MasterDataService } from '../../_services/master-data.service';
 import { SignaturePadComponent } from '../signature-pad/signature-pad.component';
+import { AuthService } from '../../_services/auth.service';
 
 @Component({
     selector: 'app-ticket-detail',
@@ -67,41 +68,43 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
 
     // ─── Hoja de Servicio Digital ───────────────────────────────────────────────
     showSignatureModal = false;
-    signatureStep: number = 1; // 1: Técnico, 2: Cliente
+    signatureStep: number = 1; // 1: Técnico, 2: Remote/Presencial, 3: Client Auth, 4: Client Signature
     signatureTecnicoBlob: Blob | null = null;
+    isRemoteService = false;
+    clientAuthUsername = '';
+    clientAuthPassword = '';
+    isAuthenticatingClient = false;
+    clientAuthError = '';
     hojaServicioGenerating = false;
     hojaServicioError = '';
     hojaServicioSuccess = false;
 
     // ─── Tech Work Form State ──────────────────────────────────────────────────
-    formStep: number = 1; // 1: selections, 2: result/comments
+    formStep: number = 1; // 1: selectiones, 2: resultados/comentarios
     searchTerm: string = '';
     searchCategory: string = ''; // 'implementos', 'problemas', 'soluciones', 'pruebas'
     inventorySearchTerm: string = '';
 
-    // Frequency data for dynamic coloring
     frecuencias: any = null;
 
-    // Inventory items from backend
+    // Items del inventario del backend
     availableInventario: any[] = [];
     filteredInventoryList: any[] = [];
     selectedInventario: any[] = []; // { idItemInventario, nombre, cantidad }
 
-    // Existing informe (loaded from backend)
-    informeTecnico: any = null; // Latest report
-    historialInformes: any[] = []; // All reports
+    // Existencia del informe
+    informeTecnico: any = null; // ultimo reporte
+    historialInformes: any[] = []; // todos los reportes
     inventarioUsado: any[] = [];
     loadingInforme = false;
 
-    // Form submission
     techFormSubmitting = false;
     techFormSuccess = false;
     techFormError = '';
 
-    // Active tab (Stage 2)
     techFormTab: 'RESUELTO' | 'NO_RESUELTO' = 'RESUELTO';
 
-    // Selections
+    // Selectiones
     selectedImplementos: string[] = [];
     selectedProblemas: string[] = [];
     selectedSoluciones: string[] = [];
@@ -127,6 +130,7 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         private visitaService: VisitaService,
         private tokenService: TokenStorageService,
         private masterDataService: MasterDataService,
+        private authService: AuthService,
         private router: Router,
         private cdr: ChangeDetectorRef,
         private zone: NgZone
@@ -1062,14 +1066,27 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         if (!this.ticket || !this.currentUser) return false;
         const roles = this.currentUser.roles || [];
         const isTechOrAdmin = roles.includes('ROLE_TECNICO') || roles.includes('ROLE_ADMIN_MASTER') || roles.includes('ROLE_ADMIN_TECNICOS');
-        if (!isTechOrAdmin) return false;
+        const isCliente = roles.includes('ROLE_CLIENTE');
         const status = this.ticket.estadoItem?.codigo;
-        return status === 'RESUELTO';
+        
+        return (isTechOrAdmin || isCliente) && status === 'RESUELTO';
     }
 
     openSignatureModal(): void {
         this.hojaServicioError = '';
         this.hojaServicioSuccess = false;
+
+        const roles = this.currentUser.roles || [];
+        const isCliente = roles.includes('ROLE_CLIENTE');
+
+        if (isCliente) {
+            // Firma del cliente
+            this.signatureStep = 4;
+        } else {
+            // Tecnico: sigue el flujo de presencial/remoto 
+            this.signatureStep = 1;
+        }
+
         this.showSignatureModal = true;
     }
 
@@ -1079,56 +1096,195 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         this.showSignatureModal = false;
         this.signatureStep = 1;
         this.signatureTecnicoBlob = null;
+        this.isRemoteService = false;
+        this.clientAuthUsername = '';
+        this.clientAuthPassword = '';
+        this.clientAuthError = '';
     }
 
-    onFirmaConfirmada(firmaBlob: Blob): void {
+     
+     // Manejador de firmas
+        onFirmaConfirmada(firmaBlob: Blob): void {
         if (this.signatureStep === 1) {
-            // Captured technician signature
+            // Capturar la firma del tècnico 
             this.signatureTecnicoBlob = firmaBlob;
-            this.signatureStep = 2;
-            // Clear pad for client signature
-            if (this.signaturePad) {
-                this.signaturePad.limpiar();
+            this.signatureStep = 2; // Modo de selecciòn
+            this.cdr.detectChanges();
+        } else if (this.signatureStep === 4) {
+            // Capturar la firma del cliente
+            if (this.isCliente) {
+                //Si es remota, se envia la fima
+                this.enviarFirmaCliente(firmaBlob);
+            } else {
+                // Si es presencial, no se envia firma
+                this.generateHojaServicioWithSignatures(firmaBlob);
             }
-            this.cdr.detectChanges();
-        } else {
-            // Captured client signature, now generate
-            this.showSignatureModal = false;
-            this.hojaServicioGenerating = true;
-            this.hojaServicioError = '';
-            this.cdr.detectChanges();
-
-            this.ticketService.generateHojaServicio(this.ticket.idTicket, firmaBlob, this.signatureTecnicoBlob).subscribe({
-                next: (pdfBlob: Blob) => {
-                    this.zone.run(() => {
-                        const url = window.URL.createObjectURL(pdfBlob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `hoja_servicio_${this.ticket.idTicket}.pdf`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-
-                        this.hojaServicioGenerating = false;
-                        this.hojaServicioSuccess = true;
-                        this.signatureStep = 1;
-                        this.signatureTecnicoBlob = null;
-                        setTimeout(() => this.hojaServicioSuccess = false, 6000);
-                        this.cdr.detectChanges();
-                    });
-                },
-                error: (err: any) => {
-                    this.zone.run(() => {
-                        this.hojaServicioError = err?.error?.message || 'Error al generar la Hoja de Servicio. Intente de nuevo.';
-                        this.hojaServicioGenerating = false;
-                        this.signatureStep = 1;
-                        this.signatureTecnicoBlob = null;
-                        this.cdr.detectChanges();
-                    });
-                }
-            });
         }
+    }
+
+    onRemoteSelectionConfirm(): void {
+        if (this.isRemoteService) {
+            // Caso remoto: Tecnico guarda su firma, se espera a la firma del cliente
+            this.solicitarFirmaRemota();
+        } else {
+            // Presencial: Autentificaciòn del cliente
+            this.signatureStep = 3;
+        }
+    }
+
+    private solicitarFirmaRemota(): void {
+        if (!this.signatureTecnicoBlob) return;
+        
+        this.hojaServicioGenerating = true;
+        this.cdr.detectChanges();
+
+        this.ticketService.saveFirmaTecnico(this.ticket.idTicket, this.signatureTecnicoBlob).subscribe({
+            next: () => {
+                this.zone.run(() => {
+                    this.showSignatureModal = false;
+                    this.hojaServicioGenerating = false;
+                    this.hojaServicioSuccess = true;
+                    this.successMessage = "Firma técnica guardada. Se ha solicitado la firma remota al cliente.";
+                    setTimeout(() => this.hojaServicioSuccess = false, 5000);
+                    // Reload ticket to reflect signature status
+                    this.loadTicket(this.ticket.idTicket);
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.hojaServicioError = "No se pudo guardar la firma técnica. Intente nuevamente.";
+                this.hojaServicioGenerating = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    private enviarFirmaCliente(firmaBlob: Blob): void {
+        this.hojaServicioGenerating = true;
+        this.cdr.detectChanges();
+
+        this.ticketService.saveFirmaCliente(this.ticket.idTicket, firmaBlob).subscribe({
+            next: () => {
+                this.zone.run(() => {
+                    this.showSignatureModal = false;
+                    this.hojaServicioGenerating = false;
+                    this.hojaServicioSuccess = true;
+                    this.successMessage = "Tu firma ha sido enviada satisfactoriamente.";
+                    setTimeout(() => this.hojaServicioSuccess = false, 5000);
+                    this.loadTicket(this.ticket.idTicket);
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.hojaServicioError = "Error al confirmar la firma remota. Intente nuevamente.";
+                this.hojaServicioGenerating = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    /** Technician generates the final PDF after both signatures are present on the backend */
+    generarHojaFinal(): void {
+        this.hojaServicioGenerating = true;
+        this.hojaServicioError = '';
+        this.cdr.detectChanges();
+
+        // Calling with null signatures because the backend already has them in fima_tecnico_url and firma_cliente_url
+        this.ticketService.generateHojaServicio(this.ticket.idTicket, null, null).subscribe({
+            next: (pdfBlob: Blob) => {
+                this.zone.run(() => {
+                    const url = window.URL.createObjectURL(pdfBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `hoja_servicio_${this.ticket.idTicket}_final.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                    this.hojaServicioGenerating = false;
+                    this.hojaServicioSuccess = true;
+                    setTimeout(() => this.hojaServicioSuccess = false, 6000);
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.hojaServicioError = "Error al generar el PDF final. Verifique que ambas firmas estén disponibles.";
+                this.hojaServicioGenerating = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    get canGenerateFinalPdf(): boolean {
+        return !!this.ticket?.firmaTecnicoUrl && !!this.ticket?.firmaClienteUrl && (this.isTecnico || this.isAdmin);
+    }
+
+    loginClient(): void {
+        if (!this.clientAuthUsername || !this.clientAuthPassword) {
+            this.clientAuthError = 'Ingrese sus credenciales de cliente para firmar.';
+            return;
+        }
+
+        this.isAuthenticatingClient = true;
+        this.clientAuthError = '';
+
+        this.authService.login({
+            username: this.clientAuthUsername,
+            password: this.clientAuthPassword
+        }).subscribe({
+            next: (res) => {
+                // Check if it's the right client (optional but recommended)
+                // For now, if login is successful, we allow it
+                this.isAuthenticatingClient = false;
+                this.signatureStep = 4; // Go to Client Signature Pad
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                this.isAuthenticatingClient = false;
+                this.clientAuthError = 'Credenciales inválidas. El cliente debe autenticarse.';
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    private generateHojaServicioWithSignatures(firmaCliente: Blob | null): void {
+        this.showSignatureModal = false;
+        this.hojaServicioGenerating = true;
+        this.hojaServicioError = '';
+        this.cdr.detectChanges();
+
+        this.ticketService.generateHojaServicio(this.ticket.idTicket, firmaCliente, this.signatureTecnicoBlob).subscribe({
+            next: (pdfBlob: Blob) => {
+                this.zone.run(() => {
+                    const url = window.URL.createObjectURL(pdfBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `hoja_servicio_${this.ticket.idTicket}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                    this.hojaServicioGenerating = false;
+                    this.hojaServicioSuccess = true;
+                    this.signatureStep = 1;
+                    this.signatureTecnicoBlob = null;
+                    this.isRemoteService = false;
+                    setTimeout(() => this.hojaServicioSuccess = false, 6000);
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err: any) => {
+                this.zone.run(() => {
+                    this.hojaServicioError = err?.error?.message || 'Error al generar la Hoja de Servicio. Intente de nuevo.';
+                    this.hojaServicioGenerating = false;
+                    this.signatureStep = 1;
+                    this.signatureTecnicoBlob = null;
+                    this.cdr.detectChanges();
+                });
+            }
+        });
     }
 
     parseBotButtons(text: string): string[] {

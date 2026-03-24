@@ -1223,10 +1223,36 @@ public class TicketService {
         // ─── Hoja de Servicio con Firma del Cliente ───────────────────────────────
 
         @Transactional
+        public void updateFirmaTecnico(Integer idTicket, String url) {
+                Ticket ticket = getTicketById(idTicket);
+                ticket.setFirmaTecnicoUrl(url);
+                ticketRepository.save(ticket);
+        }
+
+        @Transactional
+        public void updateFirmaCliente(Integer idTicket, String url) {
+                Ticket ticket = getTicketById(idTicket);
+                ticket.setFirmaClienteUrl(url);
+                ticketRepository.save(ticket);
+                
+                // Añade un comentario cuando el cliente firma (en el chat)
+                addComment(idTicket, ticket.getCliente().getPersona().getUser(), 
+                    "✅ Firma confirmada por el cliente remotamente. La Hoja de Servicio ya puede ser generada con ambas firmas.", true);
+        }
+
+        @Transactional
         public ByteArrayInputStream generateHojaServicioPdf(Integer idTicket, byte[] signatureCliente, byte[] signatureTecnico, User requestingUser) {
                 Ticket ticket = getTicketById(idTicket);
 
-                // Validate state: allow EN_PROCESO, RESUELTO, CERRADO, REPROGRAMADA
+                // En caso de no proporcionar firmas en la peticion actual
+                if (signatureCliente == null && ticket.getFirmaClienteUrl() != null) {
+                    signatureCliente = downloadImage(ticket.getFirmaClienteUrl());
+                }
+                if (signatureTecnico == null && ticket.getFirmaTecnicoUrl() != null) {
+                    signatureTecnico = downloadImage(ticket.getFirmaTecnicoUrl());
+                }
+
+                // Validar estados: EN_PROCESO, RESUELTO, CERRADO, REPROGRAMADA
                 String code = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
                 boolean canGenerate = "EN_PROCESO".equals(code) || "RESUELTO".equals(code)
                         || "CERRADO".equals(code) || "REPROGRAMADA".equals(code);
@@ -1331,5 +1357,25 @@ public class TicketService {
 
         public List<Ticket> getTicketsPendingVisit() {
                 return ticketRepository.findTicketsPendingVisit();
+        }
+
+        private byte[] downloadImage(String urlString) {
+                if (urlString == null || urlString.isEmpty()) return null;
+                try {
+                    java.net.URL url = java.net.URI.create(urlString).toURL();
+                    java.io.InputStream in = new java.io.BufferedInputStream(url.openStream());
+                    java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                    byte[] buf = new byte[1024];
+                    int n = 0;
+                    while (-1 != (n = in.read(buf))) {
+                        out.write(buf, 0, n);
+                    }
+                    out.close();
+                    in.close();
+                    return out.toByteArray();
+                } catch (Exception e) {
+                    System.err.println("Error al descargar firma desde Cloudinary: " + e.getMessage());
+                    return null;
+                }
         }
 }
