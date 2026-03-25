@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TicketService } from '../../_services/ticket.service';
 import { UserService } from '../../_services/user.service';
 import { CompanyService } from '../../_services/company.service';
@@ -53,7 +54,7 @@ interface QuickAction {
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule, FormsModule]
 })
 export class AdminDashboardComponent implements OnInit {
 
@@ -67,6 +68,16 @@ export class AdminDashboardComponent implements OnInit {
   isBackupLoading: boolean = false;
   backupMensaje: string | null = null;
   backupError: boolean = false;
+  backupType: string = 'DATABASE';
+  backupFormat: string = 'CUSTOM';
+  
+  // ── Restore state ──────────────────────────────────────────────────────────
+  isRestoreLoading: boolean = false;
+  restoreMensaje: string | null = null;
+  restoreError: boolean = false;
+  selectedRestoreFile: File | null = null;
+  restoreFormat: string = 'CUSTOM';
+  showRestoreModal: boolean = false;
 
   kpis: KPI[] = [];
   recentActivity: Activity[] = [];
@@ -245,28 +256,47 @@ export class AdminDashboardComponent implements OnInit {
   // ── Backup ─────────────────────────────────────────────────────────────────
 
   generarBackup(): void {
+    // ── Validación de Compatibilidad ──────────────────────────────────────────
+    if (this.backupType !== 'DATABASE' && this.backupFormat === 'CUSTOM') {
+      this.backupError = true;
+      this.backupMensaje = '❌ pg_dumpall solo genera archivos en formato SQL (PLAIN). Por favor cambia el formato a PLAIN.';
+      return;
+    }
+
     this.isBackupLoading = true;
     this.backupMensaje = null;
     this.backupError = false;
     this.cdr.detectChanges();
 
-    this.backupService.generarBackup().pipe(
+    const type = this.backupType;
+    const format = this.backupFormat;
+
+    this.backupService.generarBackup(type, format).pipe(
       finalize(() => {
         this.isBackupLoading = false;
         this.cdr.detectChanges();
-        // Auto-ocultar el mensaje tras 8 segundos
+        // Auto-ocultar el mensaje tras 10 segundos
         setTimeout(() => {
           this.backupMensaje = null;
           this.cdr.detectChanges();
-        }, 8000);
+        }, 10000);
       })
     ).subscribe({
       next: (blob: Blob) => {
-        // Generar nombre con timestamp local
+        // Generar nombre elegante con formato: dd-MM-yyyy_HH-mm-ss
         const ahora = new Date();
-        const fecha = ahora.toISOString().slice(0, 19).replace(/[-T:]/g, (c) =>
-          c === 'T' ? '_' : c === '-' ? '' : '');
-        const nombreArchivo = `sgim2_backup_${fecha}.dump`;
+        const d = String(ahora.getDate()).padStart(2, '0');
+        const m = String(ahora.getMonth() + 1).padStart(2, '0');
+        const y = ahora.getFullYear();
+        const h = String(ahora.getHours()).padStart(2, '0');
+        const min = String(ahora.getMinutes()).padStart(2, '0');
+        const s = String(ahora.getSeconds()).padStart(2, '0');
+        
+        const fechaElegante = `${d}-${m}-${y}_${h}-${min}-${s}`;
+        
+        const ext = format === 'CUSTOM' ? '.dump' : '.sql';
+        const prefix = type === 'DATABASE' ? 'sgim2_db_' : (type === 'GLOBALS' ? 'sgim2_roles_' : 'sgim2_full_');
+        const nombreArchivo = `${prefix}${fechaElegante}${ext}`;
 
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -276,19 +306,81 @@ export class AdminDashboardComponent implements OnInit {
         window.URL.revokeObjectURL(url);
 
         this.backupError = false;
-        this.backupMensaje = '✅ Backup generado y descargado correctamente.';
+        this.backupMensaje = `✅ Backup (${type}) descargado correctamente en formato ${format}.`;
       },
       error: (err) => {
         this.backupError = true;
         const status: number = err?.status ?? 0;
         if (status === 409) {
-          this.backupMensaje = '⏳ Ya hay un backup en curso. Espere a que finalice.';
+          this.backupMensaje = '⏳ Ya hay un backup en curso en el servidor.';
         } else if (status === 503) {
-          this.backupMensaje = '⏱ El backup tardó demasiado. Intente de nuevo o contacte al administrador.';
+          this.backupMensaje = '⏱ El backup tardó demasiado. Prueba con un formato optimizado.';
         } else if (status === 403 || status === 401) {
-          this.backupMensaje = '⚠ No tiene permisos para realizar esta acción. Verifique su sesión.';
+          this.backupMensaje = '⚠ Acceso denegado. Se requiere sesión de ADMIN_MASTER.';
         } else {
-          this.backupMensaje = '❌ Error al generar el backup. Intente de nuevo o contacte al administrador.';
+          this.backupMensaje = '❌ Error crítico al procesar el backup. Verifique logs del servidor.';
+        }
+      }
+    });
+  }
+
+  // ── Restore ────────────────────────────────────────────────────────────────
+
+  onFileRestoreSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.selectedRestoreFile = file;
+      // Auto-detectar formato por extensión
+      if (file.name.endsWith('.sql')) {
+        this.restoreFormat = 'PLAIN';
+      } else {
+        this.restoreFormat = 'CUSTOM';
+      }
+    }
+  }
+
+  restaurarBackup(): void {
+    if (!this.selectedRestoreFile) {
+      this.restoreError = true;
+      this.restoreMensaje = '❌ Por favor, selecciona un archivo primero.';
+      return;
+    }
+    this.showRestoreModal = true;
+  }
+
+  cancelarRestauracion(): void {
+    this.showRestoreModal = false;
+  }
+
+  confirmarRestauracion(): void {
+    this.showRestoreModal = false;
+    
+    if (!this.selectedRestoreFile) return;
+
+    this.isRestoreLoading = true;
+    this.restoreMensaje = '⚙️ Restaurando base de datos... Por favor espera.';
+    this.restoreError = false;
+    this.cdr.detectChanges();
+
+    this.backupService.restaurarBackup(this.selectedRestoreFile, this.restoreFormat).pipe(
+      finalize(() => {
+        this.isRestoreLoading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (res) => {
+        this.restoreError = false;
+        this.restoreMensaje = `✅ ${res.message}`;
+        this.selectedRestoreFile = null;
+        // Limpiar input file si es posible
+      },
+      error: (err) => {
+        this.restoreError = true;
+        const msg = err?.error?.error || 'Error interno al restaurar.';
+        if (err.status === 409) {
+          this.restoreMensaje = '⏳ Hay otra operación de base de datos en curso.';
+        } else {
+          this.restoreMensaje = `❌ ${msg}`;
         }
       }
     });

@@ -158,30 +158,118 @@
                             <span>{{ action.label }}</span>
                         </a>
                     </div>
+                    <!-- ── Gestión de Base de Datos (Backup & Restore) ── -->
+                    <div class="db-management-module" *ngIf="canManageUsers">
+                        <div class="module-divider"></div>
+                        
+                        <div class="module-tabs">
+                            <h3 class="module-subtitle">Mantenimiento de Datos</h3>
+                        </div>
 
-                    <!-- Botón Backup BD: solo ADMIN_MASTER -->
-                    <div class="backup-section" *ngIf="canManageUsers">
-                        <hr class="backup-divider">
-                        <button
-                            id="btn-generar-backup"
-                            class="btn-backup"
-                            (click)="generarBackup()"
-                            [disabled]="isBackupLoading"
-                            title="Genera y descarga un backup completo de la base de datos">
-                            <span *ngIf="!isBackupLoading">
-                                <i class="bi bi-database-down me-2"></i>Generar Backup BD
-                            </span>
-                            <span *ngIf="isBackupLoading">
-                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                Generando backup...
-                            </span>
-                        </button>
-                        <div
-                            *ngIf="backupMensaje"
-                            class="backup-alert"
-                            [class.backup-alert--ok]="!backupError"
-                            [class.backup-alert--error]="backupError">
-                            {{ backupMensaje }}
+                        <!-- Panel de Backup -->
+                        <div class="mgmt-card backup-card mb-3">
+                            <div class="mgmt-header">
+                                <div class="mgmt-icon-wrap backup-icon">
+                                    <i class="bi bi-shield-lock"></i>
+                                </div>
+                                <div class="mgmt-title-wrap">
+                                    <h4>Respaldo de Sistema</h4>
+                                    <p>Generar copia de seguridad certificada</p>
+                                </div>
+                            </div>
+
+                            <div class="mgmt-body">
+                                <div class="mgmt-controls-grid">
+                                    <div class="control-item">
+                                        <label>Alcance</label>
+                                        <select [(ngModel)]="backupType" class="modern-select">
+                                            <option value="DATABASE">Base de Datos</option>
+                                            <option value="GLOBALS">Roles y Globales</option>
+                                            <option value="FULL">Cluster Completo</option>
+                                        </select>
+                                    </div>
+                                    <div class="control-item">
+                                        <label>Formato</label>
+                                        <select [(ngModel)]="backupFormat" class="modern-select">
+                                            <option value="CUSTOM">Custom (Binario)</option>
+                                            <option value="PLAIN">Plain (SQL)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button class="btn-premium btn-backup-new" 
+                                        (click)="generarBackup()" 
+                                        [disabled]="isBackupLoading">
+                                    <span class="btn-content" *ngIf="!isBackupLoading">
+                                        <i class="bi bi-cloud-arrow-down-fill"></i>
+                                        <span>Ejecutar Backup</span>
+                                    </span>
+                                    <span class="btn-content" *ngIf="isBackupLoading">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                        <span>Procesando...</span>
+                                    </span>
+                                </button>
+
+                                <div *ngIf="backupMensaje" class="status-toast mt-3"
+                                     [class.success]="!backupError"
+                                     [class.error]="backupError">
+                                    <i class="bi" [class]="backupError ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'"></i>
+                                    <span>{{ backupMensaje }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel de Restauración -->
+                        <div class="mgmt-card restore-card">
+                            <div class="mgmt-header">
+                                <div class="mgmt-icon-wrap restore-icon">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </div>
+                                <div class="mgmt-title-wrap">
+                                    <h4>Restauración Sandbox</h4>
+                                    <p>Ambiente de pruebas aislado</p>
+                                </div>
+                            </div>
+
+                            <div class="mgmt-body">
+                                <div class="file-drop-zone" [class.has-file]="selectedRestoreFile">
+                                    <input type="file" id="restoreFile" 
+                                           (change)="onFileRestoreSelected($event)" 
+                                           accept=".dump,.sql" class="hidden-file-input">
+                                    <label for="restoreFile" class="file-label">
+                                        <i class="bi" [class]="selectedRestoreFile ? 'bi-file-earmark-check-fill' : 'bi-cloud-upload'"></i>
+                                        <span>{{ selectedRestoreFile ? selectedRestoreFile.name : 'Seleccionar archivo backup' }}</span>
+                                    </label>
+                                </div>
+
+                                <div class="control-item mt-3">
+                                    <label>Formato de origen</label>
+                                    <select [(ngModel)]="restoreFormat" class="modern-select w-100">
+                                        <option value="CUSTOM">PostgreSQL Custom (.dump)</option>
+                                        <option value="PLAIN">SQL Script (.sql)</option>
+                                    </select>
+                                </div>
+
+                                <button class="btn-premium btn-restore-new w-100 mt-3" 
+                                        (click)="restaurarBackup()"
+                                        [disabled]="isRestoreLoading || !selectedRestoreFile">
+                                    <span class="btn-content" *ngIf="!isRestoreLoading">
+                                        <i class="bi bi-database-fill-up"></i>
+                                        <span>Iniciar Restauración</span>
+                                    </span>
+                                    <span class="btn-content" *ngIf="isRestoreLoading">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                        <span>Restaurando a Sandbox...</span>
+                                    </span>
+                                </button>
+
+                                <div *ngIf="restoreMensaje" class="status-toast mt-3"
+                                     [class.success]="!restoreError"
+                                     [class.error]="restoreError">
+                                    <i class="bi" [class]="restoreError ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'"></i>
+                                    <span>{{ restoreMensaje }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -189,4 +277,42 @@
             </div>
         </main>
     </ng-container>
+
+    <!-- Modal de Confirmación de Restauración (Premium) -->
+    <div class="premium-modal-overlay" *ngIf="showRestoreModal" (click)="cancelarRestauracion()">
+        <div class="premium-modal-card animate-scale-up" (click)="$event.stopPropagation()">
+            <div class="modal-glow-bg"></div>
+            
+            <div class="modal-icon-header warning">
+                <div class="icon-circle">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+            </div>
+
+            <div class="modal-header-text">
+                <h3>Confirmar Restauración</h3>
+                <div class="warning-badge">Acción Irreversible</div>
+            </div>
+
+            <div class="modal-body-content text-center">
+                <p class="main-msg">Estás a punto de iniciar un proceso de restauración de datos.</p>
+                <div class="target-db-info">
+                    <i class="bi bi-database-check"></i>
+                    <span>Apunta a: <strong>SGIM2_SANDBOX</strong></span>
+                </div>
+                <p class="sub-msg">Esta operación sobrescribirá toda la información en el ambiente de pruebas. ¿Deseas continuar con la operación?</p>
+            </div>
+
+            <div class="modal-actions-premium">
+                <button class="btn-cancel" (click)="cancelarRestauracion()">
+                    <i class="bi bi-x-lg"></i>
+                    <span>Cancelar</span>
+                </button>
+                <button class="btn-confirm-action" (click)="confirmarRestauracion()">
+                    <span>Confirmar Restauración</span>
+                    <i class="bi bi-arrow-right-short"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

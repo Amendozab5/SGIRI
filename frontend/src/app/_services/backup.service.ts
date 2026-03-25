@@ -17,12 +17,27 @@ export class BackupService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Solicita al backend la generación de un backup completo y retorna el archivo
-   * como Blob para ser descargado directamente en el navegador.
+   * Solicita al backend la generación de un backup completo o de roles.
+   * @param type DATABASE | GLOBALS | FULL
+   * @param format CUSTOM | PLAIN
    */
-  generarBackup(): Observable<Blob> {
+  generarBackup(type: string = 'DATABASE', format: string = 'CUSTOM'): Observable<Blob> {
     return this.http.post(`${API_URL}/generar`, {}, {
+      params: { type, format },
       responseType: 'blob'
     });
+  }
+
+  /**
+   * Envía un archivo de backup al servidor para restaurar sobre la base de datos Sandbox.
+   * @param file El archivo .dump o .sql subido por el usuario.
+   * @param format El formato correspondiente al archivo.
+   */
+  restaurarBackup(file: File, format: string): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('format', format);
+
+    return this.http.post(`${API_URL}/restaurar`, formData);
   }
 }

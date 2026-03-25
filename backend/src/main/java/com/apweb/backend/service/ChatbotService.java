@@ -61,26 +61,26 @@ public class ChatbotService {
             return "ERROR: KEY_NOT_CONFIGURED";
         }
 
-        // 1. Prepare context with RAG
+        // 1. Preparar contexto con RAG
         String context = buildContext(ticket, clientMessage);
         
-        // 2. Call Gemini
+        // 2. LLamar a Gemini
         return callGemini(context);
     }
 
     private String buildContext(Ticket ticket, String currentMessage) {
         StringBuilder sb = new StringBuilder();
         
-        // 1. Start with the Core Identity
+        // 1. Comienza con la Identidad Central
         sb.append(SYSTEM_PROMPT).append("\n\n");
         
-        // 2. Add Knowledge Base (RAG Part)
+        // 2. Agregar Base de Conocimiento (RAG Part)
         sb.append("--- BASE DE CONOCIMIENTO TÉCNICO (Casos Reales de SGIRI) ---\n");
         List<InformeTrabajoTecnico> historico = informeRepository.findByResultado("RESUELTO");
         if (historico.isEmpty()) {
             sb.append("- No hay reportes técnicos previos aún.\n");
         } else {
-            // Include only the last 10 historical cases to keep prompt size reasonable
+            // Incluye solo los últimos 10 casos históricos para mantener el tamaño del prompt razonable
             int limit = Math.min(historico.size(), 10);
             for (int i = 0; i < limit; i++) {
                 InformeTrabajoTecnico inf = historico.get(i);
@@ -93,7 +93,7 @@ public class ChatbotService {
         }
         sb.append("\n");
 
-        // 3. Current Ticket Context
+        // 3. Contexto del Ticket Actual
         sb.append("--- CONTEXTO DEL CASO ACTUAL ---\n");
         String clientName = (ticket.getCliente() != null && ticket.getCliente().getPersona() != null) 
             ? ticket.getCliente().getPersona().getNombre() + " " + ticket.getCliente().getPersona().getApellido()
@@ -102,7 +102,7 @@ public class ChatbotService {
         sb.append("Asunto: ").append(ticket.getAsunto()).append("\n");
         sb.append("Descripción del problema: ").append(ticket.getDescripcion()).append("\n\n");
         
-        // 4. Chat History
+        // 4. Historial de Chat
         sb.append("--- HISTORIAL DE ESTA CONVERSACIÓN ---\n");
         if (ticket.getComentarios() != null) {
             List<ComentarioTicket> comments = new ArrayList<>(ticket.getComentarios());
@@ -123,7 +123,7 @@ public class ChatbotService {
 
     private String callGemini(String prompt) {
         try {
-            // LOG the full prompt
+            // LOG the full prompt  
             System.out.println("--- PROMPT ENVIADO A GEMINI ---");
             System.out.println(prompt);
             System.out.println("--- FIN DEL PROMPT ---");
@@ -182,13 +182,13 @@ public class ChatbotService {
             bot.setUsername("SOPORTE_IA");
             bot.setPassword("SYSTEM_ONLY");
             
-            // Assign ADMIN_MASTER role (id 4 or find by code)
+            // Asignar rol ADMIN_MASTER (id 4 o buscar por código)
             roleRepository.findByCodigo("ADMIN_MASTER").ifPresentOrElse(
                 bot::setRole,
                 () -> roleRepository.findAll().stream().findFirst().ifPresent(bot::setRole)
             );
             
-            // Assign ACTIVO state from ESTADO_USUARIO catalog
+            // Asignar estado ACTIVO del catálogo ESTADO_USUARIO
             catalogoItemRepository.findFirstByCodigo("ACTIVO")
                 .ifPresentOrElse(
                     bot::setEstado,
