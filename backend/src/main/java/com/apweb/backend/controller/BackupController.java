@@ -16,6 +16,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.Map;
+import com.apweb.backend.model.ConfiguracionBackup;
+import com.apweb.backend.model.RegistroBackup;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Endpoint para generación de backup completo de la base de datos.
@@ -30,12 +34,6 @@ public class BackupController {
 
     private final BackupService backupService;
 
-    /**
-     * Genera un backup de la BD o el Cluster y lo retorna como descarga.
-     *
-     * @param type   DATABASE (por defecto), GLOBALS (roles), FULL (todo).
-     * @param format CUSTOM (binario, solo para DATABASE) o PLAIN (SQL).
-     */
     @PostMapping("/generar")
     @PreAuthorize("hasRole('ADMIN_MASTER')")
     public ResponseEntity<?> generarBackup(
@@ -104,6 +102,52 @@ public class BackupController {
         } catch (Exception e) {
             log.error("[RESTORE] Error inesperado en restauración: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body(Map.of("error", "Error interno durante la restauración."));
+        }
+    }
+
+    @GetMapping("/config")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    public ResponseEntity<ConfiguracionBackup> obtenerConfiguracion() {
+        return ResponseEntity.ok(backupService.getConfiguracionActual());
+    }
+
+    @PostMapping("/config")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    public ResponseEntity<ConfiguracionBackup> guardarConfiguracion(@RequestBody ConfiguracionBackup config) {
+        log.info("[BACKUP] Actualizando configuración de backups auto");
+        return ResponseEntity.ok(backupService.guardarConfiguracion(config));
+    }
+
+    @GetMapping("/historial")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    public ResponseEntity<List<RegistroBackup>> obtenerHistorial() {
+        return ResponseEntity.ok(backupService.listarHistorial());
+    }
+
+    @PostMapping("/ejecutar-periodico")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    public ResponseEntity<?> ejecutarBackupManualCompleto() {
+        log.info("[BACKUP] Ejecución manual de flujo completo (Cloud + ZIP)");
+        try {
+            RegistroBackup registro = backupService.ejecutarBackupCompleto(
+                    BackupService.BackupType.DATABASE, 
+                    BackupService.BackupFormat.CUSTOM, 
+                    true
+            );
+            return ResponseEntity.ok(registro);
+        } catch (BackupException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/local/{filename}")
+    @PreAuthorize("hasRole('ADMIN_MASTER')")
+    public ResponseEntity<?> eliminarBackupLocal(@PathVariable String filename) {
+        try {
+            backupService.eliminarBackupLocalDisco(filename);
+            return ResponseEntity.ok(Map.of("message", "Archivo eliminado del servidor exitosamente."));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 }

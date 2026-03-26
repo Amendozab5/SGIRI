@@ -23,18 +23,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import java.nio.file.StandardCopyOption;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import java.io.FileOutputStream;
+import com.apweb.backend.model.ConfiguracionBackup;
+import com.apweb.backend.model.RegistroBackup;
+import com.apweb.backend.repository.ConfiguracionBackupRepository;
+import com.apweb.backend.repository.RegistroBackupRepository;
 
 /**
  * Servicio de backup y restauración de la base de datos PostgreSQL.
- *
- * <h3>Principios de diseño:</h3>
- * <ul>
- *   <li>Solo una operación fuerte (backup o restore) puede ejecutarse a la vez.</li>
- *   <li>Uso de PGPASSWORD seguro para subprocesos.</li>
- *   <li>Restauración protegida mediante base de datos de Sandbox.</li>
- *   <li>Toda ejecución se registra en auditoría centralizada.</li>
- * </ul>
  */
 @Service
 public class BackupService {
@@ -42,10 +40,7 @@ public class BackupService {
     private static final Logger log = LoggerFactory.getLogger(BackupService.class);
     private static final DateTimeFormatter FILENAME_FMT = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss");
 
-    /** Evita que dos solicitudes simultáneas generen operaciones de escritura en paralelo. */
     private final AtomicBoolean operationEnCurso = new AtomicBoolean(false);
-
-    // ── Inyección de propiedades ──────────────────────────────────────────────
 
     @Value("${backup.dir:backups}")
     private String backupDir;
@@ -77,21 +72,26 @@ public class BackupService {
     @Value("${backup.db.pass:${spring.datasource.password}}")
     private String backupPassword;
 
-    // Dependencias
     private final AuditService auditService;
     private final JdbcTemplate jdbcTemplate;
+    private final CloudinaryService cloudinaryService;
+    private final ConfiguracionBackupRepository configuracionRepository;
+    private final RegistroBackupRepository registroRepository;
 
-    public BackupService(AuditService auditService, JdbcTemplate jdbcTemplate) {
+    public BackupService(AuditService auditService, 
+                         JdbcTemplate jdbcTemplate,
+                         CloudinaryService cloudinaryService,
+                         ConfiguracionBackupRepository configuracionRepository,
+                         RegistroBackupRepository registroRepository) {
         this.auditService = auditService;
         this.jdbcTemplate = jdbcTemplate;
+        this.cloudinaryService = cloudinaryService;
+        this.configuracionRepository = configuracionRepository;
+        this.registroRepository = registroRepository;
     }
-
-    // ── Enums de configuración ──────────────────────────────────────────────
 
     public enum BackupType   { DATABASE, GLOBALS, FULL }
     public enum BackupFormat { CUSTOM, PLAIN }
-
-    // ── Resultado del servicio ────────────────────────────────────────────────
 
     public static class BackupResult {
         public final File   archivo;
@@ -105,181 +105,165 @@ public class BackupService {
         }
     }
 
-    // ── Método principal ──────────────────────────────────────────────────────
-
-    /**
-     * Ejecuta pg_dump o pg_dumpall y retorna el resultado listo para descarga.
-     */
     public BackupResult ejecutarBackup(BackupType type, BackupFormat format) throws BackupException {
-        // ── 1. Verificar compatibilidad ─────────────────────────────────────
         if (type != BackupType.DATABASE && format == BackupFormat.CUSTOM) {
-            throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO,
-                    "pg_dumpall solo soporta formato PLAIN (SQL).");
+            throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, "pg_dumpall solo soporta formato PLAIN (SQL).");
         }
 
-        // ── 2. Verificar concurrencia ─────────────────────────────────────────
         if (!operationEnCurso.compareAndSet(false, true)) {
-            throw new BackupException(
-                    BackupException.Tipo.CONCURRENCIA,
-                    "Ya hay un backup en curso. Espere a que finalice antes de iniciar otro.");
+            throw new BackupException(BackupException.Tipo.CONCURRENCIA, "Ya hay una operación de backup en curso.");
         }
-
+        
         long inicio = System.currentTimeMillis();
-        String extension = (format == BackupFormat.CUSTOM) ? ".dump" : ".sql";
-        String nombreArchivo = buildFileName(type, extension);
-        File archivoSalida = null;
-
+        File tempFile = null;
         try {
-            // ── 3. Preparar directorio de salida ──────────────────────────────
-            Path dirPath = Paths.get(backupDir);
-            Files.createDirectories(dirPath);
-            archivoSalida = dirPath.resolve(nombreArchivo).toFile();
-
-            // ── 4. Parsear parámetros de conexión ─────────────────────────────
             JdbcParams params = parseJdbcUrl(datasourceUrl);
+            String extension = (format == BackupFormat.CUSTOM) ? ".dump" : ".sql";
+            String nombreArchivo = buildFileName(type, extension);
+            
+            Path dirPath = Paths.get(backupDir);
+            if (!Files.exists(dirPath)) Files.createDirectories(dirPath);
+            tempFile = dirPath.resolve(nombreArchivo).toFile();
 
-            // ── 5. Construir el comando ───────────────────────────────────────
-            List<String> cmd = buildCommand(params, archivoSalida.getAbsolutePath(), type, format);
-            log.info("[BACKUP] Iniciando {} → archivo: {}", (type == BackupType.DATABASE ? "pg_dump" : "pg_dumpall"), archivoSalida.getAbsolutePath());
-
+            List<String> cmd = buildCommand(params, tempFile.getAbsolutePath(), type, format);
             ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.environment().put("PGPASSWORD", backupPassword);
-            pb.redirectErrorStream(false);
 
-            // ── 6. Ejecutar con timeout ───────────────────────────────────────
             Process proceso = pb.start();
+            StringBuilder stderr = new StringBuilder();
+            try (InputStream is = proceso.getErrorStream()) {
+                int ch;
+                while ((ch = is.read()) != -1) stderr.append((char) ch);
+            }
 
-            // Capturar stderr
-            StringBuilder stderrCaptura = new StringBuilder();
-            Thread stderrReader = new Thread(() -> {
-                try (InputStream err = proceso.getErrorStream()) {
-                    byte[] buf = err.readAllBytes();
-                    stderrCaptura.append(new String(buf));
-                } catch (IOException ignored) {}
-            });
-            stderrReader.setDaemon(true);
-            stderrReader.start();
-
-            boolean termino = proceso.waitFor(timeoutMinutes, TimeUnit.MINUTES);
-
-            if (!termino) {
+            boolean finalizado = proceso.waitFor(timeoutMinutes, TimeUnit.MINUTES);
+            if (!finalizado) {
                 proceso.destroyForcibly();
-                registrarAuditoria(nombreArchivo, 0L, System.currentTimeMillis() - inicio, false, "Timeout");
+                registrarAuditoria(nombreArchivo, 0L, System.currentTimeMillis() - inicio, false, "Timeout excedido");
                 throw new BackupException(BackupException.Tipo.TIMEOUT, "El backup excedió el tiempo límite.");
             }
 
-            int exitCode = proceso.exitValue();
-            stderrReader.join(3_000);
-            String stderr = stderrCaptura.toString().trim();
-
-            if (exitCode != 0) {
-                String errorMsg = stderr.isEmpty() ? "Error code " + exitCode : stderr;
+            if (proceso.exitValue() != 0) {
+                String errorMsg = stderr.toString().trim();
                 registrarAuditoria(nombreArchivo, 0L, System.currentTimeMillis() - inicio, false, errorMsg);
-                throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, "Fallo al generar archivo: " + errorMsg);
+                throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, "pg_dump fallo: " + errorMsg);
             }
 
-            // ── 7. Validar y Auditoría de éxito ───────────────────────────────
-            if (!archivoSalida.exists() || archivoSalida.length() == 0) {
-                throw new BackupException(BackupException.Tipo.ARCHIVO_INVALIDO, "Archivo generado vacío.");
-            }
-
-            long tamano = archivoSalida.length();
-            long duracion = System.currentTimeMillis() - inicio;
-            registrarAuditoria(nombreArchivo, tamano, duracion, true, null);
-
-            archivoSalida.deleteOnExit();
-            return new BackupResult(archivoSalida, nombreArchivo, tamano);
-
+            long tamano = tempFile.length();
+            registrarAuditoria(nombreArchivo, tamano, System.currentTimeMillis() - inicio, true, null);
+            return new BackupResult(tempFile, nombreArchivo, tamano);
         } catch (BackupException e) {
-            limpiarArchivoSiExiste(archivoSalida);
+            limpiarArchivoSiExiste(tempFile);
             throw e;
         } catch (Exception e) {
-            limpiarArchivoSiExiste(archivoSalida);
-            log.error("[BACKUP] Error fatal: {}", e.getMessage(), e);
+            limpiarArchivoSiExiste(tempFile);
             throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, e.getMessage());
         } finally {
             operationEnCurso.set(false);
         }
     }
 
-    /**
-     * Mantiene compatibilidad con el endpoint anterior si es necesario.
-     */
-    public BackupResult ejecutarBackup() throws BackupException {
-        return ejecutarBackup(BackupType.DATABASE, BackupFormat.CUSTOM);
+    public RegistroBackup ejecutarBackupCompleto(BackupType type, BackupFormat format, boolean esManual) throws BackupException {
+        BackupResult result = this.ejecutarBackup(type, format);
+        File zipFile = null;
+        try {
+            String zipName = result.nombreArchivo.substring(0, result.nombreArchivo.lastIndexOf(".")) + ".zip";
+            zipFile = Paths.get(backupDir).resolve(zipName).toFile();
+            
+            try (FileOutputStream fos = new FileOutputStream(zipFile);
+                 ZipOutputStream zos = new ZipOutputStream(fos);
+                 FileInputStream fis = new FileInputStream(result.archivo)) {
+                ZipEntry entry = new ZipEntry(result.archivo.getName());
+                zos.putNextEntry(entry);
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = fis.read(buffer)) > 0) zos.write(buffer, 0, len);
+                zos.closeEntry();
+            }
+            
+            byte[] bytes = Files.readAllBytes(zipFile.toPath());
+            String cloudUrl = cloudinaryService.uploadRaw(bytes, "backups_db", zipName);
+            
+            RegistroBackup registro = RegistroBackup.builder()
+                .nombreArchivo(zipName)
+                .urlCloudinary(cloudUrl)
+                .tamanoBytes(zipFile.length())
+                .tipo(esManual ? RegistroBackup.TipoBackup.MANUAL : RegistroBackup.TipoBackup.AUTOMATICO)
+                .estado(RegistroBackup.EstadoBackup.EXITOSO)
+                .build();
+            
+            RegistroBackup saved = registroRepository.save(registro);
+            ConfiguracionBackup config = getConfiguracionActual();
+            config.setUltimoNombreBackup(zipName);
+            configuracionRepository.save(config);
+            return saved;
+        } catch (Exception e) {
+            log.error("[BACKUP] Error en flujo completo: {}", e.getMessage());
+            RegistroBackup fallido = RegistroBackup.builder()
+                .nombreArchivo("ERROR_" + result.nombreArchivo)
+                .estado(RegistroBackup.EstadoBackup.FALLIDO)
+                .error(e.getMessage())
+                .tipo(esManual ? RegistroBackup.TipoBackup.MANUAL : RegistroBackup.TipoBackup.AUTOMATICO)
+                .build();
+            return registroRepository.save(fallido);
+        } finally {
+            limpiarArchivoSiExiste(result.archivo);
+        }
     }
 
-    /**
-     * Procesa la restauración de un archivo de backup sobre la base de datos SANDBOX.
-     * @param file El archivo Multipart subido.
-     * @param format El formato (CUSTOM o PLAIN).
-     */
+    public ConfiguracionBackup getConfiguracionActual() {
+        return configuracionRepository.findById(1)
+            .orElseGet(() -> configuracionRepository.save(ConfiguracionBackup.builder().id(1).build()));
+    }
+
+    public ConfiguracionBackup guardarConfiguracion(ConfiguracionBackup config) {
+        config.setId(1);
+        return configuracionRepository.save(config);
+    }
+
+    public List<RegistroBackup> listarHistorial() {
+        return registroRepository.findAllByOrderByFechaDesc();
+    }
+
     public void restaurarBackup(MultipartFile file, BackupFormat format) throws BackupException {
-        if (file == null || file.isEmpty()) {
-            throw new BackupException(BackupException.Tipo.ARCHIVO_INVALIDO, "Archivo de restauración no proporcionado.");
-        }
-
         if (!operationEnCurso.compareAndSet(false, true)) {
-            throw new BackupException(BackupException.Tipo.CONCURRENCIA, "Ya hay una operación de base de datos en curso.");
+            throw new BackupException(BackupException.Tipo.CONCURRENCIA, "Ya hay una operación en curso.");
         }
-
-        File tempFile = null;
+        
         long inicio = System.currentTimeMillis();
         String originalName = file.getOriginalFilename();
-
+        File tempFile = null;
         try {
-            // 1. Guardar archivo temporalmente
-            Path tempPath = Paths.get(backupDir).resolve("restore_temp_" + System.currentTimeMillis() + (format == BackupFormat.CUSTOM ? ".dump" : ".sql"));
-            Files.createDirectories(tempPath.getParent());
-            Files.copy(file.getInputStream(), tempPath, StandardCopyOption.REPLACE_EXISTING);
-            tempFile = tempPath.toFile();
-
-            log.info("[RESTORE] Iniciando restauración sobre {} usando archivo: {}", targetDatabase, originalName);
-
-            // 2. Terminar conexiones activas en la DB destino para evitar bloqueos
+            tempFile = File.createTempFile("restore_", "_" + originalName);
+            file.transferTo(tempFile);
+            
             terminarConexionesBaseDatos(targetDatabase);
-
-            // 3. Construir y ejecutar comando
             List<String> cmd = buildRestoreCommand(tempFile.getAbsolutePath(), format);
+            
             ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.environment().put("PGPASSWORD", backupPassword);
-
             Process proceso = pb.start();
             
-            // Captura de errores
             StringBuilder stderrCaptura = new StringBuilder();
-            Thread stderrReader = new Thread(() -> {
-                try (InputStream is = proceso.getErrorStream()) {
-                    int ch;
-                    while ((ch = is.read()) != -1) stderrCaptura.append((char) ch);
-                } catch (IOException ignored) {}
-            });
-            stderrReader.start();
+            try (InputStream is = proceso.getErrorStream()) {
+                int ch;
+                while ((ch = is.read()) != -1) stderrCaptura.append((char) ch);
+            }
 
-            boolean finalizado = proceso.waitFor(timeoutMinutes, TimeUnit.MINUTES);
-            if (!finalizado) {
+            if (!proceso.waitFor(timeoutMinutes, TimeUnit.MINUTES)) {
                 proceso.destroyForcibly();
-                registrarAuditoria("RESTORE:" + originalName, 0L, System.currentTimeMillis() - inicio, false, "Timeout excedido");
-                throw new BackupException(BackupException.Tipo.TIMEOUT, "La restauración excedió el tiempo límite.");
+                registrarAuditoria("RESTORE:" + originalName, 0L, System.currentTimeMillis() - inicio, false, "Timeout");
+                throw new BackupException(BackupException.Tipo.TIMEOUT, "Timeout en restauración.");
             }
 
-            int exitCode = proceso.exitValue();
-            stderrReader.join(3_000);
-            String stderr = stderrCaptura.toString().trim();
-
-            if (exitCode != 0) {
-                String errorMsg = stderr.isEmpty() ? "Error code " + exitCode : stderr;
-                registrarAuditoria("RESTORE:" + originalName, 0L, System.currentTimeMillis() - inicio, false, errorMsg);
-                throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, "Fallo al restaurar: " + errorMsg);
+            if (proceso.exitValue() != 0) {
+                String error = stderrCaptura.toString();
+                registrarAuditoria("RESTORE:" + originalName, 0L, System.currentTimeMillis() - inicio, false, error);
+                throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, "Restore fallo: " + error);
             }
 
-            log.info("[RESTORE] Restauración completada con éxito sobre {}", targetDatabase);
             registrarAuditoria("RESTORE:" + originalName, file.getSize(), System.currentTimeMillis() - inicio, true, null);
-
-        } catch (BackupException e) {
-            throw e;
         } catch (Exception e) {
-            log.error("[RESTORE] Error crítico: {}", e.getMessage(), e);
             throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, e.getMessage());
         } finally {
             if (tempFile != null && tempFile.exists()) tempFile.delete();
@@ -290,16 +274,13 @@ public class BackupService {
     private List<String> buildRestoreCommand(String filePath, BackupFormat format) throws BackupException {
         List<String> cmd = new ArrayList<>();
         JdbcParams params = parseJdbcUrl(datasourceUrl);
-
         if (format == BackupFormat.CUSTOM) {
             cmd.add(pgRestorePath);
             cmd.add("-h"); cmd.add(params.host);
             cmd.add("-p"); cmd.add(String.valueOf(params.port));
             cmd.add("-U"); cmd.add(backupUsername);
             cmd.add("-d"); cmd.add(targetDatabase);
-            cmd.add("--clean");      // Limpiar objetos antes de crear
-            cmd.add("--if-exists");  // No fallar si el objeto no existe al limpiar
-            cmd.add("-v");           // Verbose para mejores logs de error
+            cmd.add("--clean"); cmd.add("--if-exists");
             cmd.add(filePath);
         } else {
             cmd.add(psqlPath);
@@ -314,12 +295,11 @@ public class BackupService {
 
     private void terminarConexionesBaseDatos(String dbName) {
         try {
-            log.info("[RESTORE] Terminando conexiones activas en base de datos: {}", dbName);
             String sql = "SELECT pg_terminate_backend(pid) FROM pg_stat_activity " +
                          "WHERE datname = ? AND pid <> pg_backend_pid()";
             jdbcTemplate.update(sql, dbName);
         } catch (Exception e) {
-            log.warn("[RESTORE] No se pudieron terminar todas las conexiones de {}: {}", dbName, e.getMessage());
+            log.warn("[RESTORE] Fallo terminar conexiones: {}", e.getMessage());
         }
     }
 
@@ -327,32 +307,31 @@ public class BackupService {
         return new FileInputStream(archivo) {
             @Override
             public void close() throws IOException {
-                try {
-                    super.close();
-                } finally {
-                    if (archivo.exists()) {
-                        archivo.delete();
-                        log.debug("[BACKUP] Archivo temporal eliminado: {}", archivo.getName());
-                    }
-                }
+                try { super.close(); } finally { if (archivo.exists()) archivo.delete(); }
             }
         };
     }
 
-    // ── Helpers privados ─────────────────────────────────────────────────────
+    public void eliminarBackupLocalDisco(String nombreArchivo) throws IOException {
+        Path path = Paths.get(this.backupDir).resolve(nombreArchivo);
+        if (Files.exists(path)) {
+            Files.delete(path);
+        } else {
+            throw new IOException("El archivo no existe.");
+        }
+    }
 
     private String buildFileName(BackupType type, String ext) {
-        String prefix = switch (type) {
+        String p = switch (type) {
             case DATABASE -> "sgim2_db_";
             case GLOBALS  -> "sgim2_roles_";
             case FULL     -> "sgim2_full_";
         };
-        return prefix + LocalDateTime.now().format(FILENAME_FMT) + ext;
+        return p + LocalDateTime.now().format(FILENAME_FMT) + ext;
     }
 
     private List<String> buildCommand(JdbcParams params, String outputPath, BackupType type, BackupFormat format) {
         List<String> cmd = new ArrayList<>();
-
         if (type == BackupType.DATABASE) {
             cmd.add(pgDumpPath);
             cmd.add("-h"); cmd.add(params.host);
@@ -367,9 +346,7 @@ public class BackupService {
             cmd.add("-p"); cmd.add(String.valueOf(params.port));
             cmd.add("-U"); cmd.add(backupUsername);
             cmd.add("--file=" + outputPath);
-            if (type == BackupType.GLOBALS) {
-                cmd.add("-g"); // solo roles y tablespaces
-            }
+            if (type == BackupType.GLOBALS) cmd.add("-g");
         }
         return cmd;
     }
@@ -377,32 +354,25 @@ public class BackupService {
     private JdbcParams parseJdbcUrl(String url) throws BackupException {
         try {
             String raw = url.replace("jdbc:postgresql://", "");
-            int qMark = raw.indexOf('?');
-            if (qMark >= 0) raw = raw.substring(0, qMark);
-
-            int slashIdx = raw.indexOf('/');
-            String hostPort = raw.substring(0, slashIdx);
-            String dbName   = raw.substring(slashIdx + 1);
-
+            int slash = raw.indexOf('/');
+            String hostPort = raw.substring(0, slash);
+            String dbName = raw.substring(slash + 1);
+            if (dbName.contains("?")) dbName = dbName.substring(0, dbName.indexOf('?'));
             String host = hostPort.contains(":") ? hostPort.split(":")[0] : hostPort;
             int port = hostPort.contains(":") ? Integer.parseInt(hostPort.split(":")[1]) : 5432;
             return new JdbcParams(host, port, dbName);
-        } catch (Exception e) {
-            throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, "URL JDBC inválida: " + url);
-        }
+        } catch (Exception e) { throw new BackupException(BackupException.Tipo.PROCESO_FALLIDO, "JDBC URL Error"); }
     }
 
     private void registrarAuditoria(String nombreArchivo, long tamano, long duracion, boolean exito, String error) {
         try {
             auditService.registrarEventoConResultado(
-                    AuditModulo.SISTEMA, "public", "database_backup", null,
+                    AuditModulo.SISTEMA, "reportes", "registro_backup", null,
                     AuditAccion.BACKUP, "Backup (" + nombreArchivo + ")", null,
                     Map.of("archivo", nombreArchivo, "tamano", tamano, "duracion", duracion),
                     auditService.resolveCurrentUserId(), exito, error
             );
-        } catch (Exception e) {
-            log.error("[BACKUP] Error auditoría: {}", e.getMessage());
-        }
+        } catch (Exception e) { log.error("[BACKUP] Auditoria Fallo: {}", e.getMessage()); }
     }
 
     private void limpiarArchivoSiExiste(File archivo) {

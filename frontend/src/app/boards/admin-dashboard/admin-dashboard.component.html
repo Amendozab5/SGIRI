@@ -220,7 +220,7 @@
                         </div>
 
                         <!-- Panel de Restauración -->
-                        <div class="mgmt-card restore-card">
+                        <div class="mgmt-card restore-card mb-3">
                             <div class="mgmt-header">
                                 <div class="mgmt-icon-wrap restore-icon">
                                     <i class="bi bi-arrow-repeat"></i>
@@ -262,14 +262,99 @@
                                         <span>Restaurando a Sandbox...</span>
                                     </span>
                                 </button>
+                            </div>
+                        </div>
 
-                                <div *ngIf="restoreMensaje" class="status-toast mt-3"
-                                     [class.success]="!restoreError"
-                                     [class.error]="restoreError">
-                                    <i class="bi" [class]="restoreError ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'"></i>
-                                    <span>{{ restoreMensaje }}</span>
+                        <!-- Panel de Automatización (NUEVO) -->
+                        <div class="mgmt-card auto-backup-card mb-3 animate-slide-up">
+                            <div class="mgmt-header">
+                                <div class="mgmt-icon-wrap auto-icon">
+                                    <i class="bi bi-clock-history"></i>
+                                </div>
+                                <div class="mgmt-title-wrap">
+                                    <div class="d-flex align-items-center">
+                                        <h4>Automatización</h4>
+                                        <div class="form-check form-switch ms-3">
+                                            <input class="form-check-input" type="checkbox" [(ngModel)]="autoConfig.activo" (change)="guardarConfiguracionBackup()">
+                                        </div>
+                                    </div>
+                                    <p>Programar respaldos periódicos</p>
                                 </div>
                             </div>
+                            
+                            <div class="mgmt-body" *ngIf="autoConfig">
+                                <div class="mgmt-controls-grid mb-3">
+                                    <div class="control-item">
+                                        <label>Frecuencia</label>
+                                        <select [(ngModel)]="autoConfig.frecuencia" class="modern-select">
+                                            <option value="DIARIA">Diaria</option>
+                                            <option value="SEMANAL">Semanal</option>
+                                            <option value="MENSUAL">Mensual</option>
+                                        </select>
+                                    </div>
+                                    <div class="control-item">
+                                        <label>Hora (HH:mm)</label>
+                                        <input type="time" [(ngModel)]="autoConfig.horaEjecucion" class="modern-input-small">
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn-action-small flex-grow-1" (click)="guardarConfiguracionBackup()" [disabled]="isAutoConfigLoading">
+                                        <i class="bi bi-save me-1"></i> Actualizar
+                                    </button>
+                                    <button class="btn-action-small outline" (click)="dispararBackupCompleto()" [disabled]="isBackupLoading">
+                                        <i class="bi bi-play-fill"></i> Forzar ahora
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Historial de Backups (NUEVO) -->
+                        <div class="mgmt-card history-card animate-slide-up">
+                            <div class="mgmt-header clickable" (click)="toggleHistory()">
+                                <div class="mgmt-icon-wrap history-icon">
+                                    <i class="bi bi-journal-text"></i>
+                                </div>
+                                <div class="mgmt-title-wrap">
+                                    <h4>Historial de Sistema</h4>
+                                    <p>{{ backupHistory.length }} registros traza</p>
+                                </div>
+                                <i class="bi ms-auto" [ngClass]="showHistory ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                            </div>
+
+                            <div class="mgmt-body p-0" *ngIf="showHistory">
+                                <div class="history-list-scroll">
+                                    <div class="history-item" *ngFor="let reg of backupHistory">
+                                        <div class="history-status" [class.success]="reg.estado === 'EXITOSO'">
+                                            <i class="bi" [ngClass]="reg.estado === 'EXITOSO' ? 'bi-check-circle' : 'bi-x-circle'"></i>
+                                        </div>
+                                        <div class="history-info">
+                                            <span class="history-date">{{ reg.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                                            <span class="history-filename">{{ reg.nombreArchivo }}</span>
+                                            <span class="history-meta" *ngIf="reg.tamanoBytes">
+                                                {{ formatBytes(reg.tamanoBytes) }} • {{ reg.tipo }}
+                                            </span>
+                                        </div>
+                                        <div class="history-actions">
+                                            <a *ngIf="reg.urlCloudinary" [href]="reg.urlCloudinary" target="_blank" class="action-icon-btn cloud" title="Descargar de Cloudinary">
+                                                <i class="bi bi-cloud-download"></i>
+                                            </a>
+                                            <button (click)="eliminarArchivoLocal(reg.nombreArchivo)" class="action-icon-btn delete" title="Borrar del Servidor">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="backupHistory.length === 0" class="text-center p-3 text-muted">
+                                        No hay registros históricos.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div *ngIf="backupMensaje" class="status-toast mt-3 animate-fade-in"
+                             [class.success]="!backupError"
+                             [class.error]="backupError">
+                            <i class="bi" [class]="backupError ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'"></i>
+                            <span>{{ backupMensaje }}</span>
                         </div>
                     </div>
                 </div>

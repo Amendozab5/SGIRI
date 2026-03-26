@@ -78,6 +78,13 @@ export class AdminDashboardComponent implements OnInit {
   selectedRestoreFile: File | null = null;
   restoreFormat: string = 'CUSTOM';
   showRestoreModal: boolean = false;
+  
+  // ── Auto-Backup State ──────────────────────────────────────────────────────
+  isAutoConfigLoading: boolean = false;
+  autoConfig: any = { activo: false, frecuencia: 'DIARIA', horaEjecucion: '00:00', retencionDias: 7 };
+  backupHistory: any[] = [];
+  isHistoryLoading: boolean = false;
+  showHistory: boolean = false;
 
   kpis: KPI[] = [];
   recentActivity: Activity[] = [];
@@ -106,6 +113,12 @@ export class AdminDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.filterQuickActions();
     this.loadDashboardData();
+    
+    const user = this.tokenStorageService.getUser();
+    if (user && user.roles.includes('ROLE_ADMIN_MASTER')) {
+      this.cargarConfiguracionBackup();
+      this.cargarHistorialBackups();
+    }
   }
 
   private filterQuickActions(): void {
@@ -384,5 +397,108 @@ export class AdminDashboardComponent implements OnInit {
         }
       }
     });
+  }
+
+  // ── Auto-Backup Methods ────────────────────────────────────────────────────
+
+  cargarConfiguracionBackup(): void {
+    this.isAutoConfigLoading = true;
+    this.backupService.obtenerConfiguracion().subscribe({
+      next: (config) => {
+        this.autoConfig = config;
+        this.isAutoConfigLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isAutoConfigLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  guardarConfiguracionBackup(): void {
+    this.isAutoConfigLoading = true;
+    this.backupService.guardarConfiguracion(this.autoConfig).subscribe({
+      next: (config) => {
+        this.autoConfig = config;
+        this.isAutoConfigLoading = false;
+        this.backupMensaje = '✅ Configuración guardada correctamente.';
+        this.backupError = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isAutoConfigLoading = false;
+        this.backupError = true;
+        this.backupMensaje = '❌ No se pudo guardar la configuración.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  cargarHistorialBackups(): void {
+    this.isHistoryLoading = true;
+    this.backupService.obtenerHistorial().subscribe({
+      next: (history) => {
+        this.backupHistory = history;
+        this.isHistoryLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isHistoryLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  dispararBackupCompleto(): void {
+    this.isBackupLoading = true;
+    this.backupMensaje = '⚙️ Iniciando flujo completo de backup (ZIP + Nube)...';
+    this.backupError = false;
+    this.cdr.detectChanges();
+
+    this.backupService.ejecutarBackupCompletoRemoto().subscribe({
+      next: (res) => {
+        this.isBackupLoading = false;
+        this.backupMensaje = '✅ Backup remoto completado con éxito.';
+        this.cargarHistorialBackups();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isBackupLoading = false;
+        this.backupError = true;
+        this.backupMensaje = '❌ Error en backup remoto: ' + (err?.error?.error || 'Desconocido');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  eliminarArchivoLocal(filename: string): void {
+    if (!confirm(`¿Estás seguro de eliminar ${filename} del servidor?`)) return;
+
+    this.backupService.eliminarBackupLocal(filename).subscribe({
+      next: () => {
+        this.backupMensaje = '✅ Archivo eliminado del servidor.';
+        this.cargarHistorialBackups();
+      },
+      error: (err) => {
+        this.backupError = true;
+        this.backupMensaje = '❌ No se pudo eliminar el archivo.';
+      }
+    });
+  }
+
+  toggleHistory(): void {
+    this.showHistory = !this.showHistory;
+    if (this.showHistory) {
+      this.cargarHistorialBackups();
+    }
+  }
+
+  formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }

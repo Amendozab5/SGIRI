@@ -1280,7 +1280,7 @@ public class TicketService {
                 String pdfFileName = "hoja_servicio_" + idTicket + ".pdf";
                 String cloudinaryUrl = null;
                 try {
-                        cloudinaryUrl = cloudinaryService.uploadPdf(pdfBytes, "hojas_servicio", pdfFileName);
+                        cloudinaryUrl = cloudinaryService.uploadRaw(pdfBytes, "hojas_servicio", pdfFileName);
                 } catch (Exception e) {
                         // Log but don't fail — the download still works even if Cloudinary upload fails
                         System.err.println("ADVERTENCIA: No se pudo subir la Hoja de Servicio a Cloudinary: " + e.getMessage());

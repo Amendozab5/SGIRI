@@ -100,12 +100,12 @@ public class CloudinaryService {
     }
 
     /**
-     * Sube un PDF como bytes crudos a Cloudinary y retorna la URL segura.
-     * Útil para subir PDFs generados en memoria (ej. Hoja de Servicio).
+     * Sube un archivo como bytes crudos (raw) a Cloudinary y retorna la URL segura.
+     * Útil para backups (.zip), documentos no-imagen, etc.
      */
-    public String uploadPdf(byte[] pdfBytes, String folder, String fileName) {
+    public String uploadRaw(byte[] fileBytes, String folder, String fileName) {
         try {
-            Map<?, ?> uploadResult = cloudinary.uploader().upload(pdfBytes,
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(fileBytes,
                     ObjectUtils.asMap(
                         "folder", folder,
                         "resource_type", "raw",
@@ -115,7 +115,15 @@ public class CloudinaryService {
                     ));
             return uploadResult.get("secure_url").toString();
         } catch (IOException e) {
-            throw new RuntimeException("Error al subir PDF a Cloudinary: " + e.getMessage());
+            throw new RuntimeException("Error al subir archivo raw a Cloudinary: " + e.getMessage());
         }
+    }
+
+    /**
+     * @deprecated Usar uploadRaw para nuevos desarrollos. Se mantiene por compatibilidad.
+     */
+    @Deprecated
+    public String uploadPdf(byte[] pdfBytes, String folder, String fileName) {
+        return uploadRaw(pdfBytes, folder, fileName);
     }
 }
