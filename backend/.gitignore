@@ -38,3 +38,7 @@ backups/
 *.zip
 *.dump
 *.sql
+*.log
+*.gz
+*.txt
+*.class

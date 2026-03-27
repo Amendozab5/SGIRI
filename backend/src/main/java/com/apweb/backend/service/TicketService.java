@@ -786,6 +786,11 @@ public class TicketService {
                         ticket.setUsuarioAsignado(botUser);
                         ticketRepository.save(ticket);
                         
+                        // AUTO-CAMBIO DE ESTADO: Mover a EN_PROCESO cuando la IA empieza a interactuar
+                        if ("ABIERTO".equals(status) || "ASIGNADO".equals(status)) {
+                            this.updateTicketStatus(idTicket, botUser, "EN_PROCESO", "Giri (SOPORTE_IA) ha iniciado la sesión de soporte automatizado.");
+                        }
+                        
                         String aiResponse = chatbotService.getAiResponse(ticket, text);
                         
                         if (!"ERROR: KEY_NOT_CONFIGURED".equals(aiResponse)) {

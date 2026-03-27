@@ -38,21 +38,27 @@ public class ChatbotService {
 
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=";
 
-    private static final String SYSTEM_PROMPT = 
-        "Eres 'Giri', el asistente virtual experto de soporte técnico de SGIRI. " +
-        "Tu misión es ayudar a los clientes a resolver problemas con su servicio de Internet, basándote PRIMERO en el historial de soluciones exitosas de la empresa.\n\n" +
-        "CONOCIMIENTO MAESTRO (Base de Datos de SGIRI):\n" +
-        "A continuación se te proporcionarán ejemplos de reportes técnicos reales de incidencias pasadas y cómo se resolvieron. " +
-        "Siempre que el problema del cliente coincida con algún reporte histórico, DEBES sugerir los pasos que el técnico aplicó en ese entonces.\n\n" +
-        "REGLAS DE RESPUESTA:\n" +
-        "1. PRIORIDAD: Usa el historial técnico adjunto antes que cualquier conocimiento general. No digas 'Busqué en nuestra base de datos', simplemente actúa como el experto que ya sabe la solución.\n" +
-        "2. SALUDO: Sé amable. Saluda al cliente por su nombre si está disponible.\n" +
-        "3. INTERACCIÓN: No escales a visita técnica de inmediato. Intenta guiar al usuario a través de 1 o 2 pasos de solución lógica basados en el conocimiento previo.\n" +
-        "4. BOTONES: Siempre incluye botones de respuesta rápida al final: [BOT_BUTTONS: Sí, funcionó | Sigo sin internet | Hablar con un técnico].\n" +
-        "5. ESCALADO: Si detectas que el problema requiere intervención física (ej: cambio de cable, equipo quemado) o el usuario no logra resolverlo tras tus sugerencias, ofrece el botón 'Solicitar Visita Técnica'.\n" +
-        "6. CIERRE: Si el problema se resuelve, usa [RESOLUCION_SOPORTE] y el botón 'Finalizar chat'.\n" +
-        "7. CONCISIÓN: Máximo 2 párrafos cortos.";
-
+    private static final String SYSTEM_PROMPT = "Eres 'Giri', el asistente virtual experto de soporte técnico de SGIRI. "
+            +
+            "Tu misión es ayudar a los clientes a resolver problemas con su servicio de Internet, basándote PRIMERO en el historial de soluciones exitosas de la empresa.\n\n"
+            +
+            "CONOCIMIENTO MAESTRO (Base de Datos de SGIRI):\n" +
+            "A continuación se te proporcionarán ejemplos de reportes técnicos reales de incidencias pasadas y cómo se resolvieron. "
+            +
+            "Siempre que el problema del cliente coincida con algún reporte histórico, DEBES sugerir los pasos que el técnico aplicó en ese entonces.\n\n"
+            +
+            "REGLAS DE RESPUESTA:\n" +
+            "1. PRIORIDAD: Usa el historial técnico adjunto antes que cualquier conocimiento general. No digas 'Busqué en nuestra base de datos', simplemente actúa como el experto que ya sabe la solución.\n"
+            +
+            "2. SALUDO: Sé amable. Saluda al cliente por su nombre si está disponible.\n" +
+            "3. INTERACCIÓN: No escales a visita técnica de inmediato. Intenta guiar al usuario a través de 1 o 2 pasos de solución lógica basados en el conocimiento previo.\n"
+            +
+            "4. BOTONES: Siempre incluye botones de respuesta rápida al final: [BOT_BUTTONS: Sí, funcionó | Sigo sin internet | Hablar con un técnico].\n"
+            +
+            "5. ESCALADO: Si detectas que el problema requiere intervención física (ej: cambio de cable, equipo quemado) o el usuario no logra resolverlo tras tus sugerencias, ofrece el botón 'Solicitar Visita Técnica'.\n"
+            +
+            "6. CIERRE: Si el problema se resuelve, usa [RESOLUCION_SOPORTE] y el botón 'Finalizar chat'.\n" +
+            "7. CONCISIÓN: Máximo 2 párrafos cortos.";
 
     public String getAiResponse(Ticket ticket, String clientMessage) {
         System.out.println("[CHATBOT_LOG] Getting AI response for Ticket #" + ticket.getIdTicket());
@@ -63,24 +69,25 @@ public class ChatbotService {
 
         // 1. Preparar contexto con RAG
         String context = buildContext(ticket, clientMessage);
-        
+
         // 2. LLamar a Gemini
         return callGemini(context);
     }
 
     private String buildContext(Ticket ticket, String currentMessage) {
         StringBuilder sb = new StringBuilder();
-        
+
         // 1. Comienza con la Identidad Central
         sb.append(SYSTEM_PROMPT).append("\n\n");
-        
+
         // 2. Agregar Base de Conocimiento (RAG Part)
         sb.append("--- BASE DE CONOCIMIENTO TÉCNICO (Casos Reales de SGIRI) ---\n");
         List<InformeTrabajoTecnico> historico = informeRepository.findByResultado("RESUELTO");
         if (historico.isEmpty()) {
             sb.append("- No hay reportes técnicos previos aún.\n");
         } else {
-            // Incluye solo los últimos 10 casos históricos para mantener el tamaño del prompt razonable
+            // Incluye solo los últimos 10 casos históricos para mantener el tamaño del
+            // prompt razonable
             int limit = Math.min(historico.size(), 10);
             for (int i = 0; i < limit; i++) {
                 InformeTrabajoTecnico inf = historico.get(i);
@@ -95,35 +102,37 @@ public class ChatbotService {
 
         // 3. Contexto del Ticket Actual
         sb.append("--- CONTEXTO DEL CASO ACTUAL ---\n");
-        String clientName = (ticket.getCliente() != null && ticket.getCliente().getPersona() != null) 
-            ? ticket.getCliente().getPersona().getNombre() + " " + ticket.getCliente().getPersona().getApellido()
-            : "Cliente Desconocido";
+        String clientName = (ticket.getCliente() != null && ticket.getCliente().getPersona() != null)
+                ? ticket.getCliente().getPersona().getNombre() + " " + ticket.getCliente().getPersona().getApellido()
+                : "Cliente Desconocido";
         sb.append("Nombre del Cliente: ").append(clientName).append("\n");
         sb.append("Asunto: ").append(ticket.getAsunto()).append("\n");
         sb.append("Descripción del problema: ").append(ticket.getDescripcion()).append("\n\n");
-        
+
         // 4. Historial de Chat
         sb.append("--- HISTORIAL DE ESTA CONVERSACIÓN ---\n");
         if (ticket.getComentarios() != null) {
             List<ComentarioTicket> comments = new ArrayList<>(ticket.getComentarios());
             comments.sort(Comparator.comparing(ComentarioTicket::getFechaCreacion));
-            
+
             for (ComentarioTicket c : comments) {
                 if (c.getVisibleParaCliente() != null && c.getVisibleParaCliente()) {
-                    String sender = (c.getUsuario() != null && "SOPORTE_IA".equals(c.getUsuario().getUsername())) ? "BOT" : "CLIENTE";
+                    String sender = (c.getUsuario() != null && "SOPORTE_IA".equals(c.getUsuario().getUsername()))
+                            ? "BOT"
+                            : "CLIENTE";
                     sb.append(sender).append(": ").append(c.getComentario()).append("\n");
                 }
             }
         }
         sb.append("CLIENTE: ").append(currentMessage).append("\n");
         sb.append("BOT: ");
-        
+
         return sb.toString();
     }
 
     private String callGemini(String prompt) {
         try {
-            // LOG the full prompt  
+            // LOG the full prompt
             System.out.println("--- PROMPT ENVIADO A GEMINI ---");
             System.out.println(prompt);
             System.out.println("--- FIN DEL PROMPT ---");
@@ -145,22 +154,23 @@ public class ChatbotService {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
             @SuppressWarnings("unchecked")
-            ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) (ResponseEntity<?>) restTemplate.postForEntity(url, entity, Map.class);
+            ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) (ResponseEntity<?>) restTemplate
+                    .postForEntity(url, entity, Map.class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
-                
+
                 if (candidates != null && !candidates.isEmpty()) {
                     Map<String, Object> firstCandidate = candidates.get(0);
-                    
+
                     @SuppressWarnings("unchecked")
                     Map<String, Object> contentObj = (Map<String, Object>) firstCandidate.get("content");
-                    
+
                     if (contentObj != null) {
                         @SuppressWarnings("unchecked")
                         List<Map<String, Object>> parts = (List<Map<String, Object>>) contentObj.get("parts");
-                        
+
                         if (parts != null && !parts.isEmpty()) {
                             Map<String, Object> firstPart = parts.get(0);
                             return (String) firstPart.get("text");
@@ -181,20 +191,18 @@ public class ChatbotService {
             User bot = new User();
             bot.setUsername("SOPORTE_IA");
             bot.setPassword("SYSTEM_ONLY");
-            
+
             // Asignar rol ADMIN_MASTER (id 4 o buscar por código)
             roleRepository.findByCodigo("ADMIN_MASTER").ifPresentOrElse(
-                bot::setRole,
-                () -> roleRepository.findAll().stream().findFirst().ifPresent(bot::setRole)
-            );
-            
+                    bot::setRole,
+                    () -> roleRepository.findAll().stream().findFirst().ifPresent(bot::setRole));
+
             // Asignar estado ACTIVO del catálogo ESTADO_USUARIO
             catalogoItemRepository.findFirstByCodigo("ACTIVO")
-                .ifPresentOrElse(
-                    bot::setEstado,
-                    () -> catalogoItemRepository.findAll().stream().findFirst().ifPresent(bot::setEstado)
-                );
-            
+                    .ifPresentOrElse(
+                            bot::setEstado,
+                            () -> catalogoItemRepository.findAll().stream().findFirst().ifPresent(bot::setEstado));
+
             User savedBot = userRepository.save(bot);
             System.out.println("[CHATBOT_LOG] Bot user created with ID: " + savedBot.getId());
             return savedBot;

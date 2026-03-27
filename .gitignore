@@ -16,6 +16,8 @@ backend/src/main/resources/application.properties
 *.log
 *.sql
 *.gz
+*.txt
+*.class
 
 # =====================
 # IDE

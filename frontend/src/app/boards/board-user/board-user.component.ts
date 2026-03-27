@@ -95,7 +95,15 @@ export class BoardUserComponent implements OnInit, OnDestroy {
       visits.forEach((v: any) => {
         if (!uniqueVisits.has(v.idVisita)) {
           const vDate = new Date(v.fechaVisita + 'T00:00:00');
-          if (vDate >= today && v.estado.codigo !== 'CANCELADA' && v.estado.codigo !== 'FINALIZADA') {
+          const ticketStatus = v.ticket?.estadoItem?.codigo;
+          
+          if (vDate >= today && 
+              v.estado.codigo !== 'CANCELADA' && 
+              v.estado.codigo !== 'FINALIZADA' &&
+              ticketStatus !== 'EN_PROCESO' &&
+              ticketStatus !== 'RESUELTO' &&
+              ticketStatus !== 'CERRADO' &&
+              ticketStatus !== 'RECHAZADO') {
             uniqueVisits.set(v.idVisita, v);
           }
         }

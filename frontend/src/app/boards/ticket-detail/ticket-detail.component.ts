@@ -1068,8 +1068,9 @@ export class TicketDetailComponent implements OnInit, AfterViewChecked, OnDestro
         const isTechOrAdmin = roles.includes('ROLE_TECNICO') || roles.includes('ROLE_ADMIN_MASTER') || roles.includes('ROLE_ADMIN_TECNICOS');
         const isCliente = roles.includes('ROLE_CLIENTE');
         const status = this.ticket.estadoItem?.codigo;
+        const isBot = this.ticket.usuarioAsignado?.username === 'SOPORTE_IA';
         
-        return (isTechOrAdmin || isCliente) && status === 'RESUELTO';
+        return (isTechOrAdmin || isCliente) && status === 'RESUELTO' && !isBot;
     }
 
     openSignatureModal(): void {
