@@ -80,7 +80,7 @@ public class ChatbotService {
         // 1. Comienza con la Identidad Central
         sb.append(SYSTEM_PROMPT).append("\n\n");
 
-        // 2. Agregar Base de Conocimiento (RAG Part)
+        // 2. Agregar Base de Conocimiento (Parte del RAG)
         sb.append("--- BASE DE CONOCIMIENTO TÉCNICO (Casos Reales de SGIRI) ---\n");
         List<InformeTrabajoTecnico> historico = informeRepository.findByResultado("RESUELTO");
         if (historico.isEmpty()) {

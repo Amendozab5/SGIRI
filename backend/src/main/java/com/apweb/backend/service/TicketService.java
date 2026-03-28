@@ -750,7 +750,7 @@ public class TicketService {
                     boolean isClient = "CLIENTE".equals(roleLabel);
                     boolean noTechnician = (ticket.getUsuarioAsignado() == null);
                     // 1. Detect manual escalation from UI button or direct request
-                    if (text.contains("[CLIENTE_ESCALA]") || text.equalsIgnoreCase("Solicitar Visita Técnica")) {
+                    if (text.contains("[CLIENTE_ESCALA]") || text.equalsIgnoreCase("Solicitar Visita Técnica") || text.equalsIgnoreCase("Hablar con un técnico")) {
                         System.out.println("[CHATBOT_LOG] Manual escalation detected for Ticket #" + idTicket);
                         User botUser = chatbotService.getOrCreateBotUser();
                         
