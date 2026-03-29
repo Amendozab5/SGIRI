@@ -107,8 +107,11 @@ public class TicketService {
         public org.springframework.data.domain.Page<Ticket> getTicketsByUserPaginated(
                         User user, String searchTerm, Integer statusId, Integer categoryId,
                         org.springframework.data.domain.Pageable pageable) {
-                return ticketRepository.findByUsuarioCreadorWithFilters(user, searchTerm, statusId, categoryId,
+                org.springframework.data.domain.Page<Ticket> tickets = ticketRepository.findByUsuarioCreadorWithFilters(user, searchTerm, statusId, categoryId,
                                 pageable);
+                tickets.getContent().forEach(this::loadTicketDeep);
+                return tickets;
+
         }
 
         @Transactional

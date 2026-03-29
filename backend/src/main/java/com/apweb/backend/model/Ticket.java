@@ -49,15 +49,15 @@ public class Ticket {
     @JoinColumn(name = "id_sla")
     private SlaTicket sla;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_categoria_item", nullable = false)
     private CatalogoItem categoriaItem;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_prioridad_item", nullable = false)
     private CatalogoItem prioridadItem;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_estado_item", nullable = false)
     private CatalogoItem estadoItem;
 

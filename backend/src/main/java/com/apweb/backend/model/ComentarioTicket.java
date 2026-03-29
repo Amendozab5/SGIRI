@@ -48,7 +48,7 @@ public class ComentarioTicket {
     @Column(name = "es_interno")
     private Boolean esInterno;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_estado_item", nullable = false)
     private CatalogoItem estadoItem;
 

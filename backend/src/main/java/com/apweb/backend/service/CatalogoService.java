@@ -19,6 +19,7 @@ public class CatalogoService {
     @Autowired
     private CatalogoItemRepository catalogoItemRepository;
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<CatalogoItem> getItemsByCatalogoNombre(String nombre, boolean onlyActive) {
         return catalogoRepository.findByNombre(nombre)
                 .map(catalogo -> {
@@ -33,8 +34,9 @@ public class CatalogoService {
                 .orElse(Collections.emptyList());
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<Catalogo> getAllCatalogos() {
-        return catalogoRepository.findAll();
+        return catalogoRepository.findAllWithItems();
     }
 
     public Catalogo getCatalogoById(Integer id) {

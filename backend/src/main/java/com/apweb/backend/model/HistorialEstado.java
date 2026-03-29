@@ -30,7 +30,7 @@ public class HistorialEstado {
     private Ticket ticket;
 
     // This refers to the current state, mapping to CatalogoItem directly
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_estado", nullable = false)
     private CatalogoItem estado;
 
@@ -43,11 +43,11 @@ public class HistorialEstado {
     @Column(columnDefinition = "TEXT")
     private String observacion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_estado_anterior") // Can be null
     private CatalogoItem estadoAnterior;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_estado_nuevo", nullable = false)
     private CatalogoItem estadoNuevo;
 
