@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.time.LocalDateTime;
 import com.apweb.backend.util.AuditAccion;
 import com.apweb.backend.util.AuditModulo;
@@ -209,10 +211,14 @@ public class TicketService {
 
             // Collections (Managed references are serialized by Jackson)
             // Using toArray to avoid ConcurrentModification if Hibernate triggers session activity
+            // Collections: Initialize and Sort for consistent UI display (Oldest at Top)
             if (t.getHistorialEstados() != null) {
-                Object[] history = t.getHistorialEstados().toArray();
-                for (Object o : history) {
-                    HistorialEstado h = (HistorialEstado) o;
+                List<HistorialEstado> sortedHistory = new ArrayList<>(t.getHistorialEstados());
+                sortedHistory.sort(Comparator.comparing(HistorialEstado::getFechaCambio, 
+                                   Comparator.nullsLast(Comparator.naturalOrder())));
+                
+                // Initialize proxies for History
+                for (HistorialEstado h : sortedHistory) {
                     if (h.getEstado() != null) h.getEstado().getNombre();
                     if (h.getEstadoNuevo() != null) h.getEstadoNuevo().getNombre();
                     if (h.getEstadoAnterior() != null) h.getEstadoAnterior().getNombre();
@@ -221,12 +227,16 @@ public class TicketService {
                         if (h.getUsuario().getPersona() != null) h.getUsuario().getPersona().getNombre();
                     }
                 }
+                t.setHistorialEstados(sortedHistory);
             }
             
             if (t.getComentarios() != null) {
-                Object[] comments = t.getComentarios().toArray();
-                for (Object o : comments) {
-                    ComentarioTicket c = (ComentarioTicket) o;
+                List<ComentarioTicket> sortedComments = new ArrayList<>(t.getComentarios());
+                sortedComments.sort(Comparator.comparing(ComentarioTicket::getFechaCreacion, 
+                                     Comparator.nullsLast(Comparator.naturalOrder())));
+                                     
+                // Initialize proxies for Comments
+                for (ComentarioTicket c : sortedComments) {
                     if (c.getUsuario() != null) {
                         c.getUsuario().getUsername();
                         if (c.getUsuario().getPersona() != null) c.getUsuario().getPersona().getNombre();
@@ -234,6 +244,7 @@ public class TicketService {
                     if (c.getEstadoItem() != null) c.getEstadoItem().getNombre();
                     if (c.getEmpresa() != null) c.getEmpresa().getNombreComercial();
                 }
+                t.setComentarios(sortedComments);
             }
         }
 
@@ -777,41 +788,58 @@ public class TicketService {
                         return savedComentario;
                     }
 
-                    // 3. Normal Chatbot Logic
+                    // 3. Normal Chatbot Logic (GIRI)
                     boolean isBotAssigned = ticket.getUsuarioAsignado() != null && "SOPORTE_IA".equals(ticket.getUsuarioAsignado().getUsername());
                     String status = ticket.getEstadoItem() != null ? ticket.getEstadoItem().getCodigo() : "";
                     boolean canBotWork = !"REQUIERE_VISITA".equals(status) && !"CERRADO".equals(status);
 
-                    if (isClient && (noTechnician || isBotAssigned) && canBotWork && (esInterno == null || !esInterno) && !"SOPORTE_IA".equals(user.getUsername())) {
+                    // --- SECURITY GATE: Skip if the author IS already the bot to prevent infinite loops ---
+                    if ("SOPORTE_IA".equals(user.getUsername())) {
+                        System.out.println("[CHATBOT_LOG] Action ignored: Current user is the BOT. Skipping AI logic.");
+                        return savedComentario;
+                    }
+
+                    if (isClient && (noTechnician || isBotAssigned) && canBotWork && (esInterno == null || !esInterno)) {
                         User botUser = chatbotService.getOrCreateBotUser();
                         
                         // ASIGNACIÓN INICIAL: Assign the bot as technician as soon as chat starts
-                        ticket.setUsuarioAsignado(botUser);
-                        ticketRepository.save(ticket);
+                        if (noTechnician) {
+                            ticket.setUsuarioAsignado(botUser);
+                            ticketRepository.save(ticket);
+                        }
                         
                         // AUTO-CAMBIO DE ESTADO: Mover a EN_PROCESO cuando la IA empieza a interactuar
                         if ("ABIERTO".equals(status) || "ASIGNADO".equals(status)) {
                             this.updateTicketStatus(idTicket, botUser, "EN_PROCESO", "Giri (SOPORTE_IA) ha iniciado la sesión de soporte automatizado.");
                         }
                         
+                        // OBTENER RESPUESTA DE GEMINI
                         String aiResponse = chatbotService.getAiResponse(ticket, text);
                         
-                        if (!"ERROR: KEY_NOT_CONFIGURED".equals(aiResponse)) {
+                        if (aiResponse != null && !aiResponse.trim().isEmpty() && !"ERROR: KEY_NOT_CONFIGURED".equals(aiResponse)) {
                             boolean mustResolve = aiResponse.contains("[RESOLUCION_SOPORTE]");
-                            String cleanResponse = aiResponse.replace("[ESCALAR_FISICO]", "")
-                                                             .replace("[ESCALAR_HUMANO]", "")
-                                                             .replace("[RESOLUCION_SOPORTE]", "")
-                                                             .trim();
-                            this.addComment(idTicket, botUser, cleanResponse, false);
+                            
+                            // LIMPIEZA DE TAGS DE CONTROL: Evitamos que el cliente vea los tags internos de la IA
+                            String cleanResponse = aiResponse
+                                                    .replace("[ESCALAR_FISICO]", "")
+                                                    .replace("[ESCALAR_HUMANO]", "")
+                                                    .replace("[RESOLUCION_SOPORTE]", "")
+                                                    .trim();
+
+                            // PUBLICAR RESPUESTA DEL BOT
+                            if (!cleanResponse.isEmpty()) {
+                                System.out.println("[CHATBOT_LOG] Bot replying to user for Ticket #" + idTicket);
+                                this.addComment(idTicket, botUser, cleanResponse, false);
+                            }
 
                             if (mustResolve) {
-                                this.updateTicketStatus(idTicket, botUser, "RESUELTO", "RESOLUCIÓN IA: Resolución confirmada por el chatbot.");
+                                this.updateTicketStatus(idTicket, botUser, "RESUELTO", "RESOLUCIÓN IA: El chatbot considera el problema como resuelto.");
                             }
                         } else {
-                            System.err.println("[CHATBOT_LOG] Key not configured for Ticket #" + idTicket);
+                            System.err.println("[CHATBOT_LOG] No valid AI response or Key missing for Ticket #" + idTicket + ". Bot stays silent.");
                         }
                     } else if (noTechnician && isClient) {
-                         System.out.println("[CHATBOT_LOG] Skipping chatbot for internal comment or non-client user.");
+                         System.out.println("[CHATBOT_LOG] Skipping chatbot: Bot criteria not met for Ticket #" + idTicket);
                     }
                 } catch (Exception e) {
                     System.err.println("[CHATBOT_LOG] Error triggering AI Chatbot: " + e.getMessage());
@@ -824,7 +852,7 @@ public class TicketService {
                                 ? "Comentario interno agregado al ticket"
                                 : "Comentario visible al cliente agregado al ticket";
 
-                auditService.registrarEventoContextual(
+                auditService.registrarEvento(
                                 AuditModulo.TICKETS,
                                 "soporte", "comentario_ticket",
                                 savedComentario.getIdComentario(),
@@ -833,7 +861,8 @@ public class TicketService {
                                 null,
                                 java.util.Map.of(
                                                 "id_ticket", idTicket,
-                                                "es_interno", (esInterno != null && esInterno)));
+                                                "es_interno", (esInterno != null && esInterno)),
+                                user.getId()); // Pass the actual user ID (might be the Bot)
                 // ────────────────────────────────────────────────────────────────────
 
                 return savedComentario;
